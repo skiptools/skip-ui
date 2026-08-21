@@ -845,6 +845,28 @@ final class SkipUITests: SkipUITestCase {
         }
     }
 
+    // Reading a non-public `PreferenceKey` reflects its companion the same way a
+    // non-public `EnvironmentKey` does. Composing `.onPreferenceChange` for a private
+    // key must not throw `IllegalAccessException` (issue #243); the label renders only
+    // if composition completes without that crash.
+    func testCustomPreferenceKey() throws {
+        try testUI(view: {
+            PreferenceValueView()
+                .accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            try check(rule, id: "preference-label", hasText: "content")
+        })
+    }
+    struct PreferenceValueView: View {
+        var body: some View {
+            VStack {
+                Text("content")
+                    .accessibilityIdentifier("preference-label")
+            }
+            .onPreferenceChange(PreferenceTestKey.self) { _ in }
+        }
+    }
+
 //    func testObservability() throws {
 //        try testUI(view: {
 //            ObservablesOuterView()
@@ -1005,13 +1027,21 @@ extension SemanticsNode {
 #endif
 
 // Used in `testCustomEnvironmentValue`
-public struct EnvironmentValueTestKey: EnvironmentKey {
-    public static let defaultValue = "default"
+private struct EnvironmentValueTestKey: EnvironmentKey {
+    static let defaultValue = "default"
 }
 
 extension EnvironmentValues {
-    public var testValue: String {
+    fileprivate var testValue: String {
         get { self[EnvironmentValueTestKey.self] }
         set { self[EnvironmentValueTestKey.self] = newValue }
+    }
+}
+
+// Used in `testCustomPreferenceKey`; non-public to reproduce issue #243.
+private struct PreferenceTestKey: PreferenceKey {
+    static let defaultValue = "preferred"
+    static func reduce(value: inout String, nextValue: () -> String) {
+        value = nextValue()
     }
 }
