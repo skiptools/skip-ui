@@ -52,6 +52,15 @@ public struct Text: View, Renderable, Equatable {
     private let textView: _Text
     private let modifiedView: any View
 
+    #if SKIP
+    // Styling captured as *data* (alongside `modifiedView`) so that `Text + Text` concatenation can
+    // rebuild each operand's style as a Compose `SpanStyle`. The styling modifiers (`.foregroundColor`,
+    // `.font`, `.bold`, …) wrap `modifiedView` — used to render a standalone styled `Text` — *and*
+    // record into `capturedStyle`, because a styled `Text` applies its style as an environment modifier
+    // that cannot be read back out at render time to build per-run spans. Mirrors SkipSwiftUI's `Text`.
+    var capturedStyle = TextRunStyle()
+    #endif
+
     // SKIP @bridge
     public init(verbatim: String) {
         textView = _Text(verbatim: verbatim)
@@ -92,6 +101,46 @@ public struct Text: View, Renderable, Equatable {
         let locale = localeIdentifier == nil ? nil : Locale(identifier: localeIdentifier!)
         textView = _Text(key: LocalizedStringKey(stringInterpolation: interpolation), tableName: tableName, locale: locale, bundle: bridgedBundle as? Bundle)
         modifiedView = textView
+    }
+
+    // SKIP @bridge
+    public init(bridgedRuns runs: [any View], colors: [any View], fontSizes: [Double], fontWeights: [Int], flags: [Int]) {
+        #if SKIP
+        // SkipFuse captures the per-segment styling as data on the Swift side and bridges it across as
+        // primitive per-run descriptors. Fold those back into the same `[TextRun]` model the native
+        // `+` operator produces, so both runtimes render through the one `_Text`-with-runs path.
+        var builtRuns: [TextRun] = []
+        for i in 0..<runs.count {
+            let content = (runs[i] as? Text)?.textView ?? _Text(verbatim: "")
+            let flag = i < flags.count ? flags[i] : 0
+            var style = TextRunStyle()
+            if (flag & TextRunStyle.hasForegroundFlag) != 0, i < colors.count, let shapeStyle = colors[i] as? any ShapeStyle {
+                style.foreground = shapeStyle
+            }
+            if (flag & TextRunStyle.hasFontSizeFlag) != 0, i < fontSizes.count {
+                // A standalone point size bridges as a sized system font; the run inherits everything
+                // else (family, etc.) from the environment style unless a weight/design flag overrides it.
+                style.font = Font.system(size: fontSizes[i])
+            }
+            if (flag & TextRunStyle.hasFontWeightFlag) != 0, i < fontWeights.count {
+                // The bridge sends a Compose font weight (100...900); map back to a `Font.Weight` index.
+                style.fontWeight = Font.Weight(value: fontWeights[i] / 100 - 4)
+            }
+            style.italic = (flag & TextRunStyle.italicFlag) != 0
+            style.monospaced = (flag & TextRunStyle.monospacedFlag) != 0
+            style.underline = (flag & TextRunStyle.underlineFlag) != 0
+            style.strikethrough = (flag & TextRunStyle.strikethroughFlag) != 0
+            builtRuns.append(TextRun(content: content, style: style))
+        }
+        // The concatenation *is* a `_Text` carrying the runs (rendered by `_Text.Render`), with the
+        // joined plain text as a verbatim fallback (identity / accessibility). Both views are that text.
+        let concatenated = _Text(verbatim: builtRuns.map { $0.content.plainTextSeed }.joined(), runs: builtRuns)
+        textView = concatenated
+        modifiedView = concatenated
+        #else
+        textView = _Text(verbatim: "")
+        modifiedView = textView
+        #endif
     }
 
     init(textView: _Text, modifiedView: any View) {
@@ -177,6 +226,37 @@ public struct Text: View, Renderable, Equatable {
     public override func strip() -> Renderable {
         return modifiedView === textView ? self : Text(textView: textView, modifiedView: textView)
     }
+
+    /// The flattened styled runs that make up this text: the concatenation's runs if this is the result
+    /// of a `+`, otherwise this text treated as a single run carrying its `capturedStyle`.
+    var flattenedRuns: [TextRun] {
+        if let runs = textView.runs {
+            return runs
+        }
+        return [TextRun(content: textView, style: capturedStyle)]
+    }
+
+    /// Build a derived `Text` that wraps `modifiedView` while carrying this text's captured run styling
+    /// forward — so chained styling modifiers accumulate. `update` records the new modifier into the
+    /// carried `capturedStyle`. (`textView` — including a concatenation's runs — is preserved as-is.)
+    private func styled(_ modifiedView: any View, _ update: (inout TextRunStyle) -> Void = { _ in }) -> Text {
+        var text = Text(textView: textView, modifiedView: modifiedView)
+        text.capturedStyle = capturedStyle
+        update(&text.capturedStyle)
+        return text
+    }
+
+    // SKIP DECLARE: operator fun plus(other: Text): Text
+    /// Concatenate two `Text` values, preserving each operand's captured per-segment styling. This is
+    /// the Skip Lite (transpiled) entry point for `Text + Text`; SkipFuse reaches the same `[TextRun]`
+    /// model through `init(bridgedRuns:…)`. The result *is* a `_Text` carrying the runs, rendered by
+    /// `_Text.Render`; `verbatim` holds the joined plain text as a fallback (identity / accessibility).
+    public func plus(other: Text) -> Text {
+        let combined = flattenedRuns + other.flattenedRuns
+        let seed = combined.map { $0.content.plainTextSeed }.joined()
+        let concatenated = _Text(verbatim: seed, runs: combined)
+        return Text(textView: concatenated, modifiedView: concatenated)
+    }
     #else
     public var body: some View {
         stubView()
@@ -195,27 +275,51 @@ public struct Text: View, Renderable, Equatable {
     // Text-specific implementations of View modifiers
 
     public func accessibilityLabel(_ label: Text) -> Text {
+        #if SKIP
+        return styled(modifiedView.accessibilityLabel(label))
+        #else
         return Text(textView: textView, modifiedView: modifiedView.accessibilityLabel(label))
+        #endif
     }
 
     public func accessibilityLabel(_ label: String) -> Text {
+        #if SKIP
+        return styled(modifiedView.accessibilityLabel(label))
+        #else
         return Text(textView: textView, modifiedView: modifiedView.accessibilityLabel(label))
+        #endif
     }
 
     public func foregroundColor(_ color: Color?) -> Text {
+        #if SKIP
+        return styled(modifiedView.foregroundColor(color)) { $0.foreground = color }
+        #else
         return Text(textView: textView, modifiedView: modifiedView.foregroundColor(color))
+        #endif
     }
 
     public func foregroundStyle(_ style: any ShapeStyle) -> Text {
+        #if SKIP
+        return styled(modifiedView.foregroundStyle(style)) { $0.foreground = style }
+        #else
         return Text(textView: textView, modifiedView: modifiedView.foregroundStyle(style))
+        #endif
     }
 
     public func font(_ font: Font?) -> Text {
+        #if SKIP
+        return styled(modifiedView.font(font)) { $0.font = font }
+        #else
         return Text(textView: textView, modifiedView: modifiedView.font(font))
+        #endif
     }
 
     public func fontWeight(_ weight: Font.Weight?) -> Text {
+        #if SKIP
+        return styled(modifiedView.fontWeight(weight)) { $0.fontWeight = weight }
+        #else
         return Text(textView: textView, modifiedView: modifiedView.fontWeight(weight))
+        #endif
     }
 
     @available(*, unavailable)
@@ -224,19 +328,35 @@ public struct Text: View, Renderable, Equatable {
     }
 
     public func bold(_ isActive: Bool = true) -> Text {
+        #if SKIP
+        return styled(modifiedView.bold(isActive)) { $0.fontWeight = isActive ? Font.Weight.bold : nil }
+        #else
         return Text(textView: textView, modifiedView: modifiedView.bold(isActive))
+        #endif
     }
 
     public func italic(_ isActive: Bool = true) -> Text {
+        #if SKIP
+        return styled(modifiedView.italic(isActive)) { $0.italic = isActive }
+        #else
         return Text(textView: textView, modifiedView: modifiedView.italic(isActive))
+        #endif
     }
 
     public func monospaced(_ isActive: Bool = true) -> Text {
+        #if SKIP
+        return styled(modifiedView.monospaced(isActive)) { $0.monospaced = isActive }
+        #else
         return Text(textView: textView, modifiedView: modifiedView.monospaced(isActive))
+        #endif
     }
 
     public func fontDesign(_ design: Font.Design?) -> Text {
+        #if SKIP
+        return styled(modifiedView.fontDesign(design)) { $0.monospaced = (design == Font.Design.monospaced) }
+        #else
         return Text(textView: textView, modifiedView: modifiedView.fontDesign(design))
+        #endif
     }
 
     @available(*, unavailable)
@@ -245,11 +365,19 @@ public struct Text: View, Renderable, Equatable {
     }
 
     public func strikethrough(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> Text {
+        #if SKIP
+        return styled(modifiedView.strikethrough(isActive, pattern: pattern, color: color)) { $0.strikethrough = isActive }
+        #else
         return Text(textView: textView, modifiedView: modifiedView.strikethrough(isActive, pattern: pattern, color: color))
+        #endif
     }
 
     public func underline(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> Text {
+        #if SKIP
+        return styled(modifiedView.underline(isActive, pattern: pattern, color: color)) { $0.underline = isActive }
+        #else
         return Text(textView: textView, modifiedView: modifiedView.underline(isActive, pattern: pattern, color: color))
+        #endif
     }
 
     @available(*, unavailable)
@@ -258,7 +386,11 @@ public struct Text: View, Renderable, Equatable {
     }
 
     public func tracking(_ tracking: CGFloat) -> Text {
+        #if SKIP
+        return styled(modifiedView.tracking(tracking))
+        #else
         return Text(textView: textView, modifiedView: modifiedView.tracking(tracking))
+        #endif
     }
 
     @available(*, unavailable)
@@ -354,14 +486,19 @@ struct _Text: View, Renderable, Equatable {
     let tableName: String?
     let locale: Locale?
     let bundle: Bundle?
+    // Non-nil when this `_Text` is the result of a `Text + Text` concatenation: the ordered styled
+    // runs to fold into a single `AnnotatedString` in `Render`. `verbatim` then holds the joined
+    // plain text as an identity/measurement seed.
+    let runs: [TextRun]?
 
-    init(verbatim: String? = nil, attributedString: AttributedString? = nil, key: LocalizedStringKey? = nil, tableName: String? = nil, locale: Locale? = nil, bundle: Bundle? = nil) {
+    init(verbatim: String? = nil, attributedString: AttributedString? = nil, key: LocalizedStringKey? = nil, tableName: String? = nil, locale: Locale? = nil, bundle: Bundle? = nil, runs: [TextRun]? = nil) {
         self.verbatim = verbatim
         self.attributedString = attributedString
         self.key = key
         self.tableName = tableName
         self.locale = locale
         self.bundle = bundle
+        self.runs = runs
     }
 
     #if SKIP
@@ -372,6 +509,15 @@ struct _Text: View, Renderable, Equatable {
         } else {
             return locfmt
         }
+    }
+
+    /// A best-effort plain string for this text, used as the joined identity/measurement seed of a
+    /// `Text + Text` concatenation — the drawn content comes from the folded `runs`, not this seed.
+    var plainTextSeed: String {
+        if let verbatim { return verbatim }
+        if let attributedString { return attributedString.string }
+        if let key { return key.patternFormat }
+        return ""
     }
 
     @Composable private func localizedTextInfo() -> (String, MarkdownNode?, kotlin.collections.List<AnyHashable>?) {
@@ -391,7 +537,6 @@ struct _Text: View, Renderable, Equatable {
 
     // SKIP INSERT: @OptIn(ExperimentalTextApi::class)
     @Composable override func Render(context: ComposeContext) {
-        let (locfmt, locnode, interpolations) = localizedTextInfo()
         let textEnvironment = EnvironmentValues.shared._textEnvironment
         let textDecoration = textEnvironment.textDecoration
         let textAlign = EnvironmentValues.shared.multilineTextAlignment.asTextAlign()
@@ -408,6 +553,38 @@ struct _Text: View, Renderable, Equatable {
             modifier = modifier.applyHStackTextBaselineAlignment(EnvironmentValues.shared._horizontalStackVerticalAlignmentKey)
         }
         var options: Material3TextOptions
+        if let runs {
+            // Resolve each run's localized string, font base span, and foreground here in the
+            // @Composable scope (these accessors can't run inside the builder lambda), then fold them
+            // into one AnnotatedString and fall through to the SAME shared `material3.Text` render the
+            // Markdown path uses — so a bare concatenation lays out exactly like any other text.
+            var runStrings: [String] = []
+            var runBaseSpans: [SpanStyle?] = []
+            var runColors: [androidx.compose.ui.graphics.Color?] = []
+            var runBrushes: [Brush?] = []
+            for run in runs {
+                runStrings.append(run.content.localizedTextString())
+                // A `.font(...)` contributes the run's size/family; resolve it to a base span the
+                // builder can extend with the weight/italic/decoration overrides.
+                runBaseSpans.append(run.style.font?.asComposeTextStyle().toSpanStyle())
+                var resolvedColor: androidx.compose.ui.graphics.Color? = nil
+                var resolvedBrush: Brush? = nil
+                if let shapeStyle = run.style.foreground {
+                    if let color = shapeStyle.asColor(opacity: 1.0, animationContext: context) {
+                        resolvedColor = color
+                    } else {
+                        resolvedBrush = shapeStyle.asBrush(opacity: 1.0, animationContext: context)
+                    }
+                }
+                runColors.append(resolvedColor)
+                runBrushes.append(resolvedBrush)
+            }
+            let annotatedText = buildAnnotatedString {
+                appendRuns(to: self, runs: runs, strings: runStrings, baseSpans: runBaseSpans, resolvedColors: runColors, resolvedBrushes: runBrushes)
+            }
+            options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { _ in })
+        } else {
+        let (locfmt, locnode, interpolations) = localizedTextInfo()
         if let locnode {
             let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
             let isPlaceholder = redaction.contains(RedactionReasons.placeholder)
@@ -468,6 +645,7 @@ struct _Text: View, Renderable, Equatable {
                 text = text.lowercased()
             }
             options = Material3TextOptions(text: text, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
+        }
         }
         if let tracking = textEnvironment.tracking {
             options = options.copy(letterSpacing: tracking.sp)
@@ -590,11 +768,104 @@ struct _Text: View, Renderable, Equatable {
             appendChildren()
         }
     }
+
+    /// Append the styled runs to `builder`. Non-composable: strings, font base spans, and colors are
+    /// pre-resolved in `Render`'s runs branch. Each run starts from its `.font(...)` base span and
+    /// the remaining modifiers (weight, italic, monospaced, decorations, foreground) override on top.
+    private func appendRuns(to builder: AnnotatedString.Builder, runs: [TextRun], strings: [String], baseSpans: [SpanStyle?], resolvedColors: [androidx.compose.ui.graphics.Color?], resolvedBrushes: [Brush?]) {
+        for i in 0..<strings.count {
+            let style = runs[i].style
+            var decoration: TextDecoration? = nil
+            if style.underline, style.strikethrough {
+                decoration = TextDecoration.Underline + TextDecoration.LineThrough
+            } else if style.underline {
+                decoration = TextDecoration.Underline
+            } else if style.strikethrough {
+                decoration = TextDecoration.LineThrough
+            }
+            var span = baseSpans[i] ?? SpanStyle()
+            // `.fontWeight(_:)` / `.bold()` override the base font's weight; map the SwiftUI weight
+            // index (-3...5) to a Compose font weight (100...900).
+            if let weight = style.fontWeight {
+                span = span.copy(fontWeight: FontWeight((weight.value + 4) * 100))
+            }
+            if style.monospaced {
+                span = span.copy(fontFamily: FontFamily.Monospace)
+            }
+            if style.italic {
+                span = span.copy(fontStyle: FontStyle.Italic)
+            }
+            if let decoration {
+                span = span.copy(textDecoration: decoration)
+            }
+            if let brush = resolvedBrushes[i] {
+                // Gradient (or other non-color ShapeStyle) foreground.
+                span = span.copy(brush: brush)
+            } else if let color = resolvedColors[i] {
+                span = span.copy(color: color)
+            }
+            builder.pushStyle(span)
+            builder.append(strings[i])
+            builder.pop()
+        }
+    }
     #else
     var body: some View {
         stubView()
     }
     #endif
+}
+
+/// One styled segment of a concatenated `Text` (`Text + Text`): the base content plus the per-segment
+/// styling captured from the styling modifiers. Mirrors SkipSwiftUI's `TextRun`. A concatenation is
+/// rendered as a `_Text` carrying its `runs` (see `_Text.Render`), so it lays out like any other text.
+struct TextRun: Equatable {
+    let content: _Text
+    var style: TextRunStyle
+}
+
+/// Per-run styling captured from the `Text` styling modifiers, for `Text + Text` concatenation. Only
+/// attributes representable as a Compose `SpanStyle` are captured. The foreground is stored as whatever
+/// `ShapeStyle` was applied (`.foregroundColor` solid colors or `.foregroundStyle` gradients), resolved
+/// to a Compose color or brush at render time. Mirrors SkipSwiftUI's `TextRunStyle`.
+struct TextRunStyle: Equatable {
+    var foreground: (any ShapeStyle)? = nil
+    var font: Font? = nil
+    var fontWeight: Font.Weight? = nil
+    var italic = false
+    var monospaced = false
+    var underline = false
+    var strikethrough = false
+
+    // Per-run style bitmask used by the bridge (`Text.init(bridgedRuns:…)`). Kept in sync with
+    // SkipSwiftUI's Text run capture.
+    static let hasForegroundFlag = 1
+    static let hasFontSizeFlag = 2
+    static let hasFontWeightFlag = 4
+    static let italicFlag = 8
+    static let monospacedFlag = 16
+    static let underlineFlag = 32
+    static let strikethroughFlag = 64
+
+    static func ==(lhs: TextRunStyle, rhs: TextRunStyle) -> Bool {
+        // `foreground` is `any ShapeStyle` (not Equatable): compare the common `Color` case and
+        // otherwise fall back to "both nil" — conservative (may recompose) but never stale-equal.
+        let foregroundEqual: Bool
+        if lhs.foreground == nil, rhs.foreground == nil {
+            foregroundEqual = true
+        } else if let l = lhs.foreground as? Color, let r = rhs.foreground as? Color {
+            foregroundEqual = l == r
+        } else {
+            foregroundEqual = false
+        }
+        return foregroundEqual
+            && lhs.font == rhs.font
+            && lhs.fontWeight == rhs.fontWeight
+            && lhs.italic == rhs.italic
+            && lhs.monospaced == rhs.monospaced
+            && lhs.underline == rhs.underline
+            && lhs.strikethrough == rhs.strikethrough
+    }
 }
 
 public enum TextAlignment : Int, Hashable, CaseIterable {
