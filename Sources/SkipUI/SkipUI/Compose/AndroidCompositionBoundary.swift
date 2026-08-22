@@ -17,7 +17,11 @@ import java.util.UUID
 /// Think of the boundary as a separate hosting container. Keeping `id` stable preserves that
 /// container and its state. Changing `inputs` updates content inside the existing container;
 /// changing `id` disposes it and creates a new one. Change `inputs` whenever a value used to
-/// build `content` changes.
+/// build `content` changes. The boundary inherits the current composition locals.
+///
+/// This is a composition and lifecycle boundary, not a layout boundary. Constraints from the
+/// surrounding hierarchy continue to measure the retained host and child without changing their
+/// identity or rebuilding unchanged content.
 // SKIP @bridge
 public struct AndroidCompositionBoundary: View, Renderable {
     let id: String
@@ -123,6 +127,8 @@ extension View {
     /// inside the existing host; changing `id` disposes it and creates a new one. Non-Android
     /// platforms return the original view. Change `inputs` whenever a value used to build this
     /// view changes; the retained content remains unchanged while both arguments are unchanged.
+    /// The boundary inherits composition locals and remains transparent to parent measurement:
+    /// new constraints remeasure the same retained host and child.
     public func androidCompositionBoundary(id: String, inputs: String = "") -> some View {
         #if SKIP
         return AndroidCompositionBoundary(id: id, inputs: inputs, content: { self })

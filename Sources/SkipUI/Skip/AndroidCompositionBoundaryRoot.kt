@@ -15,6 +15,8 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
  * Android's default ComposeView path resolves a parent/view-tree/window composition context. This
  * helper is intentionally narrower: callers use it only for retained composition islands that
  * should inherit composition locals without being rebuilt for unrelated sibling composition work.
+ * The host remains layout-transparent: parent constraints continue to measure this ComposeView and
+ * its child without replacing the composition.
  */
 fun AndroidCompositionBoundaryComposeView(
     context: Context,

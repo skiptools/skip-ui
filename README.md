@@ -642,6 +642,8 @@ PlayerSurface(player: player)
 
 Keeping `id` stable preserves the hosted composition and its state. Changing `inputs` updates the content inside the existing host. Changing `id` disposes the old host and creates a new one. Treat `inputs` as a revision token and change it whenever any value used to build the retained content changes; content remains unchanged while both `id` and `inputs` are unchanged.
 
+The boundary inherits the current Compose composition locals, including SkipUI environment values. It is a composition and lifecycle boundary, not a layout boundary: modifiers and constraints outside the boundary continue to measure the same retained host and child. A size change therefore remeasures native-backed content without recreating or re-bridging it. If native content must keep fixed bounds, make that an explicit surrounding-layout decision rather than relying on the composition boundary.
+
 An Android composition boundary creates a separate Compose host, so it is heavier than `.androidEquatable(...)`. Prefer equality reuse for ordinary views and collection rows. Use a composition boundary when the subtree specifically needs retained hosting or lifecycle isolation.
 
 ## Supported SwiftUI
