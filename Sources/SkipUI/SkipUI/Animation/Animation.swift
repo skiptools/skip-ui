@@ -191,6 +191,11 @@ public struct Animation : Hashable {
     /// not animated sources, restoring Lite-equivalent strict snap semantics in Fuse.
     private static var bridgedProvenance = false
 
+    /// Holds the most recent non-nil bridge prime until an animatable consumer resolves.
+    /// A nil bridge prime can arrive before the modifier consumes the cursor; keeping this
+    /// one-shot value preserves the intended bridged animation provenance for that consumer.
+    private static var pendingBridgedProvenanceAnimation: Animation? = nil
+
     #endif
 
     /// Seed the read cursor for the next animatable-modifier call from a bridged (Skip Fuse)
@@ -206,9 +211,13 @@ public struct Animation : Hashable {
     public static func primeBridgedProvenance(_ animation: Animation?) {
         #if SKIP
         bridgedProvenance = true
-        StateTracking.clearReadCursor()
         if let animation {
+            pendingBridgedProvenanceAnimation = animation
+            StateTracking.clearReadCursor()
             StateTracking.recordRead(Transaction(animation: animation))
+        } else {
+            pendingBridgedProvenanceAnimation = nil
+            StateTracking.clearReadCursor()
         }
         #endif
     }
@@ -236,6 +245,7 @@ public struct Animation : Hashable {
         recentWithAnimationGeneration += 1
         bridgedComposition = false
         bridgedProvenance = false
+        pendingBridgedProvenanceAnimation = nil
         bridgeFrameStack.set(nil)
         StateTracking.resetForTesting()
     }
@@ -274,9 +284,18 @@ public struct Animation : Hashable {
     /// The explicit `.animation(_:)` environment override still wins over the transaction,
     /// matching SwiftUI's modifier-overrides-ambient-transaction semantics.
     @Composable static func current(isAnimating: Bool, animTx: StateMutationTransaction?) -> Animation? {
+        // A bridge prime belongs to exactly one animatable consumer. Consume it even when an
+        // environment animation or an explicit transaction wins, so it cannot leak to a later
+        // unrelated modifier.
+        let pendingAnimation = pendingBridgedProvenanceAnimation
+        pendingBridgedProvenanceAnimation = nil
+
         var ambient = EnvironmentValues.shared._animation
         if ambient == nil, let tx = animTx as? Transaction, !tx.disablesAnimations {
             ambient = tx.animation
+        }
+        if ambient == nil, animTx == nil, bridgedProvenance, let pendingAnimation {
+            ambient = pendingAnimation
         }
         if ambient == nil, animTx == nil, bridgedComposition, !bridgedProvenance {
             // Legacy SkipFuseUI (no native provenance): the marker is the only signal.
@@ -648,8 +667,11 @@ public enum AnimationCompletionCriteria : Hashable {
     let resetValue = rememberSaveable(stateSaver: context.stateSaver as Saver<T?, Any>) { mutableStateOf<T?>(nil) }
     let animatable = remember { Animatable(resetValue.value ?? value, converter) }
     let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
+    let isNewTarget = animatable.targetValue != value
     if isAnimating || animatable.value != value {
-        let animation = Animation.current(isAnimating: isAnimating, animTx: animTx)
+        // A new target with no provenance is a plain state write, so it must cancel any
+        // previous in-flight animation instead of inheriting the remembered animation.
+        let animation = Animation.current(isAnimating: isAnimating && !isNewTarget, animTx: animTx)
         LaunchedEffect(value, animation) {
             if let animation {
                 if animation.isInfinite {
@@ -677,6 +699,7 @@ extension Float {
     @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<Float, AnimationVector1D> {
         return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector1D($0) }, { $0.value }), context: context, animTx: animTx)
     }
+
 }
 
 extension Tuple2 where E0 == Float, E1 == Float {
@@ -689,6 +712,7 @@ extension Tuple2 where E0 == Float, E1 == Float {
     @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
         return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }), context: context, animTx: animTx)
     }
+
 }
 
 extension androidx.compose.ui.graphics.Color {
