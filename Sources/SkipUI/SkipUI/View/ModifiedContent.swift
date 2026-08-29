@@ -114,6 +114,50 @@ class RenderModifier: ModifierProtocol {
     }
 }
 
+/// The result of routing accessibility render modifiers to a native Compose
+/// control while preserving every other modifier for the SwiftUI content.
+struct AccessibilityModifierComposition {
+    let modifier: Modifier
+    let remainingModifiers: kotlin.collections.List<ModifierProtocol>
+}
+
+/// Composes every accessibility-role `RenderModifier` onto `modifier` in the
+/// same order as normal rendering, and returns the untouched remaining
+/// modifiers in their original outermost-first order.
+@Composable func composeAccessibilityModifiers(
+    for renderable: Renderable,
+    context: ComposeContext,
+    modifier: Modifier = Modifier
+) -> AccessibilityModifierComposition {
+    var accessibilityModifiers: [RenderModifier] = []
+    let remainingModifiers: kotlin.collections.MutableList<ModifierProtocol> =
+        mutableListOf()
+    let _: Bool? = renderable.forEachModifier { (candidate: ModifierProtocol) -> Bool? in
+        if
+            let renderModifier = candidate as? RenderModifier,
+            renderModifier.role == .accessibility
+        {
+            accessibilityModifiers.append(renderModifier)
+        } else {
+            remainingModifiers.add(candidate)
+        }
+        return nil
+    }
+
+    var composedModifier = modifier
+    for renderModifier in accessibilityModifiers.reversed() {
+        if let modifierAction = renderModifier.modifierAction {
+            var modifierContext = context
+            modifierContext.modifier = composedModifier
+            composedModifier = modifierAction(modifierContext)
+        }
+    }
+    return AccessibilityModifierComposition(
+        modifier: composedModifier,
+        remainingModifiers: remainingModifiers
+    )
+}
+
 /// A modifier that sets an environment value.
 class EnvironmentModifier: ModifierProtocol {
     let role: ModifierRole

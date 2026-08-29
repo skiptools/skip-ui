@@ -67,6 +67,8 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Path.Companion.combine
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -422,23 +424,43 @@ public final class List : View, Renderable {
         let badge = badgeModifier.badge
         let (isListItem, listItemAction) = item.shouldRenderListItem(context: context)
         if isListItem {
-            let actionModifier: Modifier
+            let rowModifier: Modifier
+            let rowContent: Renderable
+            let rowContentModifiers: kotlin.collections.List<ModifierProtocol>
             if let listItemAction {
                 let isDisabled = !EnvironmentValues.shared.isEnabled || item.forEachModifier { ($0 as? DisabledModifier)?.disabled } == true
-                actionModifier = Modifier.clickable(onClick: listItemAction, enabled: !isDisabled)
+                let baseModifier = Modifier.clickable(
+                    onClick: listItemAction,
+                    enabled: !isDisabled
+                ).then(modifier)
+                let accessibilityComposition = EnvironmentValues.shared.setValuesWithReturn({
+                    $0.setisEnabled(!isDisabled)
+                    return ComposeResult.ok
+                }, in: {
+                    return composeAccessibilityModifiers(
+                        for: item,
+                        context: context,
+                        modifier: baseModifier
+                    )
+                })
+                rowModifier = accessibilityComposition.modifier
+                rowContent = item.strip()
+                rowContentModifiers = accessibilityComposition.remainingModifiers
             } else {
-                actionModifier = Modifier
+                rowModifier = modifier
+                rowContent = item
+                rowContentModifiers = listOf()
             }
             if let badge {
-                Row(modifier: actionModifier.then(modifier), horizontalArrangement: Arrangement.SpaceBetween, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                Row(modifier: rowModifier, horizontalArrangement: Arrangement.SpaceBetween, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                     Box(modifier: Modifier.weight(Float(1.0)), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-                        item.RenderListItem(context: context, modifiers: listOf())
+                        rowContent.RenderListItem(context: context, modifiers: rowContentModifiers)
                     }
                     RenderBadge(badge: badge, prominence: badgeModifier.prominence ?? .standard, context: context)
                 }
             } else {
-                Box(modifier: actionModifier.then(modifier), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-                    item.RenderListItem(context: context, modifiers: listOf())
+                Box(modifier: rowModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                    rowContent.RenderListItem(context: context, modifiers: rowContentModifiers)
                 }
             }
         } else {
@@ -528,6 +550,8 @@ public final class List : View, Renderable {
         let leadingSwipe = swipeConfigs.leading
         let trailingSwipe = swipeConfigs.trailing
         let hasUserSwipe = leadingSwipe != nil || trailingSwipe != nil
+        let isEnabled = EnvironmentValues.shared.isEnabled &&
+            content.forEachModifier { ($0 as? DisabledModifier)?.disabled } != true
         let isDeleteEnabled = (editActions.contains(.delete) || onDelete != nil) && editActionsModifier.isDeleteDisabled != true
         let isMoveEnabled = (editActions.contains(.move) || onMove != nil) && editActionsModifier.isMoveDisabled != true
         guard isDeleteEnabled || isMoveEnabled || hasUserSwipe else {
@@ -556,7 +580,7 @@ public final class List : View, Renderable {
                 }
             } : nil
             itemContent = { rowModifier in
-                RenderSwipeableItem(content: content, level: level, context: context, modifier: rowModifier, styling: styling, leadingConfig: leadingSwipe, trailingConfig: trailingSwipe, rowKey: key, activeSwipeKey: activeSwipeKey, onDestructiveDelete: onDestructiveDelete)
+                RenderSwipeableItem(content: content, level: level, context: context, modifier: rowModifier, styling: styling, leadingConfig: leadingSwipe, trailingConfig: trailingSwipe, rowKey: key, activeSwipeKey: activeSwipeKey, isEnabled: isEnabled, onDestructiveDelete: onDestructiveDelete)
             }
         } else if isDeleteEnabled {
             let rememberedOnDelete = rememberUpdatedState({
@@ -608,7 +632,7 @@ public final class List : View, Renderable {
     /// The foreground row determines the cell's height; reveal buttons match it
     /// via `Modifier.matchParentSize()` so we never propagate unbounded height
     /// constraints up into the surrounding LazyColumn.
-    @Composable private func RenderSwipeableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, leadingConfig: SwipeActionsConfig?, trailingConfig: SwipeActionsConfig?, rowKey: String, activeSwipeKey: MutableState<String?>, onDestructiveDelete: (() -> Void)? = nil) {
+    @Composable private func RenderSwipeableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, leadingConfig: SwipeActionsConfig?, trailingConfig: SwipeActionsConfig?, rowKey: String, activeSwipeKey: MutableState<String?>, isEnabled: Bool, onDestructiveDelete: (() -> Void)? = nil) {
         let coroutineScope = rememberCoroutineScope()
 
         /* Extract Buttons and per-button .tint(_:) values from each edge's
@@ -701,6 +725,19 @@ public final class List : View, Renderable {
         let trailingNaturalState = remember { mutableFloatStateOf(Float(0)) }
         let leadingNaturalState = remember { mutableFloatStateOf(Float(0)) }
 
+        /* A disabled SwiftUI row owns no swipe interaction. Close an already
+           revealed row and clear its active key as soon as inherited enabled
+           state changes, while input and semantics are gated synchronously
+           below. */
+        LaunchedEffect(isEnabled) {
+            if isEnabled == false && anchoredState.currentValue != SwipeAnchor.closed {
+                anchoredState.snapTo(SwipeAnchor.closed)
+                if activeSwipeKey.value == rowKey {
+                    activeSwipeKey.value = nil
+                }
+            }
+        }
+
         /* When a *different* row's swipe opens, animate this row closed.
            Matches iOS list behavior of one open swipe at a time. */
         let currentlyOpen = activeSwipeKey.value
@@ -729,7 +766,14 @@ public final class List : View, Renderable {
            snap back to closed. */
         LaunchedEffect(anchoredState.settledValue) {
             let settled = anchoredState.settledValue
-            if settled == SwipeAnchor.trailingFull {
+            if isEnabled == false {
+                if settled != SwipeAnchor.closed {
+                    anchoredState.snapTo(SwipeAnchor.closed)
+                }
+                if activeSwipeKey.value == rowKey {
+                    activeSwipeKey.value = nil
+                }
+            } else if settled == SwipeAnchor.trailingFull {
                 if let action = trailingFullSwipeTarget?.action {
                     action()
                 }
@@ -811,7 +855,7 @@ public final class List : View, Renderable {
                                     continue
                                 }
                                 Box(modifier: Modifier.weight(weight).fillMaxHeight()) {
-                                    RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxSize(), context: context, tintOverride: leadingTintMap[button], onTap: {
+                                    RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxSize(), context: context, tintOverride: leadingTintMap[button], isEnabled: isEnabled, isAccessibilityVisible: isEnabled && revealedLeadingPx > Float(1), onTap: {
                                         button.action()
                                         if button.role == ButtonRole.destructive, let onDestructiveDelete {
                                             onDestructiveDelete()
@@ -826,7 +870,7 @@ public final class List : View, Renderable {
                     } else {
                         Row(modifier: Modifier.fillMaxHeight().wrapContentWidth().onSizeChanged { leadingNaturalState.value = Float($0.width) }) {
                             for button in leadingButtons {
-                                RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxHeight().widthIn(min: minButtonWidthDp), context: context, tintOverride: leadingTintMap[button], onTap: {
+                                RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxHeight().widthIn(min: minButtonWidthDp), context: context, tintOverride: leadingTintMap[button], isEnabled: isEnabled, isAccessibilityVisible: isEnabled && revealedLeadingPx > Float(1), onTap: {
                                     button.action()
                                     if button.role == ButtonRole.destructive, let onDestructiveDelete {
                                         onDestructiveDelete()
@@ -854,7 +898,7 @@ public final class List : View, Renderable {
                                     continue
                                 }
                                 Box(modifier: Modifier.weight(weight).fillMaxHeight()) {
-                                    RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxSize(), context: context, tintOverride: trailingTintMap[button], onTap: {
+                                    RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxSize(), context: context, tintOverride: trailingTintMap[button], isEnabled: isEnabled, isAccessibilityVisible: isEnabled && revealedTrailingPx > Float(1), onTap: {
                                         button.action()
                                         if button.role == ButtonRole.destructive, let onDestructiveDelete {
                                             onDestructiveDelete()
@@ -869,7 +913,7 @@ public final class List : View, Renderable {
                     } else {
                         Row(modifier: Modifier.fillMaxHeight().wrapContentWidth().onSizeChanged { trailingNaturalState.value = Float($0.width) }) {
                             for button in trailingButtons {
-                                RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxHeight().widthIn(min: minButtonWidthDp), context: context, tintOverride: trailingTintMap[button], onTap: {
+                                RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxHeight().widthIn(min: minButtonWidthDp), context: context, tintOverride: trailingTintMap[button], isEnabled: isEnabled, isAccessibilityVisible: isEnabled && revealedTrailingPx > Float(1), onTap: {
                                     button.action()
                                     if button.role == ButtonRole.destructive, let onDestructiveDelete {
                                         onDestructiveDelete()
@@ -926,7 +970,7 @@ public final class List : View, Renderable {
                     let o = anchoredState.offset
                     IntOffset(o.isNaN() ? 0 : o.toInt(), 0)
                 }
-                .anchoredDraggable(state: anchoredState, orientation: Orientation.Horizontal)
+                .anchoredDraggable(state: anchoredState, orientation: Orientation.Horizontal, enabled: isEnabled)
             ) {
                 RenderItem(content: content, level: level, context: context, styling: styling)
                 /* Subtle scrim that intensifies with swipe progress so the row
@@ -982,7 +1026,7 @@ public final class List : View, Renderable {
     /// stretch mode it's fillMaxSize() inside a weighted Box so the button
     /// expands with the row. Padding around the label keeps icon/text from
     /// touching the cell edges.
-    @Composable private func RenderSwipeRevealButton(button: Button, sizeModifier: Modifier, context: ComposeContext, tintOverride: Color? = nil, onTap: () -> Void) {
+    @Composable private func RenderSwipeRevealButton(button: Button, sizeModifier: Modifier, context: ComposeContext, tintOverride: Color? = nil, isEnabled: Bool, isAccessibilityVisible: Bool, onTap: () -> Void) {
         let backgroundColor: androidx.compose.ui.graphics.Color
         let contentColor: androidx.compose.ui.graphics.Color
         if button.role == ButtonRole.destructive {
@@ -1011,7 +1055,12 @@ public final class List : View, Renderable {
         Row(modifier: sizeModifier
             .clipToBounds()
             .background(backgroundColor)
-            .clickable(onClick: onTap)
+            .semantics {
+                if isAccessibilityVisible == false {
+                    hideFromAccessibility()
+                }
+            }
+            .clickable(onClick: onTap, enabled: isEnabled)
             .padding(horizontal: 12.dp, vertical: 8.dp),
             horizontalArrangement: Arrangement.Center,
             verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {

@@ -168,7 +168,10 @@ public final class Menu : View, Renderable {
             // `ModifiedContent`, not on `stripped`. Harvest them here so the
             // resulting Compose `DropdownMenuItem` carries the same test tag
             // and content description a regular Button would.
-            let itemModifier = accessibilityModifier(for: renderable, context: context)
+            let itemModifier = composeAccessibilityModifiers(
+                for: renderable,
+                context: context
+            ).modifier
             if let button = stripped as? Button {
                 let isSelected: Bool?
                 if let tagModifier = TagModifier.on(content: renderable, role: .tag) {
@@ -201,32 +204,6 @@ public final class Menu : View, Renderable {
                 renderable.Render(context: context)
             }
         }
-    }
-
-    /// Walks `renderable`'s modifier chain and composes the `Modifier`
-    /// transform from every `.accessibility`-role `RenderModifier` (i.e.
-    /// `.accessibilityIdentifier(_:)`, `.accessibilityLabel(_:)`, etc.) so
-    /// it can be applied to a raw Compose element. `forEachModifier` yields
-    /// outermost-first; we collect into a list and apply in reverse so the
-    /// outermost ends up wrapping the inner ones — matching how a normal
-    /// `Renderable.Render` would build the chain.
-    @Composable private static func accessibilityModifier(for renderable: Renderable, context: ComposeContext) -> Modifier {
-        var collected: [RenderModifier] = []
-        let _: Bool? = renderable.forEachModifier { (mod: ModifierProtocol) -> Bool? in
-            if let renderMod = mod as? RenderModifier, renderMod.role == .accessibility {
-                collected.append(renderMod)
-            }
-            return nil
-        }
-        var modifier: Modifier = Modifier
-        for renderMod in collected.reversed() {
-            if let modAction = renderMod.modifierAction {
-                var ctx = context
-                ctx.modifier = modifier
-                modifier = modAction(ctx)
-            }
-        }
-        return modifier
     }
 
     @Composable private static func RenderDropdownMenuItem(for view: ComposeBuilder, context: ComposeContext, modifier: Modifier = Modifier, tintColor: Color? = nil, isSelected: Bool? = nil, action: () -> Void) {

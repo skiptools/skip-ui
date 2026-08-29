@@ -75,6 +75,7 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsConfiguration
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
@@ -115,6 +116,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextInputSelection
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.performGesture
+import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.up
 import androidx.compose.ui.text.AnnotatedString
@@ -565,6 +567,315 @@ final class SkipUITests: SkipUITestCase {
                 }
                 .accessibilityIdentifier("menu.label")
             }
+        }
+    }
+
+    func testCategoryReorderActionsSurviveNavigationListSemanticsMerge() throws {
+        try testUI(view: {
+            CategoryReorderSemanticsTestView(isBusy: false)
+        }, eval: { rule in
+            #if SKIP
+            rule.onAllNodesWithTag("category.row.1")
+                .assertCountEquals(1)
+            rule.onAllNodesWithTag("category.row.1", useUnmergedTree: true)
+                .assertCountEquals(1)
+
+            let mergedRow = rule.onNodeWithTag("category.row.1")
+            mergedRow.assertHasClickAction()
+            let mergedNode = mergedRow.fetchSemanticsNode()
+            let mergedActions = mergedNode.config
+                .getOrNull(SemanticsActions.CustomActions)
+            XCTAssertEqual(
+                mergedActions?.map { $0.label },
+                listOf("Move Up", "Move Down", "Edit", "Archive")
+            )
+
+            let unmergedRow = rule
+                .onNodeWithTag("category.row.1", useUnmergedTree: true)
+                .fetchSemanticsNode()
+            XCTAssertEqual(mergedNode.id, unmergedRow.id)
+            XCTAssertNotNil(
+                unmergedRow.config.getOrNull(SemanticsActions.OnClick)
+            )
+            XCTAssertNil(
+                unmergedRow.parent?.config.getOrNull(SemanticsActions.OnClick)
+            )
+            let unmergedActions = unmergedRow.config
+                .getOrNull(SemanticsActions.CustomActions)
+            XCTAssertEqual(
+                unmergedActions?.map { $0.label },
+                listOf("Move Up", "Move Down", "Edit", "Archive")
+            )
+            #endif
+        })
+    }
+
+    func testCategoryReorderBoundaryFiltersOnlyUnavailableMove() throws {
+        try testUI(view: {
+            CategoryReorderSemanticsTestView(isBusy: false)
+        }, eval: { rule in
+            #if SKIP
+            rule.onAllNodesWithTag("category.row.0")
+                .assertCountEquals(1)
+            rule.onAllNodesWithTag("category.row.0", useUnmergedTree: true)
+                .assertCountEquals(1)
+
+            let mergedRow = rule.onNodeWithTag("category.row.0")
+            mergedRow.assertHasClickAction()
+            let mergedNode = mergedRow.fetchSemanticsNode()
+            let mergedActions = mergedNode.config
+                .getOrNull(SemanticsActions.CustomActions)
+            XCTAssertEqual(
+                mergedActions?.map { $0.label },
+                listOf("Move Down", "Edit", "Archive")
+            )
+
+            let unmergedRow = rule
+                .onNodeWithTag("category.row.0", useUnmergedTree: true)
+                .fetchSemanticsNode()
+            XCTAssertEqual(mergedNode.id, unmergedRow.id)
+            XCTAssertNotNil(
+                unmergedRow.config.getOrNull(SemanticsActions.OnClick)
+            )
+            XCTAssertNil(
+                unmergedRow.parent?.config.getOrNull(SemanticsActions.OnClick)
+            )
+            let unmergedActions = unmergedRow.config
+                .getOrNull(SemanticsActions.CustomActions)
+            XCTAssertEqual(
+                unmergedActions?.map { $0.label },
+                listOf("Move Down", "Edit", "Archive")
+            )
+            #endif
+        })
+    }
+
+    func testCategoryReorderBusyStateSuppressesMergedAndUnmergedActions() throws {
+        try testUI(view: {
+            CategoryReorderSemanticsTestView(isBusy: true)
+        }, eval: { rule in
+            #if SKIP
+            rule.onAllNodesWithTag("category.row.1")
+                .assertCountEquals(1)
+            rule.onAllNodesWithTag("category.row.1", useUnmergedTree: true)
+                .assertCountEquals(1)
+
+            let mergedNode = rule.onNodeWithTag("category.row.1")
+                .fetchSemanticsNode()
+            let mergedActions = mergedNode.config
+                .getOrNull(SemanticsActions.CustomActions)
+            XCTAssertTrue(mergedActions?.isEmpty() != false)
+
+            let unmergedRow = rule
+                .onNodeWithTag("category.row.1", useUnmergedTree: true)
+                .fetchSemanticsNode()
+            XCTAssertEqual(mergedNode.id, unmergedRow.id)
+            XCTAssertNil(
+                unmergedRow.parent?.config.getOrNull(SemanticsActions.OnClick)
+            )
+            let unmergedActions = unmergedRow.config
+                .getOrNull(SemanticsActions.CustomActions)
+            XCTAssertTrue(unmergedActions?.isEmpty() != false)
+
+            rule.onNodeWithTag("category.row.1")
+                .performTouchInput { swipeLeft() }
+            rule.waitForIdle()
+            rule.onNodeWithTag("category.swipe.archive.1").assertDoesNotExist()
+            rule.onNodeWithTag("category.swipe.edit.1").assertDoesNotExist()
+            rule.onAllNodesWithTag(
+                "category.swipe.archive.1",
+                useUnmergedTree: true
+            ).assertCountEquals(1)
+            rule.onAllNodesWithTag(
+                "category.swipe.edit.1",
+                useUnmergedTree: true
+            ).assertCountEquals(1)
+
+            let unmergedArchive = rule
+                .onNodeWithTag("category.swipe.archive.1", useUnmergedTree: true)
+                .fetchSemanticsNode()
+            XCTAssertNotNil(
+                unmergedArchive.parent?.config
+                    .getOrNull(SemanticsProperties.HideFromAccessibility)
+            )
+
+            let unmergedEdit = rule
+                .onNodeWithTag("category.swipe.edit.1", useUnmergedTree: true)
+                .fetchSemanticsNode()
+            XCTAssertNotNil(
+                unmergedEdit.parent?.config
+                    .getOrNull(SemanticsProperties.HideFromAccessibility)
+            )
+
+            try check(rule, id: "category.callback.count", hasText: "0")
+            #endif
+        })
+    }
+
+    func testCategoryReorderStatusAndClosedSwipeAccessibilitySemantics() throws {
+        try testUI(view: {
+            CategoryReorderSemanticsTestView(isBusy: false)
+        }, eval: { rule in
+            #if SKIP
+            let mode = rule.onNodeWithTag("category.reorder.status")
+                .fetchSemanticsNode().config.getOrNull(SemanticsProperties.LiveRegion)
+            XCTAssertEqual(mode, LiveRegionMode.Polite)
+
+            rule.onAllNodesWithTag("category.row.1")
+                .assertCountEquals(1)
+            rule.onAllNodesWithTag("category.row.1", useUnmergedTree: true)
+                .assertCountEquals(1)
+            let mergedNode = rule.onNodeWithTag("category.row.1")
+                .fetchSemanticsNode()
+            let unmergedRow = rule
+                .onNodeWithTag("category.row.1", useUnmergedTree: true)
+                .fetchSemanticsNode()
+            XCTAssertEqual(mergedNode.id, unmergedRow.id)
+            XCTAssertNotNil(
+                unmergedRow.config.getOrNull(SemanticsActions.OnClick)
+            )
+            XCTAssertNil(
+                unmergedRow.parent?.config.getOrNull(SemanticsActions.OnClick)
+            )
+
+            rule.onNodeWithTag("category.swipe.archive.1").assertDoesNotExist()
+            rule.onNodeWithTag("category.swipe.edit.1").assertDoesNotExist()
+            rule.onAllNodesWithTag(
+                "category.swipe.archive.1",
+                useUnmergedTree: true
+            ).assertCountEquals(1)
+            rule.onAllNodesWithTag(
+                "category.swipe.edit.1",
+                useUnmergedTree: true
+            ).assertCountEquals(1)
+
+            let unmergedArchive = rule
+                .onNodeWithTag("category.swipe.archive.1", useUnmergedTree: true)
+                .fetchSemanticsNode()
+            XCTAssertNotNil(
+                unmergedArchive.parent?.config
+                    .getOrNull(SemanticsProperties.HideFromAccessibility)
+            )
+
+            let unmergedEdit = rule
+                .onNodeWithTag("category.swipe.edit.1", useUnmergedTree: true)
+                .fetchSemanticsNode()
+            XCTAssertNotNil(
+                unmergedEdit.parent?.config
+                    .getOrNull(SemanticsProperties.HideFromAccessibility)
+            )
+
+            let mergedActions = mergedNode.config
+                .getOrNull(SemanticsActions.CustomActions)
+            XCTAssertEqual(
+                mergedActions?.map { $0.label },
+                listOf("Move Up", "Move Down", "Edit", "Archive")
+            )
+            let unmergedActions = unmergedRow.config
+                .getOrNull(SemanticsActions.CustomActions)
+            XCTAssertEqual(
+                unmergedActions?.map { $0.label },
+                listOf("Move Up", "Move Down", "Edit", "Archive")
+            )
+            #endif
+        })
+    }
+
+    struct CategoryReorderSemanticsItem: Identifiable, Equatable {
+        let id: Int
+        let title: String
+
+        static let samples = [
+            CategoryReorderSemanticsItem(id: 0, title: "Work"),
+            CategoryReorderSemanticsItem(id: 1, title: "Home"),
+            CategoryReorderSemanticsItem(id: 2, title: "Appointments")
+        ]
+    }
+
+    struct CategoryReorderSemanticsTestView: View {
+        @State var items = CategoryReorderSemanticsItem.samples
+        @State var callbackCount = 0
+        let isBusy: Bool
+
+        var body: some View {
+            NavigationStack {
+                List {
+                    ForEach(items) { item in
+                        categoryRow(item)
+                    }
+                    .onMove { source, destination in
+                        callbackCount += 1
+                        items.move(fromOffsets: source, toOffset: destination)
+                    }
+
+                    LabeledContent("Category update status") {
+                        #if SKIP
+                        Text("Ready")
+                            .accessibilityIdentifier("category.reorder.status")
+                            .accessibilityLiveRegion(.polite)
+                        #else
+                        Text("Ready")
+                        #endif
+                    }
+
+                    LabeledContent("Callback count") {
+                        Text("\(callbackCount)")
+                            .accessibilityIdentifier("category.callback.count")
+                    }
+                }
+            }
+        }
+
+        func categoryRow(_ item: CategoryReorderSemanticsItem) -> some View {
+            NavigationLink {
+                Text("\(item.title) category")
+            } label: {
+                Text(item.title)
+            }
+            .accessibilityIdentifier("category.row.\(item.id)")
+            .accessibilityActions {
+                Button("Move Up") {
+                    callbackCount += 1
+                }
+                .disabled(canMove(item, direction: -1) == false)
+
+                Button("Move Down") {
+                    callbackCount += 1
+                }
+                .disabled(canMove(item, direction: 1) == false)
+
+                Button("Edit") {
+                    callbackCount += 1
+                }
+
+                Button("Archive") {
+                    callbackCount += 1
+                }
+            }
+            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                Button {
+                    callbackCount += 1
+                } label: {
+                    Text("Archive")
+                        .accessibilityIdentifier("category.swipe.archive.\(item.id)")
+                }
+
+                Button {
+                    callbackCount += 1
+                } label: {
+                    Text("Edit")
+                        .accessibilityIdentifier("category.swipe.edit.\(item.id)")
+                }
+            }
+            .moveDisabled(isBusy)
+            .disabled(isBusy)
+        }
+
+        func canMove(_ item: CategoryReorderSemanticsItem, direction: Int) -> Bool {
+            guard let index = items.firstIndex(of: item) else {
+                return false
+            }
+            return items.indices.contains(index + direction)
         }
     }
   

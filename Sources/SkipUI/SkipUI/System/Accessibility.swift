@@ -3,9 +3,14 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.invisibleToUser
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.popup
 import androidx.compose.ui.semantics.role
@@ -163,14 +168,34 @@ extension View {
         #endif
     }
 
+    /// Marks changing content for a native accessibility announcement.
+    public func accessibilityLiveRegion(_ region: AccessibilityLiveRegion) -> some View {
+        #if SKIP
+        let mode = region == .assertive
+            ? LiveRegionMode.Assertive
+            : LiveRegionMode.Polite
+        return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
+            $0.modifier.semantics { liveRegion = mode }
+        })
+        #else
+        return self
+        #endif
+    }
+
     @available(*, unavailable)
     public func accessibilityAction(_ actionKind: AccessibilityActionKind = .default, _ handler: @escaping () -> Void) -> some View {
         return self
     }
 
-    @available(*, unavailable)
     public func accessibilityAction(named name: Text, _ handler: @escaping () -> Void) -> some View {
+        #if SKIP
+        return ModifiedContent(
+            content: self,
+            modifier: NamedAccessibilityActionModifier(name: name, handler: handler)
+        )
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -178,24 +203,27 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func accessibilityActions(@ViewBuilder _ content: () -> any View) -> some View {
+        #if SKIP
+        return ModifiedContent(
+            content: self,
+            modifier: AccessibilityActionsModifier(content: ComposeBuilder.from(content))
+        )
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
     public func accessibilityAction(named nameKey: LocalizedStringKey, _ handler: @escaping () -> Void) -> some View {
-        return self
+        return accessibilityAction(named: Text(nameKey), handler)
     }
 
-    @available(*, unavailable)
     public func accessibilityAction(named nameResource: LocalizedStringResource, _ handler: @escaping () -> Void) -> some View {
-        return self
+        return accessibilityAction(named: Text(nameResource), handler)
     }
 
-    @available(*, unavailable)
     public func accessibilityAction(named name: String, _ handler: @escaping () -> Void) -> some View {
-        return self
+        return accessibilityAction(named: Text(verbatim: name), handler)
     }
 
     @available(*, unavailable)
@@ -313,7 +341,7 @@ extension View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
             if isEnabled {
-                return $0.modifier.semantics { if hidden { invisibleToUser() } }
+                return $0.modifier.semantics { if hidden { hideFromAccessibility() } }
             } else {
                 return $0.modifier
             }
@@ -507,6 +535,82 @@ extension View {
     }
 }
 
+#if SKIP
+final class NamedAccessibilityActionModifier: RenderModifier {
+    init(name: Text, handler: @escaping () -> Void) {
+        super.init(role: .accessibility) { context in
+            guard EnvironmentValues.shared.isEnabled else {
+                return context.modifier
+            }
+            let title = name.localizedTextString()
+            return context.modifier.semantics {
+                customActions = listOf(CustomAccessibilityAction(
+                    label: title,
+                    action: {
+                        handler()
+                        return true
+                    }
+                ))
+            }
+        }
+    }
+}
+
+final class AccessibilityActionsModifier: RenderModifier {
+    init(content: ComposeBuilder) {
+        super.init(role: .accessibility) { context in
+            guard EnvironmentValues.shared.isEnabled else {
+                return context.modifier
+            }
+
+            let actions: kotlin.collections.MutableList<CustomAccessibilityAction> =
+                mutableListOf()
+            for renderable in content.Evaluate(context: context.content(), options: 0) {
+                guard
+                    renderable.forEachModifier({ ($0 as? DisabledModifier)?.disabled }) != true,
+                    let button = renderable.strip() as? Button,
+                    let title = Self.title(for: button, context: context)
+                else {
+                    continue
+                }
+                actions.add(CustomAccessibilityAction(
+                    label: title,
+                    action: {
+                        button.action()
+                        return true
+                    }
+                ))
+            }
+            guard actions.isEmpty() == false else {
+                return context.modifier
+            }
+            return context.modifier.semantics {
+                customActions = actions
+            }
+        }
+    }
+
+    @Composable private static func title(
+        for button: Button,
+        context: ComposeContext
+    ) -> String? {
+        let renderable = button.label.Evaluate(context: context.content(), options: 0)
+            .firstOrNull()?.strip()
+        if let text = renderable as? Text {
+            return text.localizedTextString()
+        }
+        if
+            let label = renderable as? Label,
+            let text = label.title.Evaluate(context: context.content(), options: 0)
+                .firstOrNull()?.strip() as? Text
+        {
+            return text.localizedTextString()
+        }
+        return nil
+    }
+}
+#endif
+
 public struct AccessibilityActionKind : Equatable {
     public static let `default` = AccessibilityActionKind()
     public static let escape = AccessibilityActionKind()
@@ -517,6 +621,11 @@ public struct AccessibilityActionKind : Equatable {
 
     private init() {
     }
+}
+
+public enum AccessibilityLiveRegion: Equatable {
+    case polite
+    case assertive
 }
 
 public enum AccessibilityAdjustmentDirection : Hashable {
