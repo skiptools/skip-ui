@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -97,9 +98,20 @@ public final class Table<ObjectType, ID> : View, Renderable where ObjectType: Id
             forceUnanimatedItems.value = false
         }
 
-        let shouldAnimateItems: @Composable () -> Bool = {
-            // We disable animation to prevent filtered items from animating when they return
-            !forceUnanimatedItems.value && EnvironmentValues.shared._searchableState?.isSearching.value != true
+        let shouldAnimateItems: @Composable (Bool) -> Bool = { suppressTextInputAnimation in
+            // Focused text inputs can conflict with LazyColumn placement animation and visibly lag behind scrolling.
+            !forceUnanimatedItems.value
+                && !suppressTextInputAnimation
+                && EnvironmentValues.shared._searchableState?.isSearching.value != true
+        }
+        let updateTextInputAnimationSuppression: @Composable (MutableState<Bool>, MutableState<Bool>) -> Void = { textInputFocused, suppressTextInputAnimation in
+            if listState.isScrollInProgress {
+                if textInputFocused.value {
+                    suppressTextInputAnimation.value = true
+                }
+            } else {
+                suppressTextInputAnimation.value = false
+            }
         }
 
         let key: (Int) -> String = { composeBundleString(for: data[$0].id) }
@@ -112,13 +124,29 @@ public final class Table<ObjectType, ID> : View, Renderable where ObjectType: Id
             }
             if !isCompact {
                 item {
-                    let animationModifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
-                    RenderHeadersRow(columnSpecs: columnSpecs, context: context, animationModifier: animationModifier)
+                    let textInputFocused = remember { mutableStateOf(false) }
+                    let suppressTextInputAnimation = remember { mutableStateOf(false) }
+                    updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
+                    let animationModifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
+                    EnvironmentValues.shared.setValues {
+                        $0.set_listItemTextInputFocused(textInputFocused)
+                        return ComposeResult.ok
+                    } in: {
+                        RenderHeadersRow(columnSpecs: columnSpecs, context: context, animationModifier: animationModifier)
+                    }
                 }
             }
             items(count: data.count, key: key) { index in
-                let animationModifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
-                RenderRow(columnSpecs: columnSpecs, index: index, context: context, isCompact: isCompact, animationModifier: animationModifier)
+                let textInputFocused = remember { mutableStateOf(false) }
+                let suppressTextInputAnimation = remember { mutableStateOf(false) }
+                updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
+                let animationModifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
+                EnvironmentValues.shared.setValues {
+                    $0.set_listItemTextInputFocused(textInputFocused)
+                    return ComposeResult.ok
+                } in: {
+                    RenderRow(columnSpecs: columnSpecs, index: index, context: context, isCompact: isCompact, animationModifier: animationModifier)
+                }
             }
             if footerSafeAreaHeight.value > 0.0 {
                 item {

@@ -744,6 +744,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_isSearching", value: newValue, defaultValue: { nil }) }
     }
 
+    var _listItemTextInputFocused: MutableState<Bool>? {
+        get { builtinValue(key: "_listItemTextInputFocused", defaultValue: { nil }) as! MutableState<Bool>? }
+        set { setBuiltinValue(key: "_listItemTextInputFocused", value: newValue, defaultValue: { nil }) }
+    }
+
     var _keyboardOptions: KeyboardOptions? {
         get { builtinValue(key: "_keyboardOptions", defaultValue: { nil }) as! KeyboardOptions? }
         set { setBuiltinValue(key: "_keyboardOptions", value: newValue, defaultValue: { nil }) }
