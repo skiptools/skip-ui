@@ -1025,7 +1025,11 @@ extension View {
 
             var updatedContext = context
             updatedContext.modifier = context.modifier.onGloballyPositionedInRoot { rect in
-                globalFramePx.value = rect
+                // Guard against sub-pixel jitter: the transform/action above reads this state,
+                // so unfiltered writes can recompose in a loop while the screen is idle
+                if !rect.isApproximatelyEqual(to: globalFramePx.value) {
+                    globalFramePx.value = rect
+                }
             }
             renderable.Render(context: updatedContext)
         })
