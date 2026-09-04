@@ -109,8 +109,13 @@ public struct VStack : View, Renderable {
                         } in: {
                             var lastWasText: Bool? = nil
                             var lastWasSpacer: Bool? = nil
-                            for renderable in renderables {
-                                (lastWasText, lastWasSpacer) = RenderSpaced(renderable: renderable, adaptiveSpacing: adaptiveSpacing, lastWasText: lastWasText, lastWasSpacer: lastWasSpacer, context: contentContext, layoutImplementationVersion: layoutImplementationVersion)
+                            let occurrences = mutableMapOf<Any, Int>()
+                            for index in 0..<renderables.size {
+                                let renderable = renderables[index]
+                                let key = childKey(for: renderable, index: index, occurrences: occurrences)
+                                androidx.compose.runtime.key(key) {
+                                    (lastWasText, lastWasSpacer) = RenderSpaced(renderable: renderable, adaptiveSpacing: adaptiveSpacing, lastWasText: lastWasText, lastWasSpacer: lastWasSpacer, context: contentContext, layoutImplementationVersion: layoutImplementationVersion)
+                                }
                             }
                         }
                     }
@@ -125,8 +130,13 @@ public struct VStack : View, Renderable {
                         } in: {
                             var lastWasText: Bool? = nil
                             var lastWasSpacer: Bool? = nil
-                            for renderable in renderables {
-                                (lastWasText, lastWasSpacer) = RenderSpaced(renderable: renderable, adaptiveSpacing: adaptiveSpacing, lastWasText: lastWasText, lastWasSpacer: lastWasSpacer, context: contentContext, layoutImplementationVersion: layoutImplementationVersion)
+                            let occurrences = mutableMapOf<Any, Int>()
+                            for index in 0..<renderables.size {
+                                let renderable = renderables[index]
+                                let key = childKey(for: renderable, index: index, occurrences: occurrences)
+                                androidx.compose.runtime.key(key) {
+                                    (lastWasText, lastWasSpacer) = RenderSpaced(renderable: renderable, adaptiveSpacing: adaptiveSpacing, lastWasText: lastWasText, lastWasSpacer: lastWasSpacer, context: contentContext, layoutImplementationVersion: layoutImplementationVersion)
+                                }
                             }
                         }
                     }
@@ -246,6 +256,18 @@ public struct VStack : View, Renderable {
         }
         renderable.Render(context: context)
         return (isText, isSpacer)
+    }
+
+    private func childKey(for renderable: Renderable, index: Int, occurrences: MutableMap<Any, Int>) -> Any {
+        if let forEachKey = ForEachIdentityModifier.key(for: renderable) {
+            return forEachKey
+        }
+        let identity: Any = TagModifier.on(content: renderable, role: .id)?.value
+            ?? TagModifier.on(content: renderable, role: .tag)?.value
+            ?? index
+        let occurrence = occurrences[identity] ?? 0
+        occurrences[identity] = occurrence + 1
+        return listOf(identity, occurrence)
     }
     #else
     public var body: some View {

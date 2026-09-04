@@ -236,6 +236,17 @@ final class TransactionTests: XCTestCase {
         #endif
     }
 
+    /// A nil prime after an animated prime still means this modifier was not animated.
+    func testPrimeBridgedProvenanceNilClearsPendingPrime() throws {
+        #if !SKIP
+        throw XCTSkip("primeBridgedProvenance is Android-only")
+        #else
+        Animation.primeBridgedProvenance(.linear(duration: 1))
+        Animation.primeBridgedProvenance(nil)
+        XCTAssertNil(StateTracking.captureLastReadAndClear(), "prime(nil) must clear a pending animated prime")
+        #endif
+    }
+
     /// Priming overwrites a stale cursor value rather than being dropped by first-read-wins.
     func testPrimeBridgedProvenanceOverwritesStaleCursor() throws {
         #if !SKIP
