@@ -5,6 +5,10 @@ import XCTest
 import OSLog
 import Foundation
 
+#if SKIP
+import androidx.compose.ui.test.onNodeWithTag
+#endif
+
 final class LayoutTests: XCSnapshotTestCase {
 
     func testRenderWhiteDot() throws {
@@ -629,15 +633,36 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testFrameMaxWidthRespectsParentBounds() throws {
-        // Skip on Android until the layout issue is fixed
-        // See: https://github.com/skiptools/skip-ui/issues/339
         #if SKIP
-        throw XCTSkip("Android: .frame(maxWidth:) may expand beyond parent bounds")
-        #endif
-        
-        // Create a black container (width: 12), put a white rectangle inside with
-        // maxWidth: 20 (larger than parent), and add a red border.
-        // Expected: The white rectangle should be constrained to width 12 (parent bounds).
+        let cases: [(parent: CGFloat, maximum: CGFloat, expected: CGFloat)] = [
+            (400.0, 680.0, 400.0),
+            (680.0, 680.0, 680.0),
+            (800.0, 680.0, 680.0),
+            (400.0, .infinity, 400.0),
+        ]
+
+        composeRule.setContent {
+            VStack(spacing: 0.0) {
+                ForEach(0..<cases.count, id: \.self) { index in
+                    Color.white
+                        .frame(maxWidth: cases[index].maximum, maxHeight: 40.0)
+                        .accessibilityIdentifier("frame-max-width-\(index)")
+                        .frame(width: cases[index].parent, height: 40.0)
+                }
+            }
+            .Compose(context: ComposeContext())
+        }
+        composeRule.waitForIdle()
+
+        for (index, testCase) in cases.enumerated() {
+            let measuredWidth = Double(composeRule
+                .onNodeWithTag("frame-max-width-\(index)")
+                .fetchSemanticsNode()
+                .boundsInRoot.width) / Double(composeRule.density.density)
+            XCTAssertEqual(measuredWidth, testCase.expected, accuracy: 0.5,
+                "parent: \(testCase.parent), maximum: \(testCase.maximum)")
+        }
+        #else
         XCTAssertEqual(try pixmap(content: ZStack {
             Color.black.frame(width: 12.0, height: 6.0)
             Color.white
@@ -651,6 +676,7 @@ final class LayoutTests: XCSnapshotTestCase {
         . . . . . . . . . . . .
         . . . . . . . . . . . .
         """)
+        #endif
     }
 
 }
