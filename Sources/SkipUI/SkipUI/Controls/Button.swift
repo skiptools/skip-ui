@@ -120,8 +120,7 @@ public struct Button : View, Renderable {
     }
 
     @Composable override func shouldRenderListItem(context: ComposeContext) -> (Bool, (() -> Void)?) {
-        let buttonStyle = EnvironmentValues.shared._buttonStyle
-        guard buttonStyle == nil || buttonStyle == .automatic || buttonStyle == .plain else {
+        guard Self.isListItemStyle(EnvironmentValues.shared._buttonStyle) else {
             return (false, nil)
         }
         return (true, action)
@@ -129,18 +128,25 @@ public struct Button : View, Renderable {
 
     @Composable override func RenderListItem(context: ComposeContext, modifiers: kotlin.collections.List<ModifierProtocol>) {
         ModifiedContent.RenderWithModifiers(modifiers, context: context) { context in
-            let style = EnvironmentValues.shared._buttonStyle
-            Self.RenderTextButton(label: label, context: context, isPlain: style == .plain, role: role)
+            let style = EnvironmentValues.shared._buttonStyle?.style
+            Self.RenderTextButton(label: label, context: context, isPlain: style is PlainButtonStyle, role: role)
         }
+    }
+
+    /// Whether buttons in the given style render as list items when placed in a `List`.
+    static func isListItemStyle(_ stackedStyle: StackedButtonStyle?) -> Bool {
+        let style = stackedStyle?.style
+        return style == nil || style is DefaultButtonStyle || style is PlainButtonStyle
     }
 
     /// Render a button in the current style.
     @Composable static func RenderButton(label: View, context: ComposeContext, role: ButtonRole? = nil, isEnabled: Bool = EnvironmentValues.shared.isEnabled, action: () -> Void) {
-        let buttonStyle = EnvironmentValues.shared._buttonStyle
+        let stackedStyle = EnvironmentValues.shared._buttonStyle
         let isHitTestingEnabled = EnvironmentValues.shared._isHitTestingEnabled
+        let buttonStyle = stackedStyle?.style
         ComposeContainer(modifier: context.modifier) { modifier in
             switch buttonStyle {
-            case .bordered:
+            case is BorderedButtonStyle:
                 let tint = role == .destructive ? Color(colorImpl: { MaterialTheme.colorScheme.error }) : EnvironmentValues.shared._tint
                 let colors: ButtonColors
                 if let tint {
@@ -168,7 +174,7 @@ public struct Button : View, Renderable {
                         label.Compose(context: contentContext)
                     }
                 }
-            case .borderedProminent:
+            case is BorderedProminentButtonStyle:
                 let tint = role == .destructive ? Color(colorImpl: { MaterialTheme.colorScheme.error }) : EnvironmentValues.shared._tint
                 let colors: ButtonColors
                 if let tint {
@@ -201,9 +207,9 @@ public struct Button : View, Renderable {
                         label.Compose(context: contentContext)
                     }
                 }
-            case .plain:
+            case is PlainButtonStyle:
                 RenderTextButton(label: label, context: context.content(modifier: modifier), role: role, isPlain: true, isEnabled: isEnabled, action: action)
-            case .m3Text:
+            case is M3TextButtonStyle:
                 RenderM3TextButton(label: label, context: context.content(modifier: modifier), role: role, isPlain: false, isEnabled: isEnabled, action: action)
             default:
                 RenderTextButton(label: label, context: context.content(modifier: modifier), role: role, isEnabled: isEnabled, action: action)
@@ -286,23 +292,17 @@ public struct Button : View, Renderable {
     #endif
 }
 
-public struct ButtonStyle: RawRepresentable, Equatable {
-    public let rawValue: Int
+/// A type that applies standard interaction behavior and a custom appearance to all buttons within a view hierarchy.
+///
+/// To configure the current button style for a view hierarchy, use the `buttonStyle(_:)` modifier.
+public protocol ButtonStyle {
+    typealias Configuration = ButtonStyleConfiguration
 
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
-    }
-
-    public static let automatic = ButtonStyle(rawValue: 0) // For bridging
-    public static let plain = ButtonStyle(rawValue: 1) // For bridging
-    public static let borderless = ButtonStyle(rawValue: 2) // For bridging
-    public static let bordered = ButtonStyle(rawValue: 3) // For bridging
-    public static let borderedProminent = ButtonStyle(rawValue: 4) // For bridging
-    public static let m3Text = ButtonStyle(rawValue: 7) // For bridging
-    @available(*, unavailable)
-    public static let glass = ButtonStyle(rawValue: 5) // For bridging
-    @available(*, unavailable)
-    public static let glassProminent = ButtonStyle(rawValue: 6) // For bridging
+    #if SKIP
+    @ViewBuilder @MainActor func makeBody(configuration: ButtonStyleConfiguration) -> any View
+    #else
+    func makeBody(configuration: ButtonStyleConfiguration) -> any View
+    #endif
 }
 
 /// The properties of a button.
@@ -504,7 +504,7 @@ public struct ButtonSizing : RawRepresentable, Hashable {
 }
 
 extension View {
-    public func buttonStyle(_ style: ButtonStyle) -> any View {
+    public func buttonStyle(_ style: any PrimitiveButtonStyle) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: ButtonStyleModifier(style: style))
         #else
@@ -512,7 +512,7 @@ extension View {
         #endif
     }
 
-    public func buttonStyle(_ style: any PrimitiveButtonStyle) -> any View {
+    public func buttonStyle(_ style: any ButtonStyle) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: ButtonStyleModifier(style: style))
         #else
@@ -522,7 +522,20 @@ extension View {
 
     // SKIP @bridge
     public func buttonStyle(bridgedStyle: Int) -> any View {
-        return buttonStyle(ButtonStyle(rawValue: bridgedStyle))
+        switch bridgedStyle {
+        case 1:
+            return buttonStyle(PlainButtonStyle())
+        case 2:
+            return buttonStyle(BorderlessButtonStyle())
+        case 3:
+            return buttonStyle(BorderedButtonStyle())
+        case 4:
+            return buttonStyle(BorderedProminentButtonStyle())
+        case 7:
+            return buttonStyle(M3TextButtonStyle())
+        default:
+            return buttonStyle(DefaultButtonStyle())
+        }
     }
 
     @available(*, unavailable)
@@ -582,13 +595,17 @@ final class StackedButtonStyle {
 }
 
 final class ButtonStyleModifier: EnvironmentModifier {
-    let style: ButtonStyle
+    let style: Any
 
-    init(style: ButtonStyle) {
+    init(style: Any) {
         self.style = style
         super.init()
         self.action = { environment in
-            environment.set_buttonStyle(style)
+            let parent = environment._buttonStyle
+            // Re-applying this modifier within its own scope must not make the style its own parent
+            if parent?.source !== self {
+                environment.set_buttonStyle(StackedButtonStyle(style: style, parent: parent, source: self))
+            }
             return ComposeResult.ok
         }
     }
