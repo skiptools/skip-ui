@@ -102,12 +102,12 @@ public struct ToggleStyle: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = ButtonStyle(rawValue: 0)
+    public static let automatic = ToggleStyle(rawValue: 0)
 
     @available(*, unavailable)
-    public static let button = ButtonStyle(rawValue: 1)
+    public static let button = ToggleStyle(rawValue: 1)
 
-    public static let `switch` = ButtonStyle(rawValue: 2)
+    public static let `switch` = ToggleStyle(rawValue: 2)
 }
 
 extension View {
