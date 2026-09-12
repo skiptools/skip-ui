@@ -563,6 +563,24 @@ extension View {
 }
 
 #if SKIP
+/// A button style set in the environment, along with the style that it overrides.
+final class StackedButtonStyle {
+    let style: Any
+    let parent: StackedButtonStyle?
+    let source: ButtonStyleModifier
+
+    init(style: Any, parent: StackedButtonStyle?, source: ButtonStyleModifier) {
+        self.style = style
+        self.parent = parent
+        self.source = source
+    }
+
+    /// Whether this is a built-in style, which renders natively rather than through `makeBody`.
+    var isBuiltin: Bool {
+        return style is DefaultButtonStyle || style is PlainButtonStyle || style is BorderlessButtonStyle || style is BorderedButtonStyle || style is BorderedProminentButtonStyle || style is M3TextButtonStyle
+    }
+}
+
 final class ButtonStyleModifier: EnvironmentModifier {
     let style: ButtonStyle
 
