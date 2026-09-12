@@ -12,10 +12,19 @@ let package = Package(
         .package(url: "https://github.com/skiptools/skip-model.git", from: "1.7.7"),
     ],
     targets: [
-        .target(name: "SkipUI", dependencies: [.product(name: "SkipModel", package: "skip-model")], plugins: [.plugin(name: "skipstone", package: "skip")]),
+        .target(name: "SkipUI", dependencies: [.product(name: "SkipModel", package: "skip-model")], swiftSettings: webSwiftSettings(), plugins: [.plugin(name: "skipstone", package: "skip")]),
         .testTarget(name: "SkipUITests", dependencies: ["SkipUI", .product(name: "SkipTest", package: "skip")], resources: [.process("Resources")], plugins: [.plugin(name: "skipstone", package: "skip")]),
     ]
 )
+
+private func webSwiftSettings() -> [SwiftSetting] {
+    Context.environment["SKIP_WEB"] == "1" ? [.define("SKIP_WEB")] : []
+}
+
+if Context.environment["SKIP_WEB"] == "1" {
+    package.products += [.library(name: "SwiftUI", targets: ["SwiftUI"])]
+    package.targets += [.target(name: "SwiftUI", dependencies: ["SkipUI"])]
+}
 
 if Context.environment["SKIP_BRIDGE"] ?? "0" != "0" {
     package.dependencies += [.package(url: "https://github.com/skiptools/skip-bridge.git", "0.0.0"..<"2.0.0")]

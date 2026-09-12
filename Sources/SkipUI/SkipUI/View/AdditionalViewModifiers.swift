@@ -612,6 +612,11 @@ extension View {
             let animatable = (Float(width ?? 0.0), Float(height ?? 0.0)).asAnimatable(context: context, animTx: animTx)
             FrameLayout(content: renderable, context: context, width: width == nil ? nil : Double(animatable.value.0), height: height == nil ? nil : Double(animatable.value.1), alignment: alignment)
         })
+        #elseif SKIP_WEB
+        var styles: [WebNode.Style: String] = [:]
+        if let width { styles[.width] = "\(width)px" }
+        if let height { styles[.height] = "\(height)px" }
+        return WebStyledView(content: self, styles: styles)
         #else
         return self
         #endif
@@ -627,6 +632,13 @@ extension View {
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             FrameLayout(content: renderable, context: context, minWidth: minWidth, idealWidth: idealWidth, maxWidth: maxWidth, minHeight: minHeight, idealHeight: idealHeight, maxHeight: maxHeight, alignment: alignment)
         })
+        #elseif SKIP_WEB
+        var styles: [WebNode.Style: String] = [:]
+        if let minWidth { styles[.minWidth] = "\(minWidth)px" }
+        if let maxWidth { styles[.maxWidth] = "\(maxWidth)px" }
+        if let minHeight { styles[.minHeight] = "\(minHeight)px" }
+        if let maxHeight { styles[.maxHeight] = "\(maxHeight)px" }
+        return WebStyledView(content: self, styles: styles)
         #else
         return self
         #endif
@@ -1133,6 +1145,13 @@ extension View {
     public func padding(_ insets: EdgeInsets) -> some View {
         #if SKIP
         return ModifiedContent(content: self, modifier: PaddingModifier(insets: insets))
+        #elseif SKIP_WEB
+        return WebStyledView(content: self, styles: [
+            .paddingTop: "\(insets.top)px",
+            .paddingLeading: "\(insets.leading)px",
+            .paddingBottom: "\(insets.bottom)px",
+            .paddingTrailing: "\(insets.trailing)px"
+        ])
         #else
         return self
         #endif

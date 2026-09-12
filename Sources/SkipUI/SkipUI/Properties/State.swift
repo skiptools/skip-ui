@@ -43,6 +43,9 @@ public final class State<Value>: StateTracker {
             }
             #endif
             _wrappedValue = newValue
+            #if SKIP_WEB
+            WebRuntime.invalidate()
+            #endif
             #if SKIP
             _wrappedValueState?.value = _wrappedValue
             #endif
