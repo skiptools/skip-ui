@@ -83,6 +83,11 @@ public struct Button : View, Renderable {
         self.init(role: role, action: action, label: { Self.defaultLabel(for: role) })
     }
 
+    /// Create a button from a `PrimitiveButtonStyle` configuration, rendered in the style that the current style overrides.
+    public init(_ configuration: PrimitiveButtonStyleConfiguration) {
+        self.init(role: configuration.role, action: { configuration.trigger() }, label: { configuration.label })
+    }
+
     // SKIP @bridge
     public init(bridgedRole: Int?, action: @escaping () -> Void, bridgedLabel: (any View)?) {
         self.role = bridgedRole == nil ? nil : ButtonRole(rawValue: bridgedRole!)
@@ -300,6 +305,177 @@ public struct ButtonStyle: RawRepresentable, Equatable {
     public static let glassProminent = ButtonStyle(rawValue: 6) // For bridging
 }
 
+/// The properties of a button.
+public struct ButtonStyleConfiguration {
+    /// A type-erased label of a button.
+    public struct Label : View {
+        let content: any View
+
+        init(content: any View) {
+            self.content = content
+        }
+
+        #if SKIP
+        @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+            return content.Evaluate(context: context, options: options)
+        }
+        #else
+        public var body: some View {
+            stubView()
+        }
+        #endif
+    }
+
+    public let role: ButtonRole?
+    public let label: ButtonStyleConfiguration.Label
+    public let isPressed: Bool
+
+    init(role: ButtonRole?, label: ButtonStyleConfiguration.Label, isPressed: Bool) {
+        self.role = role
+        self.label = label
+        self.isPressed = isPressed
+    }
+}
+
+/// The properties of a button.
+public struct PrimitiveButtonStyleConfiguration {
+    /// A type-erased label of a button.
+    public struct Label : View {
+        let content: any View
+
+        init(content: any View) {
+            self.content = content
+        }
+
+        #if SKIP
+        @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+            return content.Evaluate(context: context, options: options)
+        }
+        #else
+        public var body: some View {
+            stubView()
+        }
+        #endif
+    }
+
+    public let role: ButtonRole?
+    public let label: PrimitiveButtonStyleConfiguration.Label
+    let action: () -> Void
+
+    init(role: ButtonRole?, label: PrimitiveButtonStyleConfiguration.Label, action: @escaping () -> Void) {
+        self.role = role
+        self.label = label
+        self.action = action
+    }
+
+    public func trigger() {
+        action()
+    }
+}
+
+/// A type that applies custom interaction behavior and a custom appearance to all buttons within a view hierarchy.
+///
+/// The built-in styles such as `.bordered` conform to this protocol and render natively with Compose.
+public protocol PrimitiveButtonStyle {
+    typealias Configuration = PrimitiveButtonStyleConfiguration
+
+    #if SKIP
+    @ViewBuilder @MainActor func makeBody(configuration: PrimitiveButtonStyleConfiguration) -> any View
+    #else
+    func makeBody(configuration: PrimitiveButtonStyleConfiguration) -> any View
+    #endif
+}
+
+public struct DefaultButtonStyle : PrimitiveButtonStyle {
+    public init() {
+    }
+
+    public func makeBody(configuration: PrimitiveButtonStyleConfiguration) -> any View {
+        return Button(configuration).buttonStyle(self)
+    }
+}
+
+public struct PlainButtonStyle : PrimitiveButtonStyle {
+    public init() {
+    }
+
+    public func makeBody(configuration: PrimitiveButtonStyleConfiguration) -> any View {
+        return Button(configuration).buttonStyle(self)
+    }
+}
+
+public struct BorderlessButtonStyle : PrimitiveButtonStyle {
+    public init() {
+    }
+
+    public func makeBody(configuration: PrimitiveButtonStyleConfiguration) -> any View {
+        return Button(configuration).buttonStyle(self)
+    }
+}
+
+public struct BorderedButtonStyle : PrimitiveButtonStyle {
+    public init() {
+    }
+
+    public func makeBody(configuration: PrimitiveButtonStyleConfiguration) -> any View {
+        return Button(configuration).buttonStyle(self)
+    }
+}
+
+public struct BorderedProminentButtonStyle : PrimitiveButtonStyle {
+    public init() {
+    }
+
+    public func makeBody(configuration: PrimitiveButtonStyleConfiguration) -> any View {
+        return Button(configuration).buttonStyle(self)
+    }
+}
+
+public struct M3TextButtonStyle : PrimitiveButtonStyle {
+    public init() {
+    }
+
+    public func makeBody(configuration: PrimitiveButtonStyleConfiguration) -> any View {
+        return Button(configuration).buttonStyle(self)
+    }
+}
+
+extension PrimitiveButtonStyle where Self == DefaultButtonStyle {
+    public static var automatic: DefaultButtonStyle {
+        return DefaultButtonStyle()
+    }
+}
+
+extension PrimitiveButtonStyle where Self == PlainButtonStyle {
+    public static var plain: PlainButtonStyle {
+        return PlainButtonStyle()
+    }
+}
+
+extension PrimitiveButtonStyle where Self == BorderlessButtonStyle {
+    public static var borderless: BorderlessButtonStyle {
+        return BorderlessButtonStyle()
+    }
+}
+
+extension PrimitiveButtonStyle where Self == BorderedButtonStyle {
+    public static var bordered: BorderedButtonStyle {
+        return BorderedButtonStyle()
+    }
+}
+
+extension PrimitiveButtonStyle where Self == BorderedProminentButtonStyle {
+    public static var borderedProminent: BorderedProminentButtonStyle {
+        return BorderedProminentButtonStyle()
+    }
+}
+
+extension PrimitiveButtonStyle where Self == M3TextButtonStyle {
+    public static var m3Text: M3TextButtonStyle {
+        return M3TextButtonStyle()
+    }
+}
+
 public enum ButtonRepeatBehavior : Hashable {
     case automatic
     case enabled
@@ -329,6 +505,14 @@ public struct ButtonSizing : RawRepresentable, Hashable {
 
 extension View {
     public func buttonStyle(_ style: ButtonStyle) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: ButtonStyleModifier(style: style))
+        #else
+        return self
+        #endif
+    }
+
+    public func buttonStyle(_ style: any PrimitiveButtonStyle) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: ButtonStyleModifier(style: style))
         #else
