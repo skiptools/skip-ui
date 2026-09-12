@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 public struct ComposeBuilder: View {
     #if SKIP
     private let content: @Composable (ComposeContext) -> ComposeResult
+    #elseif SKIP_WEB
+    let webView: any View
     #endif
 
     /// If the result of the given block is a `ComposeBuilder` return it, else create a `ComposeBuilder` whose content is the
@@ -27,6 +29,8 @@ public struct ComposeBuilder: View {
         self.content = { context in
             return view.Compose(context: context)
         }
+        #elseif SKIP_WEB
+        self.webView = view
         #endif
     }
 
@@ -37,6 +41,8 @@ public struct ComposeBuilder: View {
             bridgedViews.forEach { $0.Compose(context: context) }
             return ComposeResult.ok
         }
+        #elseif SKIP_WEB
+        self.webView = WebTupleView(views: bridgedViews)
         #endif
     }
 

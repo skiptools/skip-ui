@@ -52,6 +52,18 @@ public struct Text: View, Renderable, Equatable {
     private let textView: _Text
     private let modifiedView: any View
 
+    #if SKIP_WEB
+    var webString: String {
+        if let verbatim = textView.verbatim {
+            return verbatim
+        }
+        if let attributedString = textView.attributedString {
+            return attributedString.description
+        }
+        return textView.key?.patternFormat ?? ""
+    }
+    #endif
+
     // SKIP @bridge
     public init(verbatim: String) {
         textView = _Text(verbatim: verbatim)
