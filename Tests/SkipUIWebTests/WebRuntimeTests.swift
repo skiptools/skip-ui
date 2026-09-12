@@ -1,7 +1,6 @@
 // Copyright 2026 Skip
 // SPDX-License-Identifier: MPL-2.0
 
-#if SKIP_WEB
 import XCTest
 @testable import SkipUI
 
@@ -42,6 +41,26 @@ final class WebRuntimeTests: XCTestCase {
 
         XCTAssertTrue(didTap)
         XCTAssertEqual(state.wrappedValue, "after")
+        XCTAssertEqual(node.children[1].value, "before")
+    }
+
+    func testStateBackedViewKeepsItsStorageWhenActionRuns() {
+        struct Counter: View {
+            @State private var count = 0
+
+            var currentCount: Int {
+                count
+            }
+
+            var body: some View {
+                Button("Increment") { count += 1 }
+            }
+        }
+
+        let counter = Counter()
+        let node = WebRenderer.render(counter)
+        node.activate?()
+
+        XCTAssertEqual(counter.currentCount, 1)
     }
 }
-#endif

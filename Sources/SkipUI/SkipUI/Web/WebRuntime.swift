@@ -130,7 +130,7 @@ public enum WebRenderer {
         if let field = view as? TextField {
             let node = WebNode(kind: .input)
             node.attributes[.type] = field.isSecure ? "password" : "text"
-            node.value = nil
+            node.value = field.text.wrappedValue
             node.attributes[.placeholder] = field.prompt?.webString
             node.input = field.text.set
             return node

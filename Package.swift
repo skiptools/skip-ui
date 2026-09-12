@@ -12,21 +12,35 @@ let package = Package(
         .package(url: "https://github.com/skiptools/skip-model.git", from: "1.7.7"),
     ],
     targets: [
-        .target(name: "SkipUI", dependencies: [.product(name: "SkipModel", package: "skip-model")], swiftSettings: webSwiftSettings(), plugins: [.plugin(name: "skipstone", package: "skip")]),
-        .testTarget(name: "SkipUITests", dependencies: ["SkipUI", .product(name: "SkipTest", package: "skip")], resources: [.process("Resources")], plugins: [.plugin(name: "skipstone", package: "skip")]),
+        .target(name: "SkipUI", dependencies: [.product(name: "SkipModel", package: "skip-model")], swiftSettings: webSwiftSettings(), plugins: skipPluginUsages()),
     ]
 )
 
-private func webSwiftSettings() -> [SwiftSetting] {
-    Context.environment["SKIP_WEB"] == "1" ? [.define("SKIP_WEB")] : []
+private enum BuildFlag: String {
+    case enabled = "1"
 }
 
-if Context.environment["SKIP_WEB"] == "1" {
+private func isEnabled(_ variable: String) -> Bool {
+    BuildFlag(rawValue: Context.environment[variable] ?? "") == .enabled
+}
+
+private func webSwiftSettings() -> [SwiftSetting] {
+    isEnabled("SKIP_WEB") ? [.define("SKIP_WEB")] : []
+}
+
+private func skipPluginUsages() -> [Target.PluginUsage] {
+    isEnabled("SKIP_WEB") ? [] : [.plugin(name: "skipstone", package: "skip")]
+}
+
+if isEnabled("SKIP_WEB") {
     package.products += [.library(name: "SwiftUI", targets: ["SwiftUI"])]
     package.targets += [.target(name: "SwiftUI", dependencies: ["SkipUI"])]
+    package.targets += [.testTarget(name: "SkipUIWebTests", dependencies: ["SkipUI"], path: "Tests/SkipUIWebTests")]
+} else {
+    package.targets += [.testTarget(name: "SkipUITests", dependencies: ["SkipUI", .product(name: "SkipTest", package: "skip")], resources: [.process("Resources")], plugins: skipPluginUsages())]
 }
 
-if Context.environment["SKIP_BRIDGE"] ?? "0" != "0" {
+if isEnabled("SKIP_BRIDGE") {
     package.dependencies += [.package(url: "https://github.com/skiptools/skip-bridge.git", "0.0.0"..<"2.0.0")]
     package.targets.forEach({ target in
         target.dependencies += [.product(name: "SkipBridge", package: "skip-bridge")]

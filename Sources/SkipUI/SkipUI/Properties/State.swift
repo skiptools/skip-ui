@@ -8,6 +8,9 @@ import androidx.compose.runtime.mutableStateOf
 #endif
 
 // Model State as a class rather than struct to mutate by reference and avoid copy overhead.
+#if SKIP_WEB
+@propertyWrapper
+#endif
 public final class State<Value>: StateTracker {
     public init(initialValue: Value) {
         _wrappedValue = initialValue
