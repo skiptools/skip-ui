@@ -6,6 +6,7 @@ import Foundation
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.RippleConfiguration
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 #elseif canImport(CoreGraphics)
@@ -143,6 +145,10 @@ public struct Button : View, Renderable {
     @Composable static func RenderButton(label: View, context: ComposeContext, role: ButtonRole? = nil, isEnabled: Bool = EnvironmentValues.shared.isEnabled, action: () -> Void) {
         let stackedStyle = EnvironmentValues.shared._buttonStyle
         let isHitTestingEnabled = EnvironmentValues.shared._isHitTestingEnabled
+        if let stackedStyle, !stackedStyle.isBuiltin {
+            RenderCustomStyleButton(stackedStyle: stackedStyle, label: label, context: context, role: role, isEnabled: isEnabled && isHitTestingEnabled, action: action)
+            return
+        }
         let buttonStyle = stackedStyle?.style
         ComposeContainer(modifier: context.modifier) { modifier in
             switch buttonStyle {
@@ -213,6 +219,54 @@ public struct Button : View, Renderable {
                 RenderM3TextButton(label: label, context: context.content(modifier: modifier), role: role, isPlain: false, isEnabled: isEnabled, action: action)
             default:
                 RenderTextButton(label: label, context: context.content(modifier: modifier), role: role, isEnabled: isEnabled, action: action)
+            }
+        }
+    }
+
+    /// Render a button whose appearance is created by a custom `ButtonStyle` or `PrimitiveButtonStyle`.
+    ///
+    /// The style body is composed with the style that this style overrides in the environment, so that any
+    /// `Button(configuration)` it creates renders in the next style out, matching SwiftUI.
+    ///
+    /// - Parameters:
+    ///   - isEnabled: Whether the button is both enabled and hit testable.
+    @Composable static func RenderCustomStyleButton(stackedStyle: StackedButtonStyle, label: View, context: ComposeContext, role: ButtonRole?, isEnabled: Bool, action: () -> Void) {
+        if let style = stackedStyle.style as? ButtonStyle {
+            let interactionSource = remember { MutableInteractionSource() }
+            let isPressed = interactionSource.collectIsPressedAsState()
+            let configuration = ButtonStyleConfiguration(role: role, label: ButtonStyleConfiguration.Label(content: label), isPressed: isPressed.value)
+            let body: any View
+            if let bridgedStyle = style as? BridgedButtonStyle {
+                body = bridgedStyle.makeBridgedBody(configuration: configuration)
+            } else {
+                body = style.makeBody(configuration: configuration)
+            }
+            ComposeContainer(modifier: context.modifier) { modifier in
+                let buttonModifier = modifier.clickable(interactionSource: interactionSource, indication: nil, enabled: isEnabled, role: androidx.compose.ui.semantics.Role.Button, onClick: action)
+                EnvironmentValues.shared.setValues {
+                    $0.set_buttonStyle(stackedStyle.parent)
+                    return ComposeResult.ok
+                } in: {
+                    body.Compose(context: context.content(modifier: buttonModifier))
+                }
+            }
+        } else if let style = stackedStyle.style as? PrimitiveButtonStyle {
+            let configuration = PrimitiveButtonStyleConfiguration(role: role, label: PrimitiveButtonStyleConfiguration.Label(content: label), action: {
+                if isEnabled {
+                    action()
+                }
+            })
+            let body: any View
+            if let bridgedStyle = style as? BridgedPrimitiveButtonStyle {
+                body = bridgedStyle.makeBridgedBody(configuration: configuration)
+            } else {
+                body = style.makeBody(configuration: configuration)
+            }
+            EnvironmentValues.shared.setValues {
+                $0.set_buttonStyle(stackedStyle.parent)
+                return ComposeResult.ok
+            } in: {
+                body.Compose(context: context)
             }
         }
     }
@@ -503,6 +557,32 @@ public struct ButtonSizing : RawRepresentable, Hashable {
     public static let fitted = ButtonSizing(rawValue: 2) // For bridging
 }
 
+/// The configuration of a button passed to a natively-compiled `ButtonStyle` or `PrimitiveButtonStyle`.
+// SKIP @bridgeMembers
+public struct ButtonStyleBridgedConfiguration {
+    public let label: any View
+    public let isPressed: Bool
+    public let bridgedRole: Int?
+    let action: () -> Void
+    let environmentSupports: [String: EnvironmentSupport]
+
+    init(label: any View, isPressed: Bool, bridgedRole: Int?, action: @escaping () -> Void, environmentSupports: [String: EnvironmentSupport]) {
+        self.label = label
+        self.isPressed = isPressed
+        self.bridgedRole = bridgedRole
+        self.action = action
+        self.environmentSupports = environmentSupports
+    }
+
+    public func trigger() {
+        action()
+    }
+
+    public func environmentSupport(forKey key: String) -> EnvironmentSupport? {
+        return environmentSupports[key]
+    }
+}
+
 extension View {
     public func buttonStyle(_ style: any PrimitiveButtonStyle) -> any View {
         #if SKIP
@@ -551,6 +631,25 @@ extension View {
     public func buttonSizing(_ sizing: ButtonSizing) -> any View {
         // We only support .automatic
         return self
+    }
+
+    /// Apply a natively-compiled `ButtonStyle` or `PrimitiveButtonStyle`.
+    ///
+    /// - Parameters:
+    ///   - isPrimitive: Whether the style is a `PrimitiveButtonStyle`, which handles its own interaction.
+    ///   - environmentKeys: The keys of the style's `@Environment` properties, which are read at each button's position.
+    ///   - bridgedMakeBody: Creates the style's body for a button configuration.
+    // SKIP @bridge
+    public func buttonStyle(isPrimitive: Bool, environmentKeys: [String], bridgedMakeBody: @escaping (ButtonStyleBridgedConfiguration) -> any View) -> any View {
+        #if SKIP
+        if isPrimitive {
+            return buttonStyle(BridgedPrimitiveButtonStyle(environmentKeys: environmentKeys, bridgedMakeBody: bridgedMakeBody))
+        } else {
+            return buttonStyle(BridgedButtonStyle(environmentKeys: environmentKeys, bridgedMakeBody: bridgedMakeBody))
+        }
+        #else
+        return self
+        #endif
     }
 
     #if SKIP
@@ -616,6 +715,64 @@ final class ButtonStyleModifier: EnvironmentModifier {
             return content.shouldRenderListItem(context: context)
         })
     }
+}
+
+/// A `ButtonStyle` whose body is created by natively-compiled Swift.
+final class BridgedButtonStyle : ButtonStyle {
+    let environmentKeys: [String]
+    let bridgedMakeBody: (ButtonStyleBridgedConfiguration) -> any View
+
+    init(environmentKeys: [String], bridgedMakeBody: @escaping (ButtonStyleBridgedConfiguration) -> any View) {
+        self.environmentKeys = environmentKeys
+        self.bridgedMakeBody = bridgedMakeBody
+    }
+
+    func makeBody(configuration: ButtonStyleConfiguration) -> any View {
+        return bridgedMakeBody(bridgedConfiguration(for: configuration, environmentSupports: [:]))
+    }
+
+    @Composable func makeBridgedBody(configuration: ButtonStyleConfiguration) -> any View {
+        let environmentSupports = bridgedEnvironmentSupports(forKeys: environmentKeys)
+        return bridgedMakeBody(bridgedConfiguration(for: configuration, environmentSupports: environmentSupports))
+    }
+
+    private func bridgedConfiguration(for configuration: ButtonStyleConfiguration, environmentSupports: [String: EnvironmentSupport]) -> ButtonStyleBridgedConfiguration {
+        return ButtonStyleBridgedConfiguration(label: configuration.label, isPressed: configuration.isPressed, bridgedRole: configuration.role?.rawValue, action: {}, environmentSupports: environmentSupports)
+    }
+}
+
+/// A `PrimitiveButtonStyle` whose body is created by natively-compiled Swift.
+final class BridgedPrimitiveButtonStyle : PrimitiveButtonStyle {
+    let environmentKeys: [String]
+    let bridgedMakeBody: (ButtonStyleBridgedConfiguration) -> any View
+
+    init(environmentKeys: [String], bridgedMakeBody: @escaping (ButtonStyleBridgedConfiguration) -> any View) {
+        self.environmentKeys = environmentKeys
+        self.bridgedMakeBody = bridgedMakeBody
+    }
+
+    func makeBody(configuration: PrimitiveButtonStyleConfiguration) -> any View {
+        return bridgedMakeBody(bridgedConfiguration(for: configuration, environmentSupports: [:]))
+    }
+
+    @Composable func makeBridgedBody(configuration: PrimitiveButtonStyleConfiguration) -> any View {
+        let environmentSupports = bridgedEnvironmentSupports(forKeys: environmentKeys)
+        return bridgedMakeBody(bridgedConfiguration(for: configuration, environmentSupports: environmentSupports))
+    }
+
+    private func bridgedConfiguration(for configuration: PrimitiveButtonStyleConfiguration, environmentSupports: [String: EnvironmentSupport]) -> ButtonStyleBridgedConfiguration {
+        return ButtonStyleBridgedConfiguration(label: configuration.label, isPressed: false, bridgedRole: configuration.role?.rawValue, action: configuration.action, environmentSupports: environmentSupports)
+    }
+}
+
+@Composable private func bridgedEnvironmentSupports(forKeys keys: [String]) -> [String: EnvironmentSupport] {
+    var environmentSupports: [String: EnvironmentSupport] = [:]
+    for key in keys {
+        if let environmentSupport = EnvironmentValues.shared.bridged(key: key) {
+            environmentSupports[key] = environmentSupport
+        }
+    }
+    return environmentSupports
 }
 
 public struct Material3ButtonOptions {
