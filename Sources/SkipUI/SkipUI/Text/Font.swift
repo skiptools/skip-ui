@@ -240,10 +240,11 @@ public struct Font : Hashable {
 
     public static func custom(_ name: String, size: CGFloat, relativeTo textStyle: Font.TextStyle) -> Font {
         #if SKIP
-        let systemFont = system(textStyle)
+        // size is the absolute point size at the default Dynamic Type level. Using sp units
+        // ensures it scales proportionally with Android's font size accessibility setting,
+        // which is the closest equivalent to Dynamic Type scaling on Android.
         return Font(fontImpl: {
-            let absoluteSize = systemFont.fontImpl().fontSize.value + size
-            androidx.compose.ui.text.TextStyle(fontFamily: Self.findNamedFont(name, ctx: LocalContext.current), fontSize: absoluteSize.sp)
+            androidx.compose.ui.text.TextStyle(fontFamily: Self.findNamedFont(name, ctx: LocalContext.current), fontSize: size.sp)
         })
         #else
         fatalError()
