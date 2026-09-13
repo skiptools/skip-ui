@@ -519,6 +519,8 @@ public struct Image : View, Renderable, Equatable {
         case "bookmark": return "Icons.Outlined.BookmarkBorder" //􀉞
         case "wrench": return "Icons.Outlined.Build" //􀎕
         case "phone": return "Icons.Outlined.Call" //􀌾
+        case "bubble": return "Icons.Outlined.ChatBubbleOutline" //􀌪
+        case "message": return "Icons.Outlined.Chat" //􀌤
         case "checkmark.circle": return "Icons.Outlined.CheckCircle" //􀁢
         case "checkmark": return "Icons.Outlined.Check" //􀆅
         case "xmark": return "Icons.Outlined.Clear" //􀆄
@@ -528,9 +530,11 @@ public struct Image : View, Renderable, Equatable {
         case "trash": return "Icons.Outlined.Delete" //􀈑
         case "envelope": return "Icons.Outlined.Email" //􀍕
         case "arrow.forward.square": return "Icons.Outlined.ExitToApp" //􀰔
+        case "safari": return "Icons.Outlined.Explore" //􀎬
         case "face.smiling": return "Icons.Outlined.Face" //􀎸
         case "heart": return "Icons.Outlined.FavoriteBorder" //􀊴
         case "heart.fill": return "Icons.Outlined.Favorite" //􀊵
+        case "exclamationmark.bubble": return "Icons.Outlined.Feedback" //􀌬
         case "house": return "Icons.Outlined.Home" //􀎞
         case "info.circle": return "Icons.Outlined.Info" //􀅴
         case "chevron.down": return "Icons.Outlined.KeyboardArrowDown" //􀆈
@@ -548,11 +552,13 @@ public struct Image : View, Renderable, Equatable {
         case "play": return "Icons.Outlined.PlayArrow" //􀊃
         case "camera.viewfinder": return "Icons.Outlined.QrCodeScanner"
         case "arrow.clockwise.circle": return "Icons.Outlined.Refresh" //􀚁
+        case "square.and.arrow.down": return "Icons.Outlined.SaveAlt" //􀈄
         case "magnifyingglass": return "Icons.Outlined.Search" //􀊫
         case "paperplane": return "Icons.Outlined.Send" //􀈟
         case "gearshape": return "Icons.Outlined.Settings" //􀣋
         case "square.and.arrow.up": return "Icons.Outlined.Share" //􀈂
         case "cart": return "Icons.Outlined.ShoppingCart" //􀍩
+        case "ellipsis.bubble": return "Icons.Outlined.Sms" //􀕺
         // #148 Icons.Outlined.Star is not actually outlined!
         // case "star": return "Icons.Outlined.Star" //􀋃
         case "hand.thumbsup": return "Icons.Outlined.ThumbUp" //􀉿
@@ -603,6 +609,8 @@ public struct Image : View, Renderable, Equatable {
         case "Icons.Outlined.BookmarkBorder": return Icons.Outlined.BookmarkBorder
         case "Icons.Outlined.Build": return Icons.Outlined.Build
         case "Icons.Outlined.Call": return Icons.Outlined.Call
+        case "Icons.Outlined.ChatBubbleOutline": return Icons.Outlined.ChatBubbleOutline
+        case "Icons.Outlined.Chat": return Icons.Outlined.Chat
         case "Icons.Outlined.CheckCircle": return Icons.Outlined.CheckCircle
         case "Icons.Outlined.Check": return Icons.Outlined.Check
         case "Icons.Outlined.Clear": return Icons.Outlined.Clear
@@ -615,9 +623,11 @@ public struct Image : View, Renderable, Equatable {
         case "Icons.Outlined.Edit": return Icons.Outlined.Edit
         case "Icons.Outlined.Email": return Icons.Outlined.Email
         case "Icons.Outlined.ExitToApp": return Icons.Outlined.ExitToApp // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.ExitToApp
+        case "Icons.Outlined.Explore": return Icons.Outlined.Explore
         case "Icons.Outlined.Face": return Icons.Outlined.Face
         case "Icons.Outlined.FavoriteBorder": return Icons.Outlined.FavoriteBorder
         case "Icons.Outlined.Favorite": return Icons.Outlined.Favorite
+        case "Icons.Outlined.Feedback": return Icons.Outlined.Feedback
         case "Icons.Outlined.Home": return Icons.Outlined.Home
         case "Icons.Outlined.Info": return Icons.Outlined.Info
         case "Icons.Outlined.KeyboardArrowDown": return Icons.Outlined.KeyboardArrowDown
@@ -637,11 +647,13 @@ public struct Image : View, Renderable, Equatable {
         case "Icons.Outlined.PlayArrow": return Icons.Outlined.PlayArrow
         case "Icons.Outlined.QrCodeScanner": return Icons.Outlined.QrCodeScanner
         case "Icons.Outlined.Refresh": return Icons.Outlined.Refresh
+        case "Icons.Outlined.SaveAlt": return Icons.Outlined.SaveAlt
         case "Icons.Outlined.Search": return Icons.Outlined.Search
         case "Icons.Outlined.Send": return Icons.Outlined.Send // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.Send
         case "Icons.Outlined.Settings": return Icons.Outlined.Settings
         case "Icons.Outlined.Share": return Icons.Outlined.Share
         case "Icons.Outlined.ShoppingCart": return Icons.Outlined.ShoppingCart
+        case "Icons.Outlined.Sms": return Icons.Outlined.Sms
         case "Icons.Outlined.Star": return Icons.Outlined.Star
         case "Icons.Outlined.ThumbUp": return Icons.Outlined.ThumbUp
         case "Icons.Outlined.Warning": return Icons.Outlined.Warning
