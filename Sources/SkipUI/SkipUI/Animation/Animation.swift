@@ -191,11 +191,6 @@ public struct Animation : Hashable {
     /// not animated sources, restoring Lite-equivalent strict snap semantics in Fuse.
     private static var bridgedProvenance = false
 
-    /// Holds the most recent non-nil bridge prime until an animatable consumer resolves.
-    /// A nil bridge prime can arrive before the modifier consumes the cursor; keeping this
-    /// one-shot value preserves the intended bridged animation provenance for that consumer.
-    private static var pendingBridgedProvenanceAnimation: Animation? = nil
-
     #endif
 
     /// Seed the read cursor for the next animatable-modifier call from a bridged (Skip Fuse)
@@ -211,13 +206,9 @@ public struct Animation : Hashable {
     public static func primeBridgedProvenance(_ animation: Animation?) {
         #if SKIP
         bridgedProvenance = true
+        StateTracking.clearReadCursor()
         if let animation {
-            pendingBridgedProvenanceAnimation = animation
-            StateTracking.clearReadCursor()
             StateTracking.recordRead(Transaction(animation: animation))
-        } else {
-            pendingBridgedProvenanceAnimation = nil
-            StateTracking.clearReadCursor()
         }
         #endif
     }
@@ -245,7 +236,6 @@ public struct Animation : Hashable {
         recentWithAnimationGeneration += 1
         bridgedComposition = false
         bridgedProvenance = false
-        pendingBridgedProvenanceAnimation = nil
         bridgeFrameStack.set(nil)
         StateTracking.resetForTesting()
     }
@@ -284,18 +274,11 @@ public struct Animation : Hashable {
     /// The explicit `.animation(_:)` environment override still wins over the transaction,
     /// matching SwiftUI's modifier-overrides-ambient-transaction semantics.
     @Composable static func current(isAnimating: Bool, animTx: StateMutationTransaction?) -> Animation? {
-        // A bridge prime belongs to exactly one animatable consumer. Consume it even when an
-        // environment animation or an explicit transaction wins, so it cannot leak to a later
-        // unrelated modifier.
-        let pendingAnimation = pendingBridgedProvenanceAnimation
-        pendingBridgedProvenanceAnimation = nil
-
+        // Bridged provenance is captured at modifier construction and travels in animTx.
+        // Rendering can occur in a different order, so a shared pending prime is not safe here.
         var ambient = EnvironmentValues.shared._animation
         if ambient == nil, let tx = animTx as? Transaction, !tx.disablesAnimations {
             ambient = tx.animation
-        }
-        if ambient == nil, animTx == nil, bridgedProvenance, let pendingAnimation {
-            ambient = pendingAnimation
         }
         if ambient == nil, animTx == nil, bridgedComposition, !bridgedProvenance {
             // Legacy SkipFuseUI (no native provenance): the marker is the only signal.

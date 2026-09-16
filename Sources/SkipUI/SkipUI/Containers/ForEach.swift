@@ -300,12 +300,16 @@ final class ForEachIdentityModifier: RenderModifier {
     }
 
     static func key(for renderable: Renderable) -> Any? {
-        return renderable.forEachModifier {
-            guard let identityModifier = $0 as? ForEachIdentityModifier else {
-                return nil
+        // Unrolled nested loops attach one modifier per level. Include every level so
+        // siblings from the same outer element retain distinct identities when reordered.
+        let identities = mutableListOf<Any>()
+        let _: Any? = renderable.forEachModifier { modifier in
+            if let identityModifier = modifier as? ForEachIdentityModifier {
+                identities.add(listOf(identityModifier.namespace, identityModifier.identity))
             }
-            return listOf(identityModifier.namespace, identityModifier.identity)
+            return nil
         }
+        return identities.isEmpty() ? nil : identities
     }
 }
 

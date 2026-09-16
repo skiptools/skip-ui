@@ -25,8 +25,8 @@ fun AndroidCompositionBoundaryComposeView(
 ): ComposeView {
     return ComposeView(context).apply {
         layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
         )
         setParentCompositionContext(parentCompositionContext)
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
