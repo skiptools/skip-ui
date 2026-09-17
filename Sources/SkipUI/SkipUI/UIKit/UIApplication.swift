@@ -145,6 +145,21 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         // We can't bridge the `showRationale` parameter async closure
         return await requestPermission(permission, showRationale: nil)
     }
+
+    /// Whether the system recommends showing a rationale before requesting the given permission.
+    ///
+    /// This is `false` both when the permission has never been requested and when it has been
+    /// permanently denied, so callers that need to distinguish those cases must combine it with
+    /// their own record of having asked.
+    /// - Parameter permission: the name of the permission, such as `android.permission.RECORD_AUDIO`
+    /// - Returns: true if a rationale should be shown before requesting the permission
+    // SKIP @bridge
+    public func shouldShowPermissionRationale(_ permission: String) -> Bool {
+        guard let activity = self.androidActivity else {
+            return false
+        }
+        return ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
+    }
     #endif
 
     @available(*, unavailable)
