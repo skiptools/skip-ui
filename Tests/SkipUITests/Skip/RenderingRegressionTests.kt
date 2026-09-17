@@ -19,6 +19,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Before
@@ -32,6 +34,82 @@ class RenderingRegressionTests {
 
     @Before fun resetAnimationProvenance() {
         Animation.resetRecentWithAnimationForTesting()
+    }
+
+    /** Returning evaluation must not subscribe the provider's restart scope to its own value. */
+    @Test fun freshBridgedEnvironmentSettlesAfterParentUpdate() {
+        val version = mutableStateOf(0)
+        var passes = 0
+        var observed: Any? = null
+        var provided = EnvironmentSupport(builtinValue = 0)
+        rule.setContent {
+            val currentVersion = version.value
+            passes++
+            // Bound a regression so waitForIdle completes and reports an assertion, not a hang.
+            if (passes < 32) provided = EnvironmentSupport(builtinValue = currentVersion)
+            val value = EnvironmentValues.shared.setValuesWithReturn({ environment ->
+                environment.setBridged("regression-fresh-environment", provided)
+                ComposeResult.ok
+            }, {
+                EnvironmentValues.shared.bridged("regression-fresh-environment")
+            })
+            SideEffect { observed = value?.builtinValue }
+        }
+        rule.runOnIdle { version.value = 1 }
+        rule.runOnIdle {
+            assertEquals("The changed environment must reach returning evaluation", 1, observed)
+            assertTrue("Provider must settle instead of invalidating itself: $passes passes", passes < 8)
+        }
+    }
+
+    /** A retained consumer must receive replacements even when its own parameters are unchanged. */
+    @Test fun bridgedEnvironmentUpdatesRetainedReader() {
+        val version = mutableStateOf(0)
+        var observed: Any? = null
+        val reader: (Any?) -> Unit = { observed = it }
+        rule.setContent {
+            val provided = EnvironmentSupport(builtinValue = version.value)
+            EnvironmentValues.shared.setValues({ environment ->
+                environment.setBridged("regression-retained-environment", provided)
+                ComposeResult.ok
+            }, {
+                ReadBridgedEnvironment("regression-retained-environment", reader)
+            })
+        }
+        rule.runOnIdle { assertEquals(0, observed); version.value = 1 }
+        rule.runOnIdle { assertEquals(1, observed) }
+    }
+
+    /** Nested overrides stay local and removing one reveals the latest outer value. */
+    @Test fun bridgedEnvironmentPreservesNestedScopeAndRemoval() {
+        val version = mutableStateOf(0)
+        val override = mutableStateOf(true)
+        var outer: Any? = null
+        var inner: Any? = null
+        var sibling: Any? = null
+        rule.setContent {
+            val provided = EnvironmentSupport(builtinValue = version.value)
+            EnvironmentValues.shared.setValues({ environment ->
+                environment.setBridged("regression-nested-environment", provided)
+                ComposeResult.ok
+            }, {
+                ReadBridgedEnvironment("regression-nested-environment") { outer = it }
+                if (override.value) {
+                    EnvironmentValues.shared.setValues({ environment ->
+                        environment.setBridged("regression-nested-environment", EnvironmentSupport(builtinValue = 99))
+                        ComposeResult.ok
+                    }, {
+                        ReadBridgedEnvironment("regression-nested-environment") { inner = it }
+                    })
+                } else {
+                    ReadBridgedEnvironment("regression-nested-environment") { inner = it }
+                }
+                ReadBridgedEnvironment("regression-nested-environment") { sibling = it }
+            })
+        }
+        rule.runOnIdle { assertEquals(0, outer); assertEquals(99, inner); assertEquals(0, sibling); version.value = 1 }
+        rule.runOnIdle { assertEquals(1, outer); assertEquals(99, inner); assertEquals(1, sibling); override.value = false }
+        rule.runOnIdle { assertEquals(1, inner) }
     }
 
     @Test fun plainConsumerDoesNotUseOtherConsumersPrime() {
@@ -107,6 +185,13 @@ class RenderingRegressionTests {
             }
         }
     }
+}
+
+/** A separate restart scope with stable arguments for environment propagation tests. */
+@Composable
+private fun ReadBridgedEnvironment(key: String, onValue: (Any?) -> Unit) {
+    val value = EnvironmentValues.shared.bridged(key)?.builtinValue
+    SideEffect { onValue(value) }
 }
 
 private class RenderingIdentityProbe(

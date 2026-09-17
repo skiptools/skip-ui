@@ -21,6 +21,7 @@ import androidx.compose.runtime.InternalComposeApi
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.currentComposer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -156,7 +157,17 @@ public final class EnvironmentValues {
 
     /// The Compose `CompositionLocal` for the given bridged key.
     public func bridgedCompositionLocal(key: String) -> ProvidableCompositionLocal<Any> {
-        return compositionLocal(key: key, defaultValue: { nil })
+        if let value = compositionLocals[key] {
+            return value
+        }
+        // Bridged custom values have opaque identity, not Swift value equality. Evaluation
+        // can read them in the same restart scope that provides a fresh wrapper each pass.
+        // A dynamic local would subscribe that provider to its own writes and loop. Static
+        // locals instead invalidate provider content when replaced, preserving propagation
+        // without recording that self-dependency. Builtin values keep their dynamic locals.
+        let value = staticCompositionLocalOf<Any> { Unit }
+        compositionLocals[key] = value
+        return value
     }
 
     func compositionLocal(key: AnyHashable, defaultValue: () -> Any?) -> ProvidableCompositionLocal<Any> {
