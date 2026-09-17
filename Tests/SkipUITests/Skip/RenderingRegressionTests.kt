@@ -62,6 +62,144 @@ class RenderingRegressionTests {
         }
     }
 
+    /** Changing an environment value must not invalidate siblings that never read it. */
+    @Test fun bridgedEnvironmentOnlyInvalidatesReaders() {
+        val version = mutableStateOf(0)
+        var observed: Any? = null
+        var unrelatedPasses = 0
+        val reader: (Any?) -> Unit = { observed = it }
+        val unrelated: () -> Unit = { unrelatedPasses++ }
+        val content: @Composable () -> Int = {
+            ReadBridgedEnvironment("regression-targeted-environment", reader)
+            CountUnrelatedComposition(unrelated)
+            0
+        }
+        rule.setContent {
+            val provided = EnvironmentSupport(builtinValue = version.value)
+            EnvironmentValues.shared.setValuesWithReturn({ environment ->
+                environment.setBridged("regression-targeted-environment", provided)
+                ComposeResult.ok
+            }, content)
+        }
+        var initialPasses = 0
+        rule.runOnIdle {
+            assertEquals(0, observed)
+            initialPasses = unrelatedPasses
+            version.value = 1
+        }
+        rule.runOnIdle {
+            assertEquals(1, observed)
+            assertEquals("A non-reader must remain skipped", initialPasses, unrelatedPasses)
+            version.value = 2
+        }
+        rule.runOnIdle {
+            assertEquals(2, observed)
+            assertEquals("Selective invalidation must survive another update", initialPasses, unrelatedPasses)
+        }
+    }
+
+    /** Suppressing a provider's self-read must not suppress other state reads in its content. */
+    @Test fun returningEnvironmentPreservesIndependentStateReads() {
+        val childState = mutableStateOf(0)
+        var observed = -1
+        var passes = 0
+        var provided = EnvironmentSupport(builtinValue = 10)
+        rule.setContent {
+            passes++
+            if (passes < 32) provided = EnvironmentSupport(builtinValue = 10)
+            val value = EnvironmentValues.shared.setValuesWithReturn({ environment ->
+                environment.setBridged("regression-independent-state", provided)
+                ComposeResult.ok
+            }, {
+                val environment = EnvironmentValues.shared.bridged("regression-independent-state")
+                (environment?.builtinValue as Int) + childState.value
+            })
+            SideEffect { observed = value }
+        }
+        rule.runOnIdle { assertEquals(10, observed); childState.value = 1 }
+        rule.runOnIdle {
+            assertEquals("An independent state read must remain observed", 11, observed)
+            assertTrue("The update must settle: $passes passes", passes < 8)
+        }
+    }
+
+    /** Returning evaluation must still observe values supplied by a different restart scope. */
+    @Test fun returningEnvironmentTracksInheritedValues() {
+        val version = mutableStateOf(0)
+        var observed: Any? = null
+        val reader: (Any?) -> Unit = { observed = it }
+        rule.setContent {
+            val provided = EnvironmentSupport(builtinValue = version.value)
+            EnvironmentValues.shared.setValuesWithReturn({ environment ->
+                environment.setBridged("regression-inherited-outer", provided)
+                ComposeResult.ok
+            }, {
+                ReadInheritedReturningEnvironment(reader)
+                0
+            })
+        }
+        rule.runOnIdle { assertEquals(0, observed); version.value = 1 }
+        rule.runOnIdle { assertEquals(1, observed); version.value = 2 }
+        rule.runOnIdle { assertEquals(2, observed) }
+    }
+
+    /** Leaving an override must restore observation of the ancestor's value of the same key. */
+    @Test fun returningEnvironmentRestoresInheritedReadTracking() {
+        val version = mutableStateOf(0)
+        var observed: Pair<Any?, Any?>? = null
+        val reader: (Pair<Any?, Any?>) -> Unit = { observed = it }
+        rule.setContent {
+            val provided = EnvironmentSupport(builtinValue = version.value)
+            EnvironmentValues.shared.setValuesWithReturn({ environment ->
+                environment.setBridged("regression-shadowed-environment", provided)
+                ComposeResult.ok
+            }, {
+                ReadShadowedReturningEnvironment(reader)
+                0
+            })
+        }
+        rule.runOnIdle { assertEquals(99 to 0, observed); version.value = 1 }
+        rule.runOnIdle { assertEquals(99 to 1, observed); version.value = 2 }
+        rule.runOnIdle { assertEquals(99 to 2, observed) }
+    }
+
+    /** Nested returning providers must restore the outer value and its ownership on exit. */
+    @Test fun returningEnvironmentRestoresNestedProvider() {
+        val version = mutableStateOf(0)
+        var observed: Triple<Any?, Any?, Any?>? = null
+        var passes = 0
+        var provided = EnvironmentSupport(builtinValue = 0)
+        var innerProvided = EnvironmentSupport(builtinValue = 99)
+        rule.setContent {
+            val currentVersion = version.value
+            passes++
+            if (passes < 32) {
+                provided = EnvironmentSupport(builtinValue = currentVersion)
+                innerProvided = EnvironmentSupport(builtinValue = 99)
+            }
+            val values = EnvironmentValues.shared.setValuesWithReturn({ environment ->
+                environment.setBridged("regression-returning-nested", provided)
+                ComposeResult.ok
+            }, {
+                val before = EnvironmentValues.shared.bridged("regression-returning-nested")?.builtinValue
+                val inner = EnvironmentValues.shared.setValuesWithReturn({ environment ->
+                    environment.setBridged("regression-returning-nested", innerProvided)
+                    ComposeResult.ok
+                }, {
+                    EnvironmentValues.shared.bridged("regression-returning-nested")?.builtinValue
+                })
+                val after = EnvironmentValues.shared.bridged("regression-returning-nested")?.builtinValue
+                Triple(before, inner, after)
+            })
+            SideEffect { observed = values }
+        }
+        rule.runOnIdle { assertEquals(Triple(0, 99, 0), observed); version.value = 1 }
+        rule.runOnIdle {
+            assertEquals(Triple(1, 99, 1), observed)
+            assertTrue("Nested returning providers must settle: $passes passes", passes < 8)
+        }
+    }
+
     /** A retained consumer must receive replacements even when its own parameters are unchanged. */
     @Test fun bridgedEnvironmentUpdatesRetainedReader() {
         val version = mutableStateOf(0)
@@ -192,6 +330,37 @@ class RenderingRegressionTests {
 private fun ReadBridgedEnvironment(key: String, onValue: (Any?) -> Unit) {
     val value = EnvironmentValues.shared.bridged(key)?.builtinValue
     SideEffect { onValue(value) }
+}
+
+/** A skippable sibling that records committed compositions without reading the environment. */
+@Composable
+private fun CountUnrelatedComposition(onCompose: () -> Unit) {
+    SideEffect(onCompose)
+}
+
+/** Read an inherited key from a returning provider in a distinct, independently restartable scope. */
+@Composable
+private fun ReadInheritedReturningEnvironment(onValue: (Any?) -> Unit) {
+    val value = EnvironmentValues.shared.setValuesWithReturn({ environment ->
+        environment.setBridged("regression-inherited-inner", EnvironmentSupport(builtinValue = 99))
+        ComposeResult.ok
+    }, {
+        EnvironmentValues.shared.bridged("regression-inherited-outer")?.builtinValue
+    })
+    SideEffect { onValue(value) }
+}
+
+/** Read a local override, then read the ancestor value after the override has left the scope. */
+@Composable
+private fun ReadShadowedReturningEnvironment(onValue: (Pair<Any?, Any?>) -> Unit) {
+    val shadow = EnvironmentValues.shared.setValuesWithReturn({ environment ->
+        environment.setBridged("regression-shadowed-environment", EnvironmentSupport(builtinValue = 99))
+        ComposeResult.ok
+    }, {
+        EnvironmentValues.shared.bridged("regression-shadowed-environment")?.builtinValue
+    })
+    val inherited = EnvironmentValues.shared.bridged("regression-shadowed-environment")?.builtinValue
+    SideEffect { onValue(shadow to inherited) }
 }
 
 private class RenderingIdentityProbe(

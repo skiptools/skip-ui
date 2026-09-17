@@ -21,7 +21,6 @@ import androidx.compose.runtime.InternalComposeApi
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.currentComposer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -109,12 +108,9 @@ public final class EnvironmentValues {
         }.toTypedArray()
         lastSetValues.clear()
 
-        // Note: this is an adaptation of the standard `CompositionLocalProvider(*provided)` function modified to return a value.
-        // This uses internal API
-        currentComposer.startProviders(provided)
-        let ret = content()
-        currentComposer.endProviders()
-        return ret
+        // Returning evaluation shares its caller's restart scope. Track which values it
+        // provides so bridged reads can avoid subscribing that scope to its own writes.
+        return WithReturningEnvironmentValues(provided, content: content)
     }
 
     // On set we populate our `lastSetValues` map, which our `setValues` function reads from and then clears after
@@ -132,7 +128,7 @@ public final class EnvironmentValues {
             return builtinValue
         }
         let compositionLocal = bridgedCompositionLocal(key: key)
-        let value = compositionLocal.current
+        let value = ReadBridgedEnvironmentValue(compositionLocal)
         return value == Unit ? nil : value as! EnvironmentSupport
     }
 
@@ -157,17 +153,7 @@ public final class EnvironmentValues {
 
     /// The Compose `CompositionLocal` for the given bridged key.
     public func bridgedCompositionLocal(key: String) -> ProvidableCompositionLocal<Any> {
-        if let value = compositionLocals[key] {
-            return value
-        }
-        // Bridged custom values have opaque identity, not Swift value equality. Evaluation
-        // can read them in the same restart scope that provides a fresh wrapper each pass.
-        // A dynamic local would subscribe that provider to its own writes and loop. Static
-        // locals instead invalidate provider content when replaced, preserving propagation
-        // without recording that self-dependency. Builtin values keep their dynamic locals.
-        let value = staticCompositionLocalOf<Any> { Unit }
-        compositionLocals[key] = value
-        return value
+        return compositionLocal(key: key, defaultValue: { nil })
     }
 
     func compositionLocal(key: AnyHashable, defaultValue: () -> Any?) -> ProvidableCompositionLocal<Any> {
