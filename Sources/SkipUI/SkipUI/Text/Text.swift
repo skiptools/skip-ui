@@ -52,14 +52,12 @@ public struct Text: View, Renderable, Equatable {
     private let textView: _Text
     private let modifiedView: any View
 
-    #if SKIP
     // Styling captured as *data* (alongside `modifiedView`) so that `Text + Text` concatenation can
     // rebuild each operand's style as a Compose `SpanStyle`. The styling modifiers (`.foregroundColor`,
     // `.font`, `.bold`, …) wrap `modifiedView` — used to render a standalone styled `Text` — *and*
     // record into `capturedStyle`, because a styled `Text` applies its style as an environment modifier
     // that cannot be read back out at render time to build per-run spans. Mirrors SkipSwiftUI's `Text`.
     var capturedStyle = TextRunStyle()
-    #endif
 
     // SKIP @bridge
     public init(verbatim: String) {
@@ -105,6 +103,8 @@ public struct Text: View, Renderable, Equatable {
 
     // SKIP @bridge
     public init(bridgedRuns runs: [any View], colors: [any View], fontSizes: [Double], fontWeights: [Int], flags: [Int]) {
+        // `plainTextSeed` below is `#if SKIP`-only because `AttributedString` is only SkipFoundation's
+        // type (with `.string`) under SKIP, so this initializer needs a non-SKIP branch to compile.
         #if SKIP
         // SkipFuse captures the per-segment styling as data on the Swift side and bridges it across as
         // primitive per-run descriptors. Fold those back into the same `[TextRun]` model the native
@@ -148,6 +148,16 @@ public struct Text: View, Renderable, Equatable {
         // Don't copy view
         // SKIP REPLACE: this.modifiedView = modifiedView
         self.modifiedView = modifiedView
+    }
+
+    /// Build a derived `Text` that wraps `modifiedView` while carrying this text's captured run styling
+    /// forward — so chained styling modifiers accumulate. `update` records the new modifier into the
+    /// carried `capturedStyle`. (`textView` — including a concatenation's runs — is preserved as-is.)
+    private func styled(_ modifiedView: any View, _ update: (inout TextRunStyle) -> Void = { _ in }) -> Text {
+        var text = Text(textView: textView, modifiedView: modifiedView)
+        text.capturedStyle = capturedStyle
+        update(&text.capturedStyle)
+        return text
     }
 
     #if SKIP
@@ -236,16 +246,6 @@ public struct Text: View, Renderable, Equatable {
         return [TextRun(content: textView, style: capturedStyle)]
     }
 
-    /// Build a derived `Text` that wraps `modifiedView` while carrying this text's captured run styling
-    /// forward — so chained styling modifiers accumulate. `update` records the new modifier into the
-    /// carried `capturedStyle`. (`textView` — including a concatenation's runs — is preserved as-is.)
-    private func styled(_ modifiedView: any View, _ update: (inout TextRunStyle) -> Void = { _ in }) -> Text {
-        var text = Text(textView: textView, modifiedView: modifiedView)
-        text.capturedStyle = capturedStyle
-        update(&text.capturedStyle)
-        return text
-    }
-
     // SKIP DECLARE: operator fun plus(other: Text): Text
     /// Concatenate two `Text` values, preserving each operand's captured per-segment styling. This is
     /// the Skip Lite (transpiled) entry point for `Text + Text`; SkipFuse reaches the same `[TextRun]`
@@ -275,51 +275,27 @@ public struct Text: View, Renderable, Equatable {
     // Text-specific implementations of View modifiers
 
     public func accessibilityLabel(_ label: Text) -> Text {
-        #if SKIP
         return styled(modifiedView.accessibilityLabel(label))
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.accessibilityLabel(label))
-        #endif
     }
 
     public func accessibilityLabel(_ label: String) -> Text {
-        #if SKIP
         return styled(modifiedView.accessibilityLabel(label))
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.accessibilityLabel(label))
-        #endif
     }
 
     public func foregroundColor(_ color: Color?) -> Text {
-        #if SKIP
         return styled(modifiedView.foregroundColor(color)) { $0.foreground = color }
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.foregroundColor(color))
-        #endif
     }
 
     public func foregroundStyle(_ style: any ShapeStyle) -> Text {
-        #if SKIP
         return styled(modifiedView.foregroundStyle(style)) { $0.foreground = style }
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.foregroundStyle(style))
-        #endif
     }
 
     public func font(_ font: Font?) -> Text {
-        #if SKIP
         return styled(modifiedView.font(font)) { $0.font = font }
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.font(font))
-        #endif
     }
 
     public func fontWeight(_ weight: Font.Weight?) -> Text {
-        #if SKIP
         return styled(modifiedView.fontWeight(weight)) { $0.fontWeight = weight }
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.fontWeight(weight))
-        #endif
     }
 
     @available(*, unavailable)
@@ -328,35 +304,19 @@ public struct Text: View, Renderable, Equatable {
     }
 
     public func bold(_ isActive: Bool = true) -> Text {
-        #if SKIP
         return styled(modifiedView.bold(isActive)) { $0.fontWeight = isActive ? Font.Weight.bold : nil }
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.bold(isActive))
-        #endif
     }
 
     public func italic(_ isActive: Bool = true) -> Text {
-        #if SKIP
         return styled(modifiedView.italic(isActive)) { $0.italic = isActive }
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.italic(isActive))
-        #endif
     }
 
     public func monospaced(_ isActive: Bool = true) -> Text {
-        #if SKIP
         return styled(modifiedView.monospaced(isActive)) { $0.monospaced = isActive }
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.monospaced(isActive))
-        #endif
     }
 
     public func fontDesign(_ design: Font.Design?) -> Text {
-        #if SKIP
         return styled(modifiedView.fontDesign(design)) { $0.monospaced = (design == Font.Design.monospaced) }
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.fontDesign(design))
-        #endif
     }
 
     @available(*, unavailable)
@@ -365,19 +325,11 @@ public struct Text: View, Renderable, Equatable {
     }
 
     public func strikethrough(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> Text {
-        #if SKIP
         return styled(modifiedView.strikethrough(isActive, pattern: pattern, color: color)) { $0.strikethrough = isActive }
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.strikethrough(isActive, pattern: pattern, color: color))
-        #endif
     }
 
     public func underline(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> Text {
-        #if SKIP
         return styled(modifiedView.underline(isActive, pattern: pattern, color: color)) { $0.underline = isActive }
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.underline(isActive, pattern: pattern, color: color))
-        #endif
     }
 
     @available(*, unavailable)
@@ -386,11 +338,7 @@ public struct Text: View, Renderable, Equatable {
     }
 
     public func tracking(_ tracking: CGFloat) -> Text {
-        #if SKIP
         return styled(modifiedView.tracking(tracking))
-        #else
-        return Text(textView: textView, modifiedView: modifiedView.tracking(tracking))
-        #endif
     }
 
     @available(*, unavailable)
