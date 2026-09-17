@@ -633,6 +633,33 @@ final class SkipUITests: SkipUITestCase {
         }
     }
 
+    func testSheetInheritsLocaleFromPresenter() throws {
+        #if !SKIP
+        throw XCTSkip("sheet content composes in a separate Android window")
+        #else
+        try testUI(view: {
+            SheetLocaleTestView()
+                .environment(\.locale, Locale(identifier: "fr"))
+                .accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            rule.waitForIdle()
+            rule.onAllNodesWithTag("sheet-text").onFirst().assert(hasTextExactly("Terminé"))
+        })
+        #endif
+    }
+
+    struct SheetLocaleTestView: View {
+        @State var isPresented = true
+
+        var body: some View {
+            Text(verbatim: "Sheet Host")
+                .sheet(isPresented: $isPresented) {
+                    Text("Done", bundle: .module)
+                        .accessibilityIdentifier("sheet-text")
+                }
+        }
+    }
+
     // look up a localized string in the current bundle using the given language
     func localizedBundle(_ lang: String) throws -> Bundle {
         try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: lang)).deletingLastPathComponent()))
