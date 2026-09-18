@@ -1086,7 +1086,7 @@ extension View {
         let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
             let animatable = Float(opacity).asAnimatable(context: context, animTx: animTx)
-            return context.modifier.graphicsLayer { alpha = animatable.value }
+            return context.modifier.then(OpacityModifier(opacity: animatable.value))
         })
         #else
         return self
