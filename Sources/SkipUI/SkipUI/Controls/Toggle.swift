@@ -62,7 +62,17 @@ public struct Toggle : View, Renderable {
         self.init(isOn: isOn, label: { Text(verbatim: title) })
     }
 
+    /// Create a toggle from a `ToggleStyle` configuration, rendered in the style that the current style overrides.
+    public init(_ configuration: ToggleStyleConfiguration) {
+        self.init(isOn: configuration.isOn, label: { configuration.label })
+    }
+
     @Composable override func Render(context: ComposeContext) {
+        let stackedStyle = EnvironmentValues.shared._toggleStyle
+        if let stackedStyle, !stackedStyle.isBuiltin {
+            Self.RenderCustomStyleToggle(stackedStyle: stackedStyle, isOn: isOn, label: label, context: context)
+            return
+        }
         let colors: SwitchColors
         if let tint = EnvironmentValues.shared._tint {
             let tintColor = tint.colorImpl()
@@ -88,6 +98,27 @@ public struct Toggle : View, Renderable {
             }
         }
     }
+
+    /// Render a toggle whose appearance is created by a custom `ToggleStyle`.
+    ///
+    /// The style body is composed with the style that this style overrides in the environment, so that any
+    /// `Toggle(configuration)` it creates renders in the next style out, matching SwiftUI.
+    @Composable static func RenderCustomStyleToggle(stackedStyle: StackedToggleStyle, isOn: Binding<Bool>, label: any View, context: ComposeContext) {
+        let style = stackedStyle.style as! ToggleStyle
+        let configuration = ToggleStyleConfiguration(label: ToggleStyleConfiguration.Label(content: label), isOn: isOn)
+        let body: any View
+        if let bridgedStyle = style as? BridgedToggleStyle {
+            body = bridgedStyle.makeBridgedBody(configuration: configuration)
+        } else {
+            body = style.makeBody(configuration: configuration)
+        }
+        EnvironmentValues.shared.setValues {
+            $0.set_toggleStyle(stackedStyle.parent)
+            return ComposeResult.ok
+        } in: {
+            body.Compose(context: context)
+        }
+    }
     #else
     public var body: some View {
         stubView()
@@ -95,175 +126,211 @@ public struct Toggle : View, Renderable {
     #endif
 }
 
-public struct ToggleStyle: RawRepresentable, Equatable {
-    public let rawValue: Int
+/// A type that applies standard interaction behavior and a custom appearance to all toggles within a view hierarchy.
+///
+/// To configure the current toggle style for a view hierarchy, use the `toggleStyle(_:)` modifier.
+public protocol ToggleStyle {
+    typealias Configuration = ToggleStyleConfiguration
 
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
+    #if SKIP
+    /// Creates a view that represents the body of a toggle.
+    @ViewBuilder @MainActor func makeBody(configuration: ToggleStyleConfiguration) -> any View
+    #else
+    func makeBody(configuration: ToggleStyleConfiguration) -> any View
+    #endif
+}
+
+/// The properties of a toggle.
+public struct ToggleStyleConfiguration {
+    /// A type-erased label of a toggle.
+    public struct Label : View {
+        let content: any View
+
+        init(content: any View) {
+            self.content = content
+        }
+
+        #if SKIP
+        @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+            return content.Evaluate(context: context, options: options)
+        }
+        #else
+        public var body: some View {
+            stubView()
+        }
+        #endif
     }
 
-    public static let automatic = ToggleStyle(rawValue: 0)
+    /// A view that describes the purpose of the toggle.
+    public let label: ToggleStyleConfiguration.Label
 
-    @available(*, unavailable)
-    public static let button = ToggleStyle(rawValue: 1)
+    /// A binding to a state property that indicates whether the toggle is on.
+    public let isOn: Binding<Bool>
 
-    public static let `switch` = ToggleStyle(rawValue: 2)
+    init(label: ToggleStyleConfiguration.Label, isOn: Binding<Bool>) {
+        self.label = label
+        self.isOn = isOn
+    }
+}
+
+public struct DefaultToggleStyle : ToggleStyle {
+    public init() {
+    }
+
+    public func makeBody(configuration: ToggleStyleConfiguration) -> any View {
+        return Toggle(configuration).toggleStyle(self)
+    }
+}
+
+public struct SwitchToggleStyle : ToggleStyle {
+    public init() {
+    }
+
+    public func makeBody(configuration: ToggleStyleConfiguration) -> any View {
+        return Toggle(configuration).toggleStyle(self)
+    }
+}
+
+extension ToggleStyle where Self == DefaultToggleStyle {
+    public static var automatic: DefaultToggleStyle {
+        return DefaultToggleStyle()
+    }
+}
+
+extension ToggleStyle where Self == SwitchToggleStyle {
+    public static var `switch`: SwitchToggleStyle {
+        return SwitchToggleStyle()
+    }
+}
+
+/// The configuration of a toggle passed to a natively-compiled `ToggleStyle`.
+// SKIP @bridgeMembers
+public struct ToggleStyleBridgedConfiguration {
+    public let label: any View
+    private let _getIsOn: () -> Bool
+    private let _setIsOn: (Bool) -> Void
+    let environmentSupports: [String: EnvironmentSupport]
+
+    init(label: any View, getIsOn: @escaping () -> Bool, setIsOn: @escaping (Bool) -> Void, environmentSupports: [String: EnvironmentSupport]) {
+        self.label = label
+        self._getIsOn = getIsOn
+        self._setIsOn = setIsOn
+        self.environmentSupports = environmentSupports
+    }
+
+    public func getIsOn() -> Bool {
+        return _getIsOn()
+    }
+
+    public func setIsOn(_ value: Bool) {
+        _setIsOn(value)
+    }
+
+    /// The environment value for the given key at the toggle's position, used to sync the style's `@Environment` properties.
+    public func environmentSupport(forKey key: String) -> EnvironmentSupport? {
+        return environmentSupports[key]
+    }
 }
 
 extension View {
-    public func toggleStyle(_ style: ToggleStyle) -> some View {
-        // We only support Android's Switch control
+    public func toggleStyle(_ style: any ToggleStyle) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: ToggleStyleModifier(style: style))
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func toggleStyle(bridgedStyle: Int) -> any View {
+        // Built-in toggle styles all render natively as the default switch
         return self
     }
+
+    /// Apply a natively-compiled `ToggleStyle`.
+    ///
+    /// - Parameters:
+    ///   - environmentKeys: The keys of the style's `@Environment` properties, which are read at each toggle's position.
+    ///   - bridgedMakeBody: Creates the style's body for a toggle configuration.
+    // SKIP @bridge
+    public func toggleStyle(environmentKeys: [String], bridgedMakeBody: @escaping (ToggleStyleBridgedConfiguration) -> any View) -> any View {
+        #if SKIP
+        return toggleStyle(BridgedToggleStyle(environmentKeys: environmentKeys, bridgedMakeBody: bridgedMakeBody))
+        #else
+        return self
+        #endif
+    }
 }
 
-/*
-//@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-//extension Toggle where Label == ToggleStyleConfiguration.Label {
+#if SKIP
+/// A toggle style set in the environment, along with the style that it overrides.
+final class StackedToggleStyle {
+    let style: Any
+    let parent: StackedToggleStyle?
+    let source: ToggleStyleModifier
 
-    /// Creates a toggle based on a toggle style configuration.
-    ///
-    /// You can use this initializer within the
-    /// ``ToggleStyle/makeBody(configuration:)`` method of a ``ToggleStyle`` to
-    /// create an instance of the styled toggle. This is useful for custom
-    /// toggle styles that only modify the current toggle style, as opposed to
-    /// implementing a brand new style.
-    ///
-    /// For example, the following style adds a red border around the toggle,
-    /// but otherwise preserves the toggle's current style:
-    ///
-    ///     struct RedBorderToggleStyle: ToggleStyle {
-    ///         func makeBody(configuration: Configuration) -> some View {
-    ///             Toggle(configuration)
-    ///                 .padding()
-    ///                 .border(.red)
-    ///         }
-    ///     }
-    ///
-    /// - Parameter configuration: The properties of the toggle, including a
-    ///   label and a binding to the toggle's state.
-//    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-//    public init(_ configuration: ToggleStyleConfiguration) { fatalError() }
-//}
-
-/// The properties of a toggle instance.
-///
-/// When you define a custom toggle style by creating a type that conforms to
-/// the ``ToggleStyle`` protocol, you implement the
-/// ``ToggleStyle/makeBody(configuration:)`` method. That method takes a
-/// `ToggleStyleConfiguration` input that has the information you need
-/// to define the behavior and appearance of a ``Toggle``.
-///
-/// The configuration structure's ``label-swift.property`` reflects the
-/// toggle's content, which might be the value that you supply to the
-/// `label` parameter of the ``Toggle/init(isOn:label:)`` initializer.
-/// Alternatively, it could be another view that SkipUI builds from an
-/// initializer that takes a string input, like ``Toggle/init(_:isOn:)-8qx3l``.
-/// In either case, incorporate the label into the toggle's view to help
-/// the user understand what the toggle does. For example, the built-in
-/// ``ToggleStyle/switch`` style horizontally stacks the label with the
-/// control element.
-///
-/// The structure's ``isOn`` property provides a ``Binding`` to the state
-/// of the toggle. Adjust the appearance of the toggle based on this value.
-/// For example, the built-in ``ToggleStyle/button`` style fills the button's
-/// background when the property is `true`, but leaves the background empty
-/// when the property is `false`. Change the value when the user performs
-/// an action that's meant to change the toggle, like the button does when
-/// tapped or clicked by the user.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct ToggleStyleConfiguration {
-
-    /// A type-erased label of a toggle.
-    ///
-    /// SkipUI provides a value of this type --- which is a ``View`` type ---
-    /// as the ``label-swift.property`` to your custom toggle style
-    /// implementation. Use the label to help define the appearance of the
-    /// toggle.
-    public struct Label : View {
-
-        /// The type of view representing the body of this view.
-        ///
-        /// When you create a custom view, Swift infers this type from your
-        /// implementation of the required ``View/body-swift.property`` property.
-        public typealias Body = NeverView
-        public var body: Body { fatalError() }
+    init(style: Any, parent: StackedToggleStyle?, source: ToggleStyleModifier) {
+        self.style = style
+        self.parent = parent
+        self.source = source
     }
 
-    /// A view that describes the effect of switching the toggle between states.
-    ///
-    /// Use this value in your implementation of the
-    /// ``ToggleStyle/makeBody(configuration:)`` method when defining a custom
-    /// ``ToggleStyle``. Access it through the that method's `configuration`
-    /// parameter.
-    ///
-    /// Because the label is a ``View``, you can incorporate it into the
-    /// view hierarchy that you return from your style definition. For example,
-    /// you can combine the label with a circle image in an ``HStack``:
-    ///
-    ///     HStack {
-    ///         Image(systemName: configuration.isOn
-    ///             ? "checkmark.circle.fill"
-    ///             : "circle")
-    ///         configuration.label
-    ///     }
-    ///
-    public let label: ToggleStyleConfiguration.Label = { fatalError() }()
-
-    /// A binding to a state property that indicates whether the toggle is on.
-    ///
-    /// Because this value is a ``Binding``, you can both read and write it
-    /// in your implementation of the ``ToggleStyle/makeBody(configuration:)``
-    /// method when defining a custom ``ToggleStyle``. Access it through
-    /// that method's `configuration` parameter.
-    ///
-    /// Read this value to set the appearance of the toggle. For example, you
-    /// can choose between empty and filled circles based on the `isOn` value:
-    ///
-    ///     Image(systemName: configuration.isOn
-    ///         ? "checkmark.circle.fill"
-    ///         : "circle")
-    ///
-    /// Write this value when the user takes an action that's meant to change
-    /// the state of the toggle. For example, you can toggle it inside the
-    /// `action` closure of a ``Button`` instance:
-    ///
-    ///     Button {
-    ///         configuration.isOn.toggle()
-    ///     } label: {
-    ///         // Draw the toggle.
-    ///     }
-    ///
-//    @Binding public var isOn: Bool { get { fatalError() } nonmutating set { } }
-
-//    public var $isOn: Binding<Bool> { get { fatalError() } }
-
-    /// Whether the ``Toggle`` is currently in a mixed state.
-    ///
-    /// Use this property to determine whether the toggle style should render
-    /// a mixed state presentation. A mixed state corresponds to an underlying
-    /// collection with a mix of true and false Bindings.
-    /// To toggle the state, use the ``Bool.toggle()`` method on the ``isOn``
-    /// binding.
-    ///
-    /// In the following example, a custom style uses the `isMixed` property
-    /// to render the correct toggle state using symbols:
-    ///
-    ///     struct SymbolToggleStyle: ToggleStyle {
-    ///         func makeBody(configuration: Configuration) -> some View {
-    ///             Button {
-    ///                 configuration.isOn.toggle()
-    ///             } label: {
-    ///                 Image(
-    ///                     systemName: configuration.isMixed
-    ///                     ? "minus.circle.fill" : configuration.isOn
-    ///                     ? "checkmark.circle.fill" : "circle.fill")
-    ///                 configuration.label
-    ///             }
-    ///         }
-    ///     }
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public var isMixed: Bool { get { fatalError() } }
+    /// Whether this is a built-in style, which renders natively rather than through `makeBody`.
+    var isBuiltin: Bool {
+        return style is DefaultToggleStyle || style is SwitchToggleStyle
+    }
 }
-*/
+
+final class ToggleStyleModifier: EnvironmentModifier {
+    let style: Any
+
+    init(style: Any) {
+        self.style = style
+        super.init()
+        self.action = { environment in
+            let parent = environment._toggleStyle
+            // Re-applying this modifier within its own scope must not make the style its own parent
+            if parent?.source !== self {
+                environment.set_toggleStyle(StackedToggleStyle(style: style, parent: parent, source: self))
+            }
+            return ComposeResult.ok
+        }
+    }
+}
+
+/// A `ToggleStyle` whose body is created by natively-compiled Swift.
+final class BridgedToggleStyle : ToggleStyle {
+    let environmentKeys: [String]
+    let bridgedMakeBody: (ToggleStyleBridgedConfiguration) -> any View
+
+    init(environmentKeys: [String], bridgedMakeBody: @escaping (ToggleStyleBridgedConfiguration) -> any View) {
+        self.environmentKeys = environmentKeys
+        self.bridgedMakeBody = bridgedMakeBody
+    }
+
+    func makeBody(configuration: ToggleStyleConfiguration) -> any View {
+        return bridgedMakeBody(bridgedConfiguration(for: configuration, environmentSupports: [:]))
+    }
+
+    /// Create the body with the style's `@Environment` values read at the current composition position.
+    @Composable func makeBridgedBody(configuration: ToggleStyleConfiguration) -> any View {
+        let environmentSupports = bridgedEnvironmentSupports(forKeys: environmentKeys)
+        return bridgedMakeBody(bridgedConfiguration(for: configuration, environmentSupports: environmentSupports))
+    }
+
+    private func bridgedConfiguration(for configuration: ToggleStyleConfiguration, environmentSupports: [String: EnvironmentSupport]) -> ToggleStyleBridgedConfiguration {
+        return ToggleStyleBridgedConfiguration(label: configuration.label, getIsOn: { configuration.isOn.wrappedValue }, setIsOn: { configuration.isOn.wrappedValue = $0 }, environmentSupports: environmentSupports)
+    }
+}
+
+@Composable private func bridgedEnvironmentSupports(forKeys keys: [String]) -> [String: EnvironmentSupport] {
+    var environmentSupports: [String: EnvironmentSupport] = [:]
+    for key in keys {
+        if let environmentSupport = EnvironmentValues.shared.bridged(key: key) {
+            environmentSupports[key] = environmentSupport
+        }
+    }
+    return environmentSupports
+}
+#endif
 #endif
