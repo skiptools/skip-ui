@@ -688,6 +688,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_buttonStyle", value: newValue, defaultValue: { nil }) }
     }
 
+    var _toggleStyle: StackedToggleStyle? {
+        get { builtinValue(key: "_toggleStyle", defaultValue: { nil }) as! StackedToggleStyle? }
+        set { setBuiltinValue(key: "_toggleStyle", value: newValue, defaultValue: { nil }) }
+    }
+
     var _contentPadding: EdgeInsets {
         get { builtinValue(key: "_contentPadding", defaultValue: { EdgeInsets() }) as! EdgeInsets }
         set { setBuiltinValue(key: "_contentPadding", value: newValue, defaultValue: { EdgeInsets() }) }
