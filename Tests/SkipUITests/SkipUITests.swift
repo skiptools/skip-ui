@@ -84,6 +84,8 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.click
@@ -568,6 +570,122 @@ final class SkipUITests: SkipUITestCase {
         }
     }
   
+    func testMenuDisabledItems() throws {
+        try testUI(view: {
+            MenuDisabledItemsTestView().accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            try check(rule, id: "status", hasText: "initial")
+            #if SKIP
+            rule.onNodeWithTag("menu.label").performClick()
+
+            rule.onNodeWithTag("menu.item.disabled").assertIsDisplayed()
+            rule.onNodeWithTag("menu.item.disabled").assertIsNotEnabled()
+            rule.onNodeWithTag("menu.item.disabled").performClick()
+            try check(rule, id: "status", hasText: "initial")
+
+            rule.onNodeWithTag("menu.item.disabledLabel").assertIsDisplayed()
+            rule.onNodeWithTag("menu.item.disabledLabel").assertIsNotEnabled()
+            rule.onNodeWithTag("menu.item.disabledLabel").performClick()
+            try check(rule, id: "status", hasText: "initial")
+
+            rule.onNodeWithTag("menu.item.inDisabledSection").assertIsDisplayed()
+            rule.onNodeWithTag("menu.item.inDisabledSection").assertIsNotEnabled()
+            rule.onNodeWithTag("menu.item.inDisabledSection").performClick()
+            try check(rule, id: "status", hasText: "initial")
+
+            // As in SwiftUI, a disabled nested menu still opens, but its items are disabled
+            rule.onNodeWithTag("menu.item.disabledMenu").assertIsEnabled()
+            rule.onNodeWithTag("menu.item.disabledMenu").performClick()
+            rule.mainClock.advanceTimeBy(500) // replaceMenu delays before presenting the nested menu
+            rule.waitForIdle()
+            rule.onNodeWithTag("menu.item.nested").assertIsDisplayed()
+            rule.onNodeWithTag("menu.item.nested").assertIsNotEnabled()
+            rule.onNodeWithTag("menu.item.nested").performClick()
+            try check(rule, id: "status", hasText: "initial")
+            #endif
+        })
+    }
+
+    func testMenuEnabledItem() throws {
+        try testUI(view: {
+            MenuDisabledItemsTestView().accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            try check(rule, id: "status", hasText: "initial")
+            #if SKIP
+            rule.onNodeWithTag("menu.label").performClick()
+            rule.onNodeWithTag("menu.item.enabled").assertIsEnabled()
+            rule.onNodeWithTag("menu.item.enabled").performClick()
+            try check(rule, id: "status", hasText: "enabled")
+
+            rule.mainClock.advanceTimeBy(500) // let the menu finish closing
+            rule.onNodeWithTag("menu.label").performClick()
+            rule.onNodeWithTag("menu.item.enabledMenu").performClick()
+            rule.mainClock.advanceTimeBy(500) // replaceMenu delays before presenting the nested menu
+            rule.waitForIdle()
+            rule.onNodeWithTag("menu.item.enabledNested").assertIsEnabled()
+            rule.onNodeWithTag("menu.item.enabledNested").performClick()
+            try check(rule, id: "status", hasText: "enabledNested")
+            #endif
+        })
+    }
+
+    struct MenuDisabledItemsTestView: View {
+        @State var status: String = "initial"
+
+        var body: some View {
+            VStack {
+                Text(verbatim: status)
+                    .accessibilityIdentifier("status")
+                Menu {
+                    Button("Disabled item") {
+                        status = "disabled"
+                    }
+                    .disabled(true)
+                    .accessibilityIdentifier("menu.item.disabled")
+
+                    Button(action: { status = "disabledLabel" }) {
+                        Label("Disabled label item", systemImage: "heart.fill")
+                    }
+                    .disabled(true)
+                    .accessibilityIdentifier("menu.item.disabledLabel")
+
+                    Menu("Disabled nested menu") {
+                        Button("Nested item") {
+                            status = "nested"
+                        }
+                        .accessibilityIdentifier("menu.item.nested")
+                    }
+                    .disabled(true)
+                    .accessibilityIdentifier("menu.item.disabledMenu")
+
+                    Section("Disabled section") {
+                        Button("Item in disabled section") {
+                            status = "section"
+                        }
+                        .accessibilityIdentifier("menu.item.inDisabledSection")
+                    }
+                    .disabled(true)
+
+                    Button("Enabled item") {
+                        status = "enabled"
+                    }
+                    .accessibilityIdentifier("menu.item.enabled")
+
+                    Menu("Enabled nested menu") {
+                        Button("Enabled nested item") {
+                            status = "enabledNested"
+                        }
+                        .accessibilityIdentifier("menu.item.enabledNested")
+                    }
+                    .accessibilityIdentifier("menu.item.enabledMenu")
+                } label: {
+                    Text(verbatim: "Open menu")
+                }
+                .accessibilityIdentifier("menu.label")
+            }
+        }
+    }
+
     func testSheetWithScrollableContentDismissesOnDownwardOverscroll() throws {
         #if !SKIP
         throw XCTSkip("sheet overscroll dismissal is a Compose behavior")
