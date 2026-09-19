@@ -49,6 +49,11 @@ public struct Toggle : View, Renderable {
         self.init(isOn: isOn(0), label: { Text(verbatim: title) })
     }
 
+    /// Create a toggle from a `ToggleStyleConfiguration`, rendered in the style that the current style overrides.
+    public init(_ configuration: ToggleStyleConfiguration) {
+        self.init(isOn: configuration.isOn, label: { configuration.label })
+    }
+
     #if SKIP
     public init(_ titleKey: LocalizedStringKey, isOn: Binding<Bool>) {
         self.init(isOn: isOn, label: { Text(titleKey) })
@@ -60,11 +65,6 @@ public struct Toggle : View, Renderable {
 
     public init(_ title: String, isOn: Binding<Bool>) {
         self.init(isOn: isOn, label: { Text(verbatim: title) })
-    }
-
-    /// Create a toggle from a `ToggleStyle` configuration, rendered in the style that the current style overrides.
-    public init(_ configuration: ToggleStyleConfiguration) {
-        self.init(isOn: configuration.isOn, label: { configuration.label })
     }
 
     @Composable override func Render(context: ComposeContext) {
