@@ -304,7 +304,8 @@ public struct TabView : View, Renderable {
                     let tabBarHidingScope = rememberCoroutineScope()
                     let tabBarHidingConnection = remember {
                         TabBarHidingNestedScrollConnection(state: navigationSuiteScaffoldState,
-                                                           scope: tabBarHidingScope)
+                                                           scope: tabBarHidingScope,
+                                                           layoutType: layoutTypeState)
                     }
                     NavigationSuiteScaffoldLayout(
                         navigationSuite: {

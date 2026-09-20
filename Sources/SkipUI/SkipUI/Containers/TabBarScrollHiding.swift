@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MPL-2.0
 #if SKIP
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldState
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
+import androidx.compose.runtime.State
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -40,6 +42,14 @@ import kotlinx.coroutines.launch
 struct TabBarHidingNestedScrollConnection: NestedScrollConnection {
     let state: NavigationSuiteScaffoldState
     let scope: CoroutineScope
+    /// What the navigation suite is drawing right now.
+    ///
+    /// BOTTOM BARS ONLY. A bar sits over the content and owes it the space; a
+    /// rail sits beside it and owes it nothing, so scrolling has no bearing on
+    /// a rail and no Android app hides one. Read through a state rather than
+    /// captured, because the type changes on rotation and this connection is
+    /// remembered across it.
+    let layoutType: State<NavigationSuiteType>
 
     /// How far, in pixels, the content must move one way before the bar reacts.
     /// ~12dp at 3x, which is a deliberate flick rather than a twitch.
@@ -52,6 +62,7 @@ struct TabBarHidingNestedScrollConnection: NestedScrollConnection {
         // driving the bar after the finger has gone, which reads as the bar
         // deciding for itself.
         guard source == NestedScrollSource.Drag else { return Offset.Zero }
+        guard layoutType.value == NavigationSuiteType.NavigationBar else { return Offset.Zero }
 
         let dy = available.y
         // Sign change: start counting the new direction from here.

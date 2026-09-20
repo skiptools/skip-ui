@@ -77,6 +77,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
@@ -291,7 +292,32 @@ public struct NavigationStack : View, Renderable {
         let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<ScrollToTopAction>, Any>) { mutableStateOf(Preference<ScrollToTopAction>(key: ScrollToTopPreferenceKey.self)) }
         let scrollToTopCollector = PreferenceCollector<ScrollToTopAction>(key: ScrollToTopPreferenceKey.self, state: scrollToTop)
 
-        let initialScrollBehavior = isInlineTitleDisplayMode ? TopAppBarDefaults.pinnedScrollBehavior() : TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+        // A SHORT WINDOW GETS ITS HEIGHT BACK.
+        //
+        // An inline title normally pins the bar, which mirrors iOS: an inline
+        // navigation bar there never hides. On a window under Material's compact
+        // height breakpoint — a phone in landscape — that is the wrong trade.
+        // The top app bar, the search field and the navigation bar together take
+        // more than half of a 384dp-tall window, and Material's answer for a bar
+        // over scrolling content is `enterAlways`: gone on the way down, back on
+        // the way up.
+        //
+        // Gated on height rather than applied to every inline title, because
+        // portrait has room for its bar and mirroring iOS there is a defensible
+        // default. This is the case where the two platforms genuinely disagree
+        // about what chrome owes the content.
+        //
+        // `LocalWindowInfo.containerSize` rather than `LocalConfiguration`,
+        // which is deprecated, or the window size classes, whose spelling has
+        // changed across `androidx.window` releases.
+        let windowHeightDp = with(density) { LocalWindowInfo.current.containerSize.height.toDp() }
+        let isCompactHeight = windowHeightDp < 480.dp
+        let initialScrollBehavior: TopAppBarScrollBehavior
+        if isInlineTitleDisplayMode {
+            initialScrollBehavior = isCompactHeight ? TopAppBarDefaults.enterAlwaysScrollBehavior() : TopAppBarDefaults.pinnedScrollBehavior()
+        } else {
+            initialScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+        }
         // Determine the final scrollBehavior early by checking if the environment value would modify it
         // We need to do this before we create the nestedScroll modifier so we attach the correct nestedScrollConnection
         let scrollBehavior: TopAppBarScrollBehavior
