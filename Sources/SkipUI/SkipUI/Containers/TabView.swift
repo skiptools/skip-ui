@@ -3,6 +3,7 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -297,6 +298,14 @@ public struct TabView : View, Renderable {
                     }
                     let layoutTypeState = rememberUpdatedState(layoutType)
                     let navigationSuiteScaffoldState = rememberNavigationSuiteScaffoldState()
+                    // HIDE THE BAR WHILE THE CONTENT SCROLLS DOWN — see
+                    // `TabBarHidingNestedScrollConnection`. The scaffold state
+                    // has always been here and nothing ever drove it.
+                    let tabBarHidingScope = rememberCoroutineScope()
+                    let tabBarHidingConnection = remember {
+                        TabBarHidingNestedScrollConnection(state: navigationSuiteScaffoldState,
+                                                           scope: tabBarHidingScope)
+                    }
                     NavigationSuiteScaffoldLayout(
                         navigationSuite: {
                             guard tabs.any({ $0 != nil }) && reducedTabBarPreferences.visibility != Visibility.hidden else {
@@ -495,7 +504,7 @@ public struct TabView : View, Renderable {
                                     if bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) {
                                         bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
                                     }
-                                    let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: bottomPadding)
+                                    let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: bottomPadding).nestedScroll(tabBarHidingConnection)
                                     let tabViewSafeArea = tabViewSafeAreaState.value
                                     var contentSafeArea = tabViewSafeArea?.insetting(Edge.bottom, to: bottomBarTopPx.value)
                                     if tabNavLeadingEndPx.value > Float(0.0) {
