@@ -47,6 +47,7 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldLayout
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldValue
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.Composable
@@ -502,7 +503,17 @@ public struct TabView : View, Renderable {
                                     // Inset manually where our container ignored the safe area, but we aren't showing a bar
                                     let topPadding = ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
                                     var bottomPadding = 0.dp
-                                    if bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) {
+                                    // The bar only covers the system navigation while it is ON SCREEN.
+                                    //
+                                    // This used to ask whether a bar EXISTS, which was the same
+                                    // question until the bar learned to hide: a hidden bar is still
+                                    // composed and still reports a position, so `bottomBarTopPx`
+                                    // stays positive while nothing is actually covering the system
+                                    // navigation, and the content ran underneath it. A bottom-aligned
+                                    // overlay — a FAB, which is where this was caught — then sat half
+                                    // inside the navigation bar.
+                                    let barCoversSystemBar = bottomBarTopPx.value > Float(0.0) && navigationSuiteScaffoldState.targetValue == NavigationSuiteScaffoldValue.Visible
+                                    if !barCoversSystemBar && ignoresSafeAreaEdges.contains(.bottom) {
                                         bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
                                     }
                                     let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: bottomPadding).nestedScroll(tabBarHidingConnection)
