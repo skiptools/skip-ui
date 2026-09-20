@@ -25,8 +25,12 @@ public struct GeometryReader : View, Renderable {
     #if SKIP
     @Composable override func Render(context: ComposeContext) {
         let rememberedGlobalFramePx = remember { mutableStateOf<Rect?>(nil) }
-        Box(modifier: context.modifier.fillSize().onGloballyPositionedInRoot {
-            rememberedGlobalFramePx.value = $0
+        Box(modifier: context.modifier.fillSize().onGloballyPositionedInRoot { bounds in
+            // Guard against sub-pixel jitter: the content below is gated on this state, so
+            // unfiltered writes can recompose in a loop while the screen is idle
+            if !bounds.isApproximatelyEqual(to: rememberedGlobalFramePx.value) {
+                rememberedGlobalFramePx.value = bounds
+            }
         }) {
             if let globalFramePx = rememberedGlobalFramePx.value {
                 let proxy = GeometryProxy(globalFramePx: globalFramePx, density: LocalDensity.current, safeArea: EnvironmentValues.shared._safeArea)
