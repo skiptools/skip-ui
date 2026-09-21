@@ -3391,6 +3391,17 @@ struct CustomNavigationAnimationSpecModifier : ContentModifier {
 ```
 #### Modals
 
+Fixed `.height(...)` presentation detents describe usable content height; the bottom system-bar
+inset is added separately, and oversized heights are capped at the large-sheet boundary. For
+content-sized sheets, measure the natural content height and provide a single height detent.
+Android currently selects only one entry from a set of detents rather than supporting resizing
+between multiple detents.
+
+Apply `.presentationBackground(Color.clear)` directly to sheet or full-screen cover content to
+reveal the presenting view wherever the content is transparent. Solid `Color` backgrounds are
+supported, including partial opacity; other shape styles and custom background views remain
+unsupported. The default background is unchanged when the modifier is absent.
+
 Skip supports standard modal presentations. Android apps typically allow users to dismiss modals with the Android back button. Skip allows you to selectively disable this behavior with the Android-only `backDismissDisabled(_ isDisabled: Bool = true)` SwiftUI modifier. If you use this modifier, you **must** put it on the top-level view embedded in your `.sheet` or `.fullScreenCover`, as in the following example:
 
 ```swift

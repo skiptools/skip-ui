@@ -29,7 +29,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 
 /// The root of a presentation, such as the root presentation or a sheet.
-@Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+@Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, backgroundColor: androidx.compose.ui.graphics.Color? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
     launchUIApplicationActivity()
 
     let preferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PreferredColorScheme>, Any>) { mutableStateOf(Preference<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self)) }
@@ -41,7 +41,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
             let density = LocalDensity.current
             let layoutDirection = LocalLayoutDirection.current
             var rootModifier = Modifier
-                .background(androidx.compose.ui.graphics.Color.Black)
+                .background(backgroundColor != nil ? androidx.compose.ui.graphics.Color.Transparent : androidx.compose.ui.graphics.Color.Black)
                 .fillMaxSize()
             if systemBarEdges.contains(.leading) {
                 rootModifier = rootModifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
@@ -52,7 +52,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
             if systemBarEdges.contains(.bottom) {
                 rootModifier = rootModifier.imePadding()
             }
-            rootModifier = rootModifier.background(Color.background.colorImpl())
+            rootModifier = rootModifier.background(backgroundColor ?? Color.background.colorImpl())
                 .onGloballyPositionedInWindow {
                     presentationBounds.value = $0
                 }
