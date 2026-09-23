@@ -13,13 +13,40 @@ import struct CoreGraphics.CGSize
 // SKIP @bridge
 public struct GeometryProxy {
     #if SKIP
-    let globalFramePx: Rect
+    private let fixedGlobalFramePx: Rect
     let density: Density
-    let safeArea: SafeArea?
+    private let safeArea: SafeArea?
+    private let geometry: GeometryReaderState?
+
+    /// Fixed snapshots are still used by onGeometryChange's transform/action contract.
+    init(globalFramePx: Rect, density: Density, safeArea: SafeArea?) {
+        self.fixedGlobalFramePx = globalFramePx
+        self.density = density
+        self.safeArea = safeArea
+        self.geometry = nil
+    }
+
+    /// Reader proxies defer snapshot observation to the properties their content accesses.
+    init(geometry: GeometryReaderState, density: Density) {
+        self.fixedGlobalFramePx = Rect.Zero
+        self.density = density
+        self.safeArea = nil
+        self.geometry = geometry
+    }
+
+    private var globalFramePx: Rect {
+        geometry?.globalFramePx ?? fixedGlobalFramePx
+    }
     #endif
 
     public var size: CGSize {
         #if SKIP
+        if let geometry {
+            let size = geometry.sizePx
+            return with(density) {
+                CGSize(width: Double(size.width.toDp().value), height: Double(size.height.toDp().value))
+            }
+        }
         return with(density) {
             CGSize(width: Double(globalFramePx.width.toDp().value), height: Double(globalFramePx.height.toDp().value))
         }
@@ -47,6 +74,12 @@ public struct GeometryProxy {
 
     public var safeAreaInsets: EdgeInsets {
         #if SKIP
+        if let geometry {
+            let insets = geometry.insetsPx
+            return with(density) {
+                EdgeInsets(top: Double(insets.top.toDp().value), leading: Double(insets.left.toDp().value), bottom: Double(insets.bottom.toDp().value), trailing: Double(insets.right.toDp().value))
+            }
+        }
         guard let safeArea = safeArea else {
             return EdgeInsets()
         }

@@ -1009,16 +1009,17 @@ extension View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             let globalFramePx = remember { mutableStateOf<Rect?>(nil) }
-            let previousValue = remember { mutableStateOf(nil as Any?) }
+            let storage = remember { GeometryChangeValueStorage() }
             let density = LocalDensity.current
+            let safeArea = EnvironmentValues.shared._safeArea
 
             if let rect = globalFramePx.value {
-                let proxy = GeometryProxy(globalFramePx: rect, density: density, safeArea: EnvironmentValues.shared._safeArea)
+                let proxy = GeometryProxy(globalFramePx: rect, density: density, safeArea: safeArea)
                 let newValue = transform(proxy)
-                let oldValue = previousValue.value as? T
+                let oldValue = storage.previousValue as? T
                 if oldValue == nil || oldValue != newValue {
                     let effectiveOldValue = oldValue ?? newValue
-                    previousValue.value = newValue
+                    storage.previousValue = newValue
                     SideEffect { action(effectiveOldValue, newValue) }
                 }
             }
@@ -1343,6 +1344,49 @@ extension View {
     // SKIP @bridge
     public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchorX: CGFloat, anchorY: CGFloat) -> any View {
         return scaleEffect(x: x, y: y, anchor: UnitPoint(x: anchorX, y: anchorY))
+    }
+
+    /// Applies scale and translation in one compositor layer without changing layout position.
+    ///
+    /// Use this for native-backed content whose pixels should move without relocating its
+    /// Compose layout node. Translation values use SwiftUI points and are converted to pixels.
+    // SKIP @bridge
+    public func compositorTransform(
+        scaleX: CGFloat,
+        scaleY: CGFloat,
+        translationX: CGFloat,
+        translationY: CGFloat,
+        anchorX: CGFloat,
+        anchorY: CGFloat
+    ) -> any View {
+        #if SKIP
+        let animTx = StateTracking.captureLastReadAndClear()
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            let animatedScale = (Float(scaleX), Float(scaleY)).asAnimatable(
+                context: context,
+                animTx: animTx
+            )
+            let animatedTranslation = (Float(translationX), Float(translationY)).asAnimatable(
+                context: context,
+                animTx: animTx
+            )
+            let density = LocalDensity.current
+            let translationXPixels = with(density) { animatedTranslation.value.0.dp.toPx() }
+            let translationYPixels = with(density) { animatedTranslation.value.1.dp.toPx() }
+            return context.modifier.graphicsLayer(
+                transformOrigin: TransformOrigin(
+                    pivotFractionX: Float(anchorX),
+                    pivotFractionY: Float(anchorY)
+                ),
+                scaleX: animatedScale.value.0,
+                scaleY: animatedScale.value.1,
+                translationX: translationXPixels,
+                translationY: translationYPixels
+            )
+        })
+        #else
+        return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -1801,6 +1845,12 @@ final class AnimatedBorderModifier: RenderModifier {
         content.Render(context: context)
     }
 }
+
+#if SKIP
+final class GeometryChangeValueStorage {
+    var previousValue: Any?
+}
+#endif
 
 #if SKIP
 final class AndroidVerticalOverscrollPullDownConnection: NestedScrollConnection {

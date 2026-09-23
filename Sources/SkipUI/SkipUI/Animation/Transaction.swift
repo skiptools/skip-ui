@@ -19,6 +19,10 @@ public final class Transaction: StateMutationTransaction {
     public var isContinuous: Bool
     public var tracksVelocity: Bool
 
+    /// Experiment: acknowledge a native provenance capture only after Compose applies it.
+    /// This belongs to one materialized modifier, not the transaction's copyable value fields.
+    var bridgedCompositionApplied: (() -> Void)? = nil
+
     /// Storage for custom values written via `withTransaction(_:_:_:)` keypath form. The key is
     /// the fully-qualified `TransactionKey` type name.
     private var customValues: [String: Any?]?
