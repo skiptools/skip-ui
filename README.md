@@ -14,7 +14,7 @@ let package = Package(
         .library(name: "MyProduct", targets: ["MyTarget"]),
     ],
     dependencies: [
-        .package(url: "https://source.skip.dev/skip-ui.git", from: "1.0.0"),
+        .package(url: "https://github.com/skiptools/skip-ui.git", from: "1.0.0"),
     ],
     targets: [
         .target(name: "MyTarget", dependencies: [
@@ -35,7 +35,7 @@ SkipUI is used directly by [Skip Lite](https://skip.dev/docs/modes/#lite) transp
 
 ## Dependencies
 
-SkipUI depends on the [skip](https://source.skip.dev/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
+SkipUI depends on the [skip](https://github.com/skiptools/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
 
 SkipUI is part of the core *Core Skip Frameworks* and is not intended to be imported directly.
 The module is transparently adopted by importing SwiftUI in compiled Swift, and through the translation of `import SwiftUI` into `import skip.ui.*` for transpiled code.
@@ -3516,7 +3516,7 @@ The most common way to test SkipUI's support for a SwiftUI component is through 
 
 ### SkipLite Code Transformations
 
-SkipUI does not work in isolation. When used from Skip Lite transpiled Swift, it depends on transformations the [skip](https://source.skip.dev/skip) plugin makes to SwiftUI code. And while Skip generally strives to write Kotlin that is similar to hand-crafted code, these SwiftUI transformations are not something you'd want to write yourself. Before discussing SkipUI's implementation, let's explore them.
+SkipUI does not work in isolation. When used from Skip Lite transpiled Swift, it depends on transformations the [skip](https://github.com/skiptools/skip) plugin makes to SwiftUI code. And while Skip generally strives to write Kotlin that is similar to hand-crafted code, these SwiftUI transformations are not something you'd want to write yourself. Before discussing SkipUI's implementation, let's explore them.
 
 Both SwiftUI and Compose are declarative UI frameworks. Both have mechanisms to track state and automatically re-render when state changes. SwiftUI models user interface elements with `View` objects, however, while Compose models them with `@Composable` functions. The Skip transpiler must therefore translate your code defining a `View` graph into `@Composable` function calls. This involves two primary transformations:
 
