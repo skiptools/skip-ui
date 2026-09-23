@@ -680,9 +680,14 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_aspectRatio", value: newValue, defaultValue: { nil }) }
     }
 
-    var _buttonStyle: ButtonStyle? {
-        get { builtinValue(key: "_buttonStyle", defaultValue: { nil }) as! ButtonStyle? }
+    var _buttonStyle: StackedButtonStyle? {
+        get { builtinValue(key: "_buttonStyle", defaultValue: { nil }) as! StackedButtonStyle? }
         set { setBuiltinValue(key: "_buttonStyle", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _toggleStyle: StackedToggleStyle? {
+        get { builtinValue(key: "_toggleStyle", defaultValue: { nil }) as! StackedToggleStyle? }
+        set { setBuiltinValue(key: "_toggleStyle", value: newValue, defaultValue: { nil }) }
     }
 
     var _contentPadding: EdgeInsets {
