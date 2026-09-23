@@ -14,7 +14,7 @@ let package = Package(
         .library(name: "MyProduct", targets: ["MyTarget"]),
     ],
     dependencies: [
-        .package(url: "https://source.skip.dev/skip-ui.git", from: "1.0.0"),
+        .package(url: "https://github.com/skiptools/skip-ui.git", from: "1.0.0"),
     ],
     targets: [
         .target(name: "MyTarget", dependencies: [
@@ -35,7 +35,7 @@ SkipUI is used directly by [Skip Lite](https://skip.dev/docs/modes/#lite) transp
 
 ## Dependencies
 
-SkipUI depends on the [skip](https://source.skip.dev/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
+SkipUI depends on the [skip](https://github.com/skiptools/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
 
 SkipUI is part of the core *Core Skip Frameworks* and is not intended to be imported directly.
 The module is transparently adopted by importing SwiftUI in compiled Swift, and through the translation of `import SwiftUI` into `import skip.ui.*` for transpiled code.
@@ -584,6 +584,67 @@ public struct Material3RippleOptions {
     public var rippleAlpha: androidx.compose.material.ripple.RippleAlpha? = nil
 }
 ```
+
+## Android Rendering Performance
+
+SkipUI provides Android-only modifiers for avoiding repeated work in expensive view subtrees. Both modifiers below return the original view on non-Android platforms.
+
+### Reusing Equal Content
+
+Use `.androidEquatable()` on an `Equatable` view to reuse its evaluated Android content while the view value remains equal:
+
+```swift
+struct ContactRow: View, Equatable {
+    let contact: Contact
+
+    var body: some View {
+        HStack {
+            Text(contact.name)
+            Spacer()
+            Text(contact.status)
+        }
+    }
+}
+
+ContactRow(contact: contact)
+    .androidEquatable()
+```
+
+For a view that is not itself `Equatable`, pass an explicit value to `.androidEquatable(recomposeOverride:)`:
+
+```swift
+ContactRow(contact: contact, onSelect: onSelect)
+    .androidEquatable(
+        recomposeOverride: ContactRowInputs(
+            contact: contact,
+            isSelected: isSelected
+        )
+    )
+```
+
+Think of `recomposeOverride` as a cache key. When a parent recomposes and the key is unchanged, SkipUI reuses the child's evaluated content instead of evaluating its body again. When the key changes, SkipUI evaluates the child again. Include every value that can affect the child's body, including relevant environment and hoisted state values.
+
+State read inside the optimized child's body is not an automatic invalidation input. If a child must update from state, hoist that state above the optimized view and include its value in `recomposeOverride`. Modifiers applied after `.androidEquatable(...)` remain outside the cached content and can continue to receive updated values and actions.
+
+This is an explicit Android optimization rather than the standard SwiftUI `.equatable()` modifier. Use it only after identifying repeated body evaluation as meaningful work.
+
+### Retained Composition Boundaries
+
+For a subtree that needs its own retained Compose identity and lifecycle, use `.androidCompositionBoundary(id:inputs:)`:
+
+```swift
+PlayerSurface(player: player)
+    .androidCompositionBoundary(
+        id: player.id.uuidString,
+        inputs: String(player.renderRevision)
+    )
+```
+
+Keeping `id` stable preserves the hosted composition and its state. Changing `inputs` updates the content inside the existing host. Changing `id` disposes the old host and creates a new one. Treat `inputs` as a revision token and change it whenever any value used to build the retained content changes; content remains unchanged while both `id` and `inputs` are unchanged.
+
+The boundary inherits the current Compose composition locals, including SkipUI environment values. It is a composition and lifecycle boundary, not a layout boundary: modifiers and constraints outside the boundary continue to measure the same retained host and child. A size change therefore remeasures native-backed content without recreating or re-bridging it. If native content must keep fixed bounds, make that an explicit surrounding-layout decision rather than relying on the composition boundary.
+
+An Android composition boundary creates a separate Compose host, so it is heavier than `.androidEquatable(...)`. Prefer equality reuse for ordinary views and collection rows. Use a composition boundary when the subtree specifically needs retained hosting or lifecycle isolation.
 
 ## Supported SwiftUI
 
@@ -2550,6 +2611,8 @@ The following properties are currently animatable:
 - `.scaleEffect`
 - `.stroke` color
 
+Only values changed by a matching `withAnimation` or animated `Transaction` use that animation. A concurrent plain state write snaps to its new value, and a plain write to a value with an in-progress animation cancels that animation and snaps to the new target.
+
 All of SwiftUI's built-in transitions are supported on Android. To use transitions or to animate views being added or removed in general, however, you **must** assign a unique `.id` value to every view in the parent `HStack`, `VStack`, or `ZStack`:
 
 ```swift
@@ -2679,6 +2742,8 @@ ForEach([person1, person2, person3], id: \.fullName) { person in
 ```
 
 **Important**: When the body of your `ForEach` contains multiple top-level views (e.g. a full row of a `VGrid`), or any single view that expands to additional views (like a `Section` or a nested `ForEach`), SkipUI must "unroll" the loop in order to supply all its views individually to Compose. This means that the `ForEach` will be entirely iterated up front, though the views it produces won't yet be rendered.
+
+SkipUI uses each element's `ForEach` identifier as its Android composition identity, including when an unrolled `ForEach` is rendered in an `HStack`, `VStack`, or `ZStack`. Use stable, unique identifiers so retained state and optimized content continue to follow the same element when the collection is inserted into, removed from, or reordered.
 
 ### Gestures
 
@@ -3451,7 +3516,7 @@ The most common way to test SkipUI's support for a SwiftUI component is through 
 
 ### SkipLite Code Transformations
 
-SkipUI does not work in isolation. When used from Skip Lite transpiled Swift, it depends on transformations the [skip](https://source.skip.dev/skip) plugin makes to SwiftUI code. And while Skip generally strives to write Kotlin that is similar to hand-crafted code, these SwiftUI transformations are not something you'd want to write yourself. Before discussing SkipUI's implementation, let's explore them.
+SkipUI does not work in isolation. When used from Skip Lite transpiled Swift, it depends on transformations the [skip](https://github.com/skiptools/skip) plugin makes to SwiftUI code. And while Skip generally strives to write Kotlin that is similar to hand-crafted code, these SwiftUI transformations are not something you'd want to write yourself. Before discussing SkipUI's implementation, let's explore them.
 
 Both SwiftUI and Compose are declarative UI frameworks. Both have mechanisms to track state and automatically re-render when state changes. SwiftUI models user interface elements with `View` objects, however, while Compose models them with `@Composable` functions. The Skip transpiler must therefore translate your code defining a `View` graph into `@Composable` function calls. This involves two primary transformations:
 
