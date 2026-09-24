@@ -49,7 +49,7 @@ import struct CoreGraphics.CGFloat
 
 // SKIP @bridge
 public struct Text: View, Renderable, Equatable {
-    private let textView: _Text
+    internal let textView: _Text
     private let modifiedView: any View
 
     // SKIP @bridge
@@ -345,9 +345,18 @@ public struct Text: View, Renderable, Equatable {
         public static let writingDirectionBased = AlignmentStrategy()
         public static let `default` = Text.AlignmentStrategy()
     }
+
+    #if SKIP
+    // SKIP DECLARE: operator fun plus(other: Text): Text
+    public func plus(other: Text) -> Text {
+        let combined = _Text.concatenating(textView, other.textView)
+        return Text(textView: combined, modifiedView: combined)
+    }
+    #endif
 }
 
 struct _Text: View, Renderable, Equatable {
+    let parts: [_Text]?
     let verbatim: String?
     let attributedString: AttributedString?
     let key: LocalizedStringKey?
@@ -355,13 +364,29 @@ struct _Text: View, Renderable, Equatable {
     let locale: Locale?
     let bundle: Bundle?
 
-    init(verbatim: String? = nil, attributedString: AttributedString? = nil, key: LocalizedStringKey? = nil, tableName: String? = nil, locale: Locale? = nil, bundle: Bundle? = nil) {
+    init(verbatim: String? = nil, attributedString: AttributedString? = nil, key: LocalizedStringKey? = nil, tableName: String? = nil, locale: Locale? = nil, bundle: Bundle? = nil, parts: [_Text]? = nil) {
+        self.parts = parts
         self.verbatim = verbatim
         self.attributedString = attributedString
         self.key = key
         self.tableName = tableName
         self.locale = locale
         self.bundle = bundle
+    }
+
+    static func concatenating(_ lhs: _Text, _ rhs: _Text) -> _Text {
+        var combined: [_Text] = []
+        if let parts = lhs.parts {
+            combined.append(contentsOf: parts)
+        } else {
+            combined.append(lhs)
+        }
+        if let parts = rhs.parts {
+            combined.append(contentsOf: parts)
+        } else {
+            combined.append(rhs)
+        }
+        return _Text(parts: combined)
     }
 
     #if SKIP
@@ -375,8 +400,15 @@ struct _Text: View, Renderable, Equatable {
     }
 
     @Composable private func localizedTextInfo() -> (String, MarkdownNode?, kotlin.collections.List<AnyHashable>?) {
+        if let parts {
+            var text = ""
+            for part in parts {
+                text += part.localizedTextString()
+            }
+            return (text, nil, nil)
+        }
         if let verbatim { return (verbatim, nil, nil) }
-        if let attributedString { return (attributedString.string, attributedString.markdownNode, nil) }
+        if let attributedString { return (attributedString.string, nil, nil) }
         guard let key else { return ("", nil, nil) }
 
         // localize and Kotlin-ize the format string. the string is cached by the bundle, and we
@@ -408,7 +440,95 @@ struct _Text: View, Renderable, Equatable {
             modifier = modifier.applyHStackTextBaselineAlignment(EnvironmentValues.shared._horizontalStackVerticalAlignmentKey)
         }
         var options: Material3TextOptions
-        if let locnode {
+        if let parts {
+            let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
+            let isPlaceholder = redaction.contains(RedactionReasons.placeholder)
+            var linkColor = EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl()
+            if isPlaceholder {
+                linkColor = linkColor.copy(alpha: linkColor.alpha * Float(Color.placeholderOpacity))
+            }
+            let annotatedText = composeConcatenatedParts(parts: parts, baseStyle: animatable.value, baseColor: styleInfo.color, linkColor: linkColor, textDecoration: textDecoration, isUppercased: styleInfo.isUppercased, isLowercased: styleInfo.isLowercased, isRedacted: isPlaceholder)
+            let links = annotatedText.getUrlAnnotations(start: 0, end: annotatedText.length)
+            if !links.isEmpty() {
+                let currentText = rememberUpdatedState(annotatedText)
+                let currentHandler = rememberUpdatedState(EnvironmentValues.shared.openURL)
+                let currentIsEnabled = rememberUpdatedState(EnvironmentValues.shared.isEnabled)
+                modifier = modifier.pointerInput(true) {
+                    let slop = viewConfiguration.touchSlop
+                    let timeout = viewConfiguration.longPressTimeoutMillis
+                    awaitEachGesture {
+                        let downEvent = awaitPointerEvent(pass: PointerEventPass.Initial)
+                        guard let down = downEvent.changes.firstOrNull({ $0.pressed }) else { return }
+                        let start = down.position
+                        let upPosition: Offset? = withTimeoutOrNull(timeout) {
+                            while true {
+                                let event = awaitPointerEvent(pass: PointerEventPass.Initial)
+                                guard let change = event.changes.firstOrNull() else { return nil }
+                                if abs(change.position.x - start.x) > slop || abs(change.position.y - start.y) > slop {
+                                    return nil
+                                }
+                                if !change.pressed {
+                                    return change.position
+                                }
+                            }
+                            return nil
+                        }
+                        guard let upPosition else { return }
+                        if currentIsEnabled.value,
+                           let offset = layoutResult.value?.getOffsetForPosition(upPosition),
+                           let urlString = currentText.value.getUrlAnnotations(offset, offset).firstOrNull()?.item.url,
+                           let url = URL(string: urlString) {
+                            currentHandler.value.invoke(url)
+                        }
+                    }
+                }
+            }
+            options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
+        } else if let attributedString {
+            let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
+            let isPlaceholder = redaction.contains(RedactionReasons.placeholder)
+            var linkColor = EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl()
+            if isPlaceholder {
+                linkColor = linkColor.copy(alpha: linkColor.alpha * Float(Color.placeholderOpacity))
+            }
+            let annotatedText = AttributedStringCompose.toAnnotatedString(attributedString, baseStyle: animatable.value, baseColor: styleInfo.color, linkColor: linkColor, textDecoration: textDecoration, isUppercased: styleInfo.isUppercased, isLowercased: styleInfo.isLowercased, isRedacted: isPlaceholder)
+            let links = annotatedText.getUrlAnnotations(start: 0, end: annotatedText.length)
+            if !links.isEmpty() {
+                let currentText = rememberUpdatedState(annotatedText)
+                let currentHandler = rememberUpdatedState(EnvironmentValues.shared.openURL)
+                let currentIsEnabled = rememberUpdatedState(EnvironmentValues.shared.isEnabled)
+                modifier = modifier.pointerInput(true) {
+                    let slop = viewConfiguration.touchSlop
+                    let timeout = viewConfiguration.longPressTimeoutMillis
+                    awaitEachGesture {
+                        let downEvent = awaitPointerEvent(pass: PointerEventPass.Initial)
+                        guard let down = downEvent.changes.firstOrNull({ $0.pressed }) else { return }
+                        let start = down.position
+                        let upPosition: Offset? = withTimeoutOrNull(timeout) {
+                            while true {
+                                let event = awaitPointerEvent(pass: PointerEventPass.Initial)
+                                guard let change = event.changes.firstOrNull() else { return nil }
+                                if abs(change.position.x - start.x) > slop || abs(change.position.y - start.y) > slop {
+                                    return nil
+                                }
+                                if !change.pressed {
+                                    return change.position
+                                }
+                            }
+                            return nil
+                        }
+                        guard let upPosition else { return }
+                        if currentIsEnabled.value,
+                           let offset = layoutResult.value?.getOffsetForPosition(upPosition),
+                           let urlString = currentText.value.getUrlAnnotations(offset, offset).firstOrNull()?.item.url,
+                           let url = URL(string: urlString) {
+                            currentHandler.value.invoke(url)
+                        }
+                    }
+                }
+            }
+            options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
+        } else if let locnode {
             let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
             let isPlaceholder = redaction.contains(RedactionReasons.placeholder)
             var linkColor = EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl()
@@ -520,6 +640,38 @@ struct _Text: View, Renderable, Equatable {
         } else {
             androidx.compose.material3.Text(text: options.text ?? "", modifier: options.modifier, color: options.color, autoSize: options.autoSize, fontSize: options.fontSize, fontStyle: options.fontStyle, fontWeight: options.fontWeight, fontFamily: options.fontFamily, letterSpacing: options.letterSpacing, textDecoration: options.textDecoration, textAlign: options.textAlign, lineHeight: options.lineHeight, overflow: options.overflow, softWrap: options.softWrap, maxLines: options.maxLines, minLines: options.minLines, onTextLayout: options.onTextLayout, style: options.style)
         }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalTextApi::class)
+    @Composable private func composeConcatenatedParts(parts: [_Text], baseStyle: androidx.compose.ui.text.TextStyle, baseColor: androidx.compose.ui.graphics.Color?, linkColor: androidx.compose.ui.graphics.Color, textDecoration: TextDecoration?, isUppercased: Bool, isLowercased: Bool, isRedacted: Bool) -> AnnotatedString {
+        return buildAnnotatedString {
+            for part in parts {
+                append(part.composeAnnotatedText(baseStyle: baseStyle, baseColor: baseColor, linkColor: linkColor, textDecoration: textDecoration, isUppercased: isUppercased, isLowercased: isLowercased, isRedacted: isRedacted))
+            }
+        }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalTextApi::class)
+    @Composable private func composeAnnotatedText(baseStyle: androidx.compose.ui.text.TextStyle, baseColor: androidx.compose.ui.graphics.Color?, linkColor: androidx.compose.ui.graphics.Color, textDecoration: TextDecoration?, isUppercased: Bool, isLowercased: Bool, isRedacted: Bool) -> AnnotatedString {
+        if let attributedString {
+            return AttributedStringCompose.toAnnotatedString(attributedString, baseStyle: baseStyle, baseColor: baseColor, linkColor: linkColor, textDecoration: textDecoration, isUppercased: isUppercased, isLowercased: isLowercased, isRedacted: isRedacted)
+        }
+        let (locfmt, locnode, interpolations) = localizedTextInfo()
+        if let locnode {
+            return annotatedString(markdown: locnode, interpolations: interpolations, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased, isRedacted: isRedacted)
+        }
+        var text: String
+        if let interpolations {
+            text = locfmt.format(*interpolations.toTypedArray())
+        } else {
+            text = locfmt
+        }
+        if isUppercased {
+            text = text.uppercased()
+        } else if isLowercased {
+            text = text.lowercased()
+        }
+        return AnnotatedString(text)
     }
 
     private func annotatedString(markdown: MarkdownNode, interpolations: kotlin.collections.List<AnyHashable>?, linkColor: androidx.compose.ui.graphics.Color, isUppercased: Bool, isLowercased: Bool, isRedacted: Bool) -> AnnotatedString {
