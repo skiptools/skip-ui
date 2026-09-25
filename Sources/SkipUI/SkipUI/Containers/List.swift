@@ -290,10 +290,21 @@ public final class List : View, Renderable {
         LazyColumn(state: reorderableState.listState, modifier: modifier, contentPadding: contentPadding, verticalArrangement: listVerticalArrangement) {
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
-            let shouldAnimateItems: @Composable () -> Bool = {
-                // We disable animation to prevent filtered items from animating when they return
-                let animate = !forceUnanimatedItems.value && EnvironmentValues.shared._searchableState?.isSearching.value != true
+            let shouldAnimateItems: @Composable (Bool) -> Bool = { suppressTextInputAnimation in
+                // Focused text inputs can conflict with LazyColumn placement animation and visibly lag behind scrolling.
+                let animate = !forceUnanimatedItems.value
+                    && !suppressTextInputAnimation
+                    && EnvironmentValues.shared._searchableState?.isSearching.value != true
                 return animate
+            }
+            let updateTextInputAnimationSuppression: @Composable (MutableState<Bool>, MutableState<Bool>) -> Void = { textInputFocused, suppressTextInputAnimation in
+                if reorderableState.listState.isScrollInProgress {
+                    if textInputFocused.value {
+                        suppressTextInputAnimation.value = true
+                    }
+                } else {
+                    suppressTextInputAnimation.value = false
+                }
             }
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
@@ -305,8 +316,16 @@ public final class List : View, Renderable {
                 startItemIndex: startItemIndex,
                 item: { renderable, level in
                     item {
-                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
-                        RenderItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling)
+                        let textInputFocused = remember { mutableStateOf(false) }
+                        let suppressTextInputAnimation = remember { mutableStateOf(false) }
+                        updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
+                        let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
+                        EnvironmentValues.shared.setValues {
+                            $0.set_listItemTextInputFocused(textInputFocused)
+                            return ComposeResult.ok
+                        } in: {
+                            RenderItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling)
+                        }
                     }
                 },
                 indexedItems: { range, identifier, offset, onDelete, onMove, level, factory in
@@ -315,9 +334,17 @@ public final class List : View, Renderable {
                     items(count: count, key: key) { index in
                         let keyValue = key?(index) // Key closure already remaps index
                         let index = itemCollector.value.remapIndex(index, from: offset)
-                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
+                        let textInputFocused = remember { mutableStateOf(false) }
+                        let suppressTextInputAnimation = remember { mutableStateOf(false) }
+                        updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
+                        let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
                         let renderable = factory(index + range.start, itemContext)
-                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                        EnvironmentValues.shared.setValues {
+                            $0.set_listItemTextInputFocused(textInputFocused)
+                            return ComposeResult.ok
+                        } in: {
+                            RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                        }
                     }
                 },
                 objectItems: { objects, identifier, offset, onDelete, onMove, level, factory in
@@ -325,9 +352,17 @@ public final class List : View, Renderable {
                     items(count: objects.count, key: key) { index in
                         let keyValue = key(index) // Key closure already remaps index
                         let index = itemCollector.value.remapIndex(index, from: offset)
-                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
+                        let textInputFocused = remember { mutableStateOf(false) }
+                        let suppressTextInputAnimation = remember { mutableStateOf(false) }
+                        updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
+                        let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
                         let renderable = factory(objects[index], itemContext)
-                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                        EnvironmentValues.shared.setValues {
+                            $0.set_listItemTextInputFocused(textInputFocused)
+                            return ComposeResult.ok
+                        } in: {
+                            RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                        }
                     }
                 },
                 objectBindingItems: { objectsBinding, identifier, offset, editActions, onDelete, onMove, level, factory in
@@ -335,9 +370,17 @@ public final class List : View, Renderable {
                     items(count: objectsBinding.wrappedValue.count, key: key) { index in
                         let keyValue = key(index) // Key closure already remaps index
                         let index = itemCollector.value.remapIndex(index, from: offset)
-                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
+                        let textInputFocused = remember { mutableStateOf(false) }
+                        let suppressTextInputAnimation = remember { mutableStateOf(false) }
+                        updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
+                        let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
                         let renderable = factory(objectsBinding, index, itemContext)
-                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                        EnvironmentValues.shared.setValues {
+                            $0.set_listItemTextInputFocused(textInputFocused)
+                            return ComposeResult.ok
+                        } in: {
+                            RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                        }
                     }
                 },
                 sectionHeader: { content in
