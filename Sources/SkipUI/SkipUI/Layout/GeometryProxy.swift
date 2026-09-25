@@ -4,6 +4,7 @@
 #if SKIP
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntSize
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
@@ -14,12 +15,14 @@ import struct CoreGraphics.CGSize
 public struct GeometryProxy {
     #if SKIP
     private let fixedGlobalFramePx: Rect
+    private let fixedSizePx: IntSize
     let density: Density
     private let safeArea: SafeArea?
     private let geometry: GeometryReaderState?
 
     /// Fixed snapshots are still used by onGeometryChange's transform/action contract.
-    init(globalFramePx: Rect, density: Density, safeArea: SafeArea?) {
+    init(sizePx: IntSize, globalFramePx: Rect, density: Density, safeArea: SafeArea?) {
+        self.fixedSizePx = sizePx
         self.fixedGlobalFramePx = globalFramePx
         self.density = density
         self.safeArea = safeArea
@@ -28,6 +31,7 @@ public struct GeometryProxy {
 
     /// Reader proxies defer snapshot observation to the properties their content accesses.
     init(geometry: GeometryReaderState, density: Density) {
+        self.fixedSizePx = IntSize.Zero
         self.fixedGlobalFramePx = Rect.Zero
         self.density = density
         self.safeArea = nil
@@ -41,14 +45,10 @@ public struct GeometryProxy {
 
     public var size: CGSize {
         #if SKIP
-        if let geometry {
-            let size = geometry.sizePx
-            return with(density) {
-                CGSize(width: Double(size.width.toDp().value), height: Double(size.height.toDp().value))
-            }
-        }
+        // Root bounds can be clipped by a scroll viewport; size describes the full layout.
+        let size = geometry?.sizePx ?? fixedSizePx
         return with(density) {
-            CGSize(width: Double(globalFramePx.width.toDp().value), height: Double(globalFramePx.height.toDp().value))
+            CGSize(width: Double(size.width.toDp().value), height: Double(size.height.toDp().value))
         }
         #else
         return .zero
