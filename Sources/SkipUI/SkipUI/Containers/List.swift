@@ -59,6 +59,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.geometry.CornerRadius
@@ -1042,6 +1043,21 @@ public final class List : View, Renderable {
             if dragging {
                 let elevation = animateDpAsState(8.dp)
                 itemModifier = itemModifier.shadow(elevation.value)
+                // A shadow expresses elevation by darkening what is AROUND the
+                // row, so on a dark background it expresses nothing: over #000
+                // there is nothing left to darken, and a row being dragged looks
+                // exactly like one at rest. Material's own answer on dark
+                // surfaces is tonal elevation — the surface itself gets lighter.
+                //
+                // Drawn OVER the content rather than behind it, because a list
+                // row usually paints its own background and a tint behind it
+                // would never be seen. `onSurface` so it follows the scheme:
+                // lighter on dark themes, darker on light ones.
+                let dragTint = MaterialTheme.colorScheme.onSurface.copy(alpha: Float(0.10))
+                itemModifier = itemModifier.drawWithContent {
+                    drawContent()
+                    drawRect(color: dragTint)
+                }
             }
             content(itemModifier)
         }
