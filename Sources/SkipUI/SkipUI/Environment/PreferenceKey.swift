@@ -181,16 +181,35 @@ struct PreferenceNode<Value>: Equatable {
         return lhs.value == rhs.value
     }
 }
+
+/// The modifier produced by `preference(key:value:)`.
+///
+/// Contributes through the standard collector at render time like any side effect, but
+/// carries its key and value as inspectable fields so that presentation containers can
+/// harvest statically-applied preferences from an evaluated renderable chain *before*
+/// their first composition (see `SheetPresentation`), instead of waiting for the
+/// contribution to settle a composition later.
+final class PreferenceModifier: SideEffectModifier {
+    let key: Any
+    let value: Any?
+
+    init(key: Any, value: Any?) {
+        self.key = key
+        self.value = value
+        super.init()
+        self.action = { context in
+            PreferenceValues.shared.contribute(context: context, key: key, value: value)
+            return ComposeResult.ok
+        }
+    }
+}
 #endif
 
 extension View {
     // SKIP @bridge
     public func preference(key: Any, value: Any?) -> any View {
         #if SKIP
-        return ModifiedContent(content: self, modifier: SideEffectModifier { context in
-            PreferenceValues.shared.contribute(context: context, key: key, value: value)
-            return ComposeResult.ok
-        })
+        return ModifiedContent(content: self, modifier: PreferenceModifier(key: key, value: value))
         #else
         return self
         #endif
