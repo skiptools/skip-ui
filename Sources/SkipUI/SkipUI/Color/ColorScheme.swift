@@ -1,6 +1,7 @@
 // Copyright 2023–2026 Skip
 // SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -24,7 +25,7 @@ public enum ColorScheme : Int, CaseIterable, Hashable {
     }
 
     /// Return the material color scheme for this scheme.
-    @Composable public func asMaterialTheme() -> androidx.compose.material3.ColorScheme {
+    @Composable public func asMaterialTheme(accentColorBundle: Bundle = Bundle.main) -> androidx.compose.material3.ColorScheme {
         let context = LocalContext.current
         let isDarkMode = self == ColorScheme.dark
         // Dynamic color is available on Android 12+
@@ -35,7 +36,7 @@ public enum ColorScheme : Int, CaseIterable, Hashable {
         } else {
             colorScheme = isDynamicColor ? dynamicLightColorScheme(context) : lightColorScheme()
         }
-        if let primary = Color.assetAccentColor(colorScheme: isDarkMode ? ColorScheme.dark : ColorScheme.light) {
+        if let primary = Color.assetAccentColor(colorScheme: isDarkMode ? ColorScheme.dark : ColorScheme.light, bundle: accentColorBundle) {
             colorScheme = colorScheme.copy(primary: primary)
         }
         guard let customization = EnvironmentValues.shared._material3ColorScheme else {

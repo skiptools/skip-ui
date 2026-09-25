@@ -191,11 +191,11 @@ public struct Color: ShapeStyle, Renderable, Hashable {
     }
 
     #if SKIP
-    @Composable static func assetAccentColor(colorScheme: ColorScheme) -> androidx.compose.ui.graphics.Color? {
+    @Composable static func assetAccentColor(colorScheme: ColorScheme, bundle: Bundle = Bundle.main) -> androidx.compose.ui.graphics.Color? {
         let name = "AccentColor"
-        let colorInfo = rememberCachedAsset(namedColorCache, AssetKey(name: name, bundle: Bundle.main)) { _ in
-            assetColorInfo(name: name, bundle: Bundle.main)
-        }
+        let colorInfo = rememberCachedAsset(namedColorCache, AssetKey(name: name, bundle: bundle)) { _ in
+            assetColorInfo(name: name, bundle: bundle)
+            }
         return colorInfo?.colorImpl(colorScheme: colorScheme)
     }
 

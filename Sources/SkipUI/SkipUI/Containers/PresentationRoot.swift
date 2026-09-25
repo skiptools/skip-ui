@@ -27,15 +27,16 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import Foundation
 
 /// The root of a presentation, such as the root presentation or a sheet.
-@Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+@Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, accentColorBundle: Bundle = Bundle.main, content: @Composable (ComposeContext) -> Void) {
     launchUIApplicationActivity()
 
     let preferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PreferredColorScheme>, Any>) { mutableStateOf(Preference<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self)) }
     let preferredColorSchemeCollector = PreferenceCollector<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self, state: preferredColorScheme)
     PreferenceValues.shared.collectPreferences([preferredColorSchemeCollector]) {
-        let materialColorScheme = preferredColorScheme.value.reduced.colorScheme?.asMaterialTheme() ?? defaultColorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
+        let materialColorScheme = preferredColorScheme.value.reduced.colorScheme?.asMaterialTheme(accentColorBundle: accentColorBundle) ?? defaultColorScheme?.asMaterialTheme(accentColorBundle: accentColorBundle) ?? MaterialTheme.colorScheme
         MaterialTheme(colorScheme: materialColorScheme) {
             let presentationBounds = remember { mutableStateOf(Rect.Zero) }
             let density = LocalDensity.current
