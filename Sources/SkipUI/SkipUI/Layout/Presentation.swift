@@ -120,12 +120,11 @@ private let AlertDialogMaxWidth: Dp = 560.dp
         let presentationColor = contentRenderables.firstNotNullOfOrNull { renderable in
             renderable.forEachModifier { ($0 as? PresentationBackgroundColorModifier)?.color }
         }
-        let backgroundColor = presentationColor?.colorImpl()
         let onDismissRequest = {
             isPresented.set(false)
         }
         let properties = ModalBottomSheetProperties(shouldDismissOnBackPress: !backDismissDisabled)
-        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: backgroundColor != nil ? androidx.compose.ui.graphics.Color.Transparent : androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
+        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: presentationColor != nil ? androidx.compose.ui.graphics.Color.Transparent : androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
             
             SyncSystemBarsWithTheme()
             
@@ -201,7 +200,7 @@ private let AlertDialogMaxWidth: Dp = 560.dp
                 let stateSaver = remember { ComposeStateSaver() }
                 let presentationContext = context.content(stateSaver: stateSaver)
                 // Place inside of ModalBottomSheet, which renders content async
-                PresentationRoot(backgroundColor: backgroundColor, context: presentationContext, absoluteSystemBarEdges: systemBarEdges) { context in
+                PresentationRoot(backgroundColor: presentationColor, context: presentationContext, absoluteSystemBarEdges: systemBarEdges) { context in
                     EnvironmentValues.shared.setValues {
                         if !isFullScreen {
                             $0.set_sheetDepth(sheetDepth + 1)

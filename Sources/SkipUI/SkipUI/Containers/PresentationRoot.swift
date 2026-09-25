@@ -29,7 +29,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 
 /// The root of a presentation, such as the root presentation or a sheet.
-@Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, backgroundColor: androidx.compose.ui.graphics.Color? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+@Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, backgroundColor: Color? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
     launchUIApplicationActivity()
 
     let preferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PreferredColorScheme>, Any>) { mutableStateOf(Preference<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self)) }
@@ -52,7 +52,8 @@ import androidx.compose.ui.platform.LocalLayoutDirection
             if systemBarEdges.contains(.bottom) {
                 rootModifier = rootModifier.imePadding()
             }
-            rootModifier = rootModifier.background(backgroundColor ?? Color.background.colorImpl())
+            // Resolve adaptive colors under this presentation's preferred color scheme.
+            rootModifier = rootModifier.background((backgroundColor ?? Color.background).colorImpl())
                 .onGloballyPositionedInWindow {
                     presentationBounds.value = $0
                 }
