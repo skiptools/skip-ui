@@ -186,11 +186,6 @@ public struct DropSession : Identifiable {
 
 extension View {
     @available(*, unavailable)
-    public func dropDestination(for type: Any.Type? = nil, isEnabled: Bool = true, action: @escaping (_ items: [Any], _ session: DropSession) -> Void) -> some View /* where T : Transferable */ {
-        return self
-    }
-
-    @available(*, unavailable)
     public func onDragSessionUpdated(_ onUpdate: @escaping (DragSession) -> Void) -> some View {
         return self
     }
