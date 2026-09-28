@@ -37,6 +37,12 @@ extension View {
     /// Positions a list row's separator, as SwiftUI does with `.listRowSeparatorLeading` and `.listRowSeparatorTrailing`.
     ///
     /// - Note: Other alignment guides are not yet supported and have no effect.
+    /// Bridged guide; `computeValue` receives the view's width and height.
+    // SKIP @bridge
+    public func alignmentGuide(horizontalAlignmentKey: String, bridgedComputeValue: @escaping (CGFloat, CGFloat) -> CGFloat) -> any View {
+        return alignmentGuide(HorizontalAlignment(key: horizontalAlignmentKey), computeValue: { bridgedComputeValue($0.width, $0.height) })
+    }
+
     public func alignmentGuide(_ g: HorizontalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> any View {
         #if SKIP
         switch g {
