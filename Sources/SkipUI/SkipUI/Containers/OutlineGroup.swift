@@ -14,6 +14,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 /// A structure that computes views and disclosure groups on demand from an underlying collection of tree-structured data.
 ///
 /// Elements with children render as `DisclosureGroup`s, which a `List` expands into indented rows.
+// SKIP @bridge
 public struct OutlineGroup : View {
     let data: any RandomAccessCollection<Any>
     let identifier: (Any) -> AnyHashable?
@@ -25,6 +26,21 @@ public struct OutlineGroup : View {
         self.identifier = identifier
         self.children = children
         self.content = content
+    }
+
+    /// Bridged outline whose nodes are index paths into native data; `childCount` is nil for leaves.
+    // SKIP @bridge
+    public init(bridgedRootCount: Int, childCount: @escaping ([Int]) -> Int?, identifier: @escaping ([Int]) -> AnyHashable?, bridgedContent: @escaping ([Int]) -> any View) {
+        self.data = Array(0..<bridgedRootCount).map { [$0] } as! RandomAccessCollection<Any>
+        self.identifier = { identifier($0 as! [Int]) }
+        self.children = { node in
+            let path = node as! [Int]
+            guard let count = childCount(path) else {
+                return nil
+            }
+            return Array(0..<count).map { path + [$0] } as! RandomAccessCollection<Any>
+        }
+        self.content = { bridgedContent($0 as! [Int]) }
     }
 
     #if SKIP

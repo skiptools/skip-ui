@@ -83,6 +83,13 @@ public struct Section : View {
         self.footer = bridgedFooter == nil ? nil : ComposeBuilder.from { bridgedFooter! }
     }
 
+    /// Bridged collapsible section.
+    // SKIP @bridge
+    public init(bridgedContent: any View, bridgedHeader: (any View)?, bridgedFooter: (any View)?, getExpanded: @escaping () -> Bool, setExpanded: @escaping (Bool) -> Void) {
+        self.init(bridgedContent: bridgedContent, bridgedHeader: bridgedHeader, bridgedFooter: bridgedFooter)
+        self.isExpanded = Binding(get: getExpanded, set: setExpanded)
+    }
+
     #if SKIP
     @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
         let isLazy = EvaluateOptions(options).lazyItemLevel != nil
@@ -117,6 +124,7 @@ public struct Section : View {
 
 extension View {
     /// Labels this section in its list's trailing section index.
+    // SKIP @bridge
     public func sectionIndexLabel(_ label: Text?) -> any View {
         #if SKIP
         guard let label else {

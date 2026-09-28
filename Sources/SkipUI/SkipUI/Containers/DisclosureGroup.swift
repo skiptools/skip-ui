@@ -57,6 +57,15 @@ public struct DisclosureGroup : View, Renderable {
         self.expandedBinding = isExpanded
     }
 
+    /// Bridged unbound group, which keeps its own expansion state.
+    // SKIP @bridge
+    public init(bridgedContent: any View, bridgedLabel: any View) {
+        self.label = ComposeBuilder.from { bridgedLabel }
+        self.content = ComposeBuilder.from { bridgedContent }
+        self.expandedBinding = Binding(get: { false }, set: { _ in })
+        self.isStateful = true
+    }
+
     // SKIP @bridge
     public init(getExpanded: @escaping () -> Bool, setExpanded: @escaping (Bool) -> Void, bridgedContent: any View, bridgedLabel: any View) {
         self.label = ComposeBuilder.from { bridgedLabel }
