@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.foundation.text.selection.DisableSelection
+import androidx.compose.foundation.text.selection.SelectionContainer
 import skip.foundation.LocalizedStringResource
 import skip.foundation.Bundle
 import skip.foundation.Locale
@@ -119,11 +121,18 @@ public struct Text: View, Renderable, Equatable {
         if let environmentFont = EnvironmentValues.shared.font {
             font = environmentFont
         } else if let sectionHeaderStyle = EnvironmentValues.shared._listSectionHeaderStyle {
-            font = Font.callout
-            if sectionHeaderStyle == .plain {
-                font = font.bold()
+            if EnvironmentValues.shared.headerProminence == .increased {
+                font = Font.title3.bold()
             } else {
-                isUppercased = true
+                switch sectionHeaderStyle {
+                case .plain, .inset:
+                    font = Font.callout.bold()
+                case .sidebar:
+                    font = Font.headline
+                default:
+                    font = Font.callout
+                    isUppercased = true
+                }
             }
         } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
             font = Font.footnote
@@ -150,8 +159,9 @@ public struct Text: View, Renderable, Equatable {
             } else {
                 textBrush = foregroundStyle.asBrush(opacity: 1.0, animationContext: context)
             }
-        } else if EnvironmentValues.shared._listSectionHeaderStyle != nil {
-            textColor = Color.secondary.colorImpl()
+        } else if let sectionHeaderStyle = EnvironmentValues.shared._listSectionHeaderStyle {
+            let isPrimary = sectionHeaderStyle == .sidebar || EnvironmentValues.shared.headerProminence == .increased
+            textColor = isPrimary ? Color.primary.colorImpl() : Color.secondary.colorImpl()
         } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
             textColor = Color.secondary.colorImpl()
         } else {
@@ -883,9 +893,18 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func textSelection(_ selectability: TextSelectability) -> some View {
+    public func textSelection(_ selectability: TextSelectability) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
+            if selectability == .enabled {
+                SelectionContainer { renderable.Render(context: context) }
+            } else {
+                DisableSelection { renderable.Render(context: context) }
+            }
+        })
+        #else
         return self
+        #endif
     }
 
     // SKIP @bridge
