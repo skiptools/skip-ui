@@ -364,6 +364,15 @@ extension View {
     }
 
     /// With `.basedOnSize`, a `List` whose rows fit shows no overscroll stretch.
+    // SKIP @bridge
+    public func scrollBounceBehavior(bridgedBehavior: Int) -> any View {
+        switch bridgedBehavior {
+        case 1: return scrollBounceBehavior(.always)
+        case 2: return scrollBounceBehavior(.basedOnSize)
+        default: return scrollBounceBehavior(.automatic)
+        }
+    }
+
     public func scrollBounceBehavior(_ behavior: ScrollBounceBehavior, axes: Axis.Set = [.vertical]) -> any View {
         #if SKIP
         return environment(\._scrollBounceBehavior, behavior, affectsEvaluate: false)
@@ -413,6 +422,18 @@ extension View {
     }
 
     /// Treats a `List`'s content as it scrolls under an edge: `.soft` fades it out, `.hard` shows a crisp dividing edge.
+    // SKIP @bridge
+    public func scrollEdgeEffectStyle(bridgedStyle: Int?, bridgedEdges: Int) -> any View {
+        let style: ScrollEdgeEffectStyle?
+        switch bridgedStyle {
+        case nil: style = nil
+        case 1: style = .hard
+        case 2: style = .soft
+        default: style = .automatic
+        }
+        return scrollEdgeEffectStyle(style, for: Edge.Set(rawValue: bridgedEdges))
+    }
+
     public func scrollEdgeEffectStyle(_ style: ScrollEdgeEffectStyle?, for edges: Edge.Set) -> any View {
         #if SKIP
         return environment(\._scrollEdgeEffect, style == nil ? nil : ScrollEdgeEffect(style: style!, edges: edges), affectsEvaluate: false)
@@ -446,12 +467,23 @@ extension View {
     }
 
     /// Briefly shows a `List`'s scroll indicator when it appears.
+    // SKIP @bridge
     public func scrollIndicatorsFlash(onAppear: Bool) -> any View {
         #if SKIP
         guard onAppear else {
             return self
         }
         return ModifiedContent(content: self, modifier: ScrollIndicatorsFlashModifier(trigger: "onAppear"))
+        #else
+        return self
+        #endif
+    }
+
+    /// Bridged trigger, compared with `==`.
+    // SKIP @bridge
+    public func scrollIndicatorsFlash(bridgedTrigger: Any, unusedp: Any? = nil) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: ScrollIndicatorsFlashModifier(trigger: bridgedTrigger))
         #else
         return self
         #endif

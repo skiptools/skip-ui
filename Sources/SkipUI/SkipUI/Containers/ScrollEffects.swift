@@ -120,6 +120,15 @@ public struct EmptyVisualEffect : VisualEffect {
         effect.blurRadius += radius
         return effect
     }
+
+    /// Opacity, scale width and height, offset width and height, rotation degrees, and blur radius.
+    init(bridgedValues values: [Double]) {
+        self.opacity = values[0]
+        self.scale = CGSize(width: values[1], height: values[2])
+        self.offset = CGSize(width: values[3], height: values[4])
+        self.rotation = Angle(degrees: values[5])
+        self.blurRadius = values[6]
+    }
 }
 
 /// The geometry of a scroll view's content and container.
@@ -144,6 +153,11 @@ public struct ScrollGeometry : Equatable {
     public var bounds: CGRect {
         return CGRect(origin: CGPoint(x: -contentInsets.leading, y: -contentInsets.top), size: containerSize)
     }
+
+    /// Content offset, content size, insets (top, leading, bottom, trailing), and container size.
+    var bridgedValues: [Double] {
+        return [contentOffset.x, contentOffset.y, contentSize.width, contentSize.height, contentInsets.top, contentInsets.leading, contentInsets.bottom, contentInsets.trailing, containerSize.width, containerSize.height]
+    }
 }
 
 extension View {
@@ -157,9 +171,34 @@ extension View {
         #endif
     }
 
+    /// Bridged geometry change; `bridgedTransform` receives `ScrollGeometry.bridgedValues` and returns a comparable value.
+    // SKIP @bridge
+    public func onScrollGeometryChange(bridgedTransform: @escaping ([Double]) -> Any, bridgedAction: @escaping (Any, Any) -> Void) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: ScrollGeometryModifier(transform: { bridgedTransform($0.bridgedValues) }, action: bridgedAction))
+        #else
+        return self
+        #endif
+    }
+
     /// Applies effects as the view scrolls into and out of its scroll container's visible region.
     public func scrollTransition(_ configuration: ScrollTransitionConfiguration = .interactive, axis: Axis = .vertical, transition: @escaping (EmptyVisualEffect, ScrollTransitionPhase) -> any VisualEffect) -> any View {
         return scrollTransition(topLeading: configuration, bottomTrailing: configuration, axis: axis, transition: transition)
+    }
+
+    /// Bridged transition: configurations are 0 (identity), 1 (animated), or 2 (interactive), and `bridgedEffects`
+    /// holds the identity, top-leading, and bottom-trailing effects' `EmptyVisualEffect.bridgedValues`.
+    // SKIP @bridge
+    public func scrollTransition(bridgedTopLeading: Int, bridgedBottomTrailing: Int, bridgedAxis: Int, bridgedEffects: [Double]) -> any View {
+        let configuration: (Int) -> ScrollTransitionConfiguration = { $0 == 2 ? .interactive : $0 == 1 ? .animated : .identity }
+        let effects = [0, 1, 2].map { EmptyVisualEffect(bridgedValues: Array(bridgedEffects[($0 * 7)..<($0 * 7 + 7)])) }
+        return scrollTransition(topLeading: configuration(bridgedTopLeading), bottomTrailing: configuration(bridgedBottomTrailing), axis: bridgedAxis == 1 ? .horizontal : .vertical) { _, phase in
+            switch phase {
+            case .identity: return effects[0]
+            case .topLeading: return effects[1]
+            case .bottomTrailing: return effects[2]
+            }
+        }
     }
 
     public func scrollTransition(topLeading: ScrollTransitionConfiguration, bottomTrailing: ScrollTransitionConfiguration, axis: Axis = .vertical, transition: @escaping (EmptyVisualEffect, ScrollTransitionPhase) -> any VisualEffect) -> any View {
@@ -171,12 +210,18 @@ extension View {
     }
 
     /// Calls `action` when at least `threshold` of the view becomes visible, or stops being visible, in its scroll container.
+    // SKIP @bridge
     public func onScrollVisibilityChange(threshold: Double = 0.5, _ action: @escaping (Bool) -> Void) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: ScrollVisibilityModifier(threshold: threshold, action: action))
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func defaultScrollAnchor(anchorX: CGFloat?, anchorY: CGFloat?) -> any View {
+        return defaultScrollAnchor(anchorX == nil || anchorY == nil ? nil : UnitPoint(x: anchorX!, y: anchorY!))
     }
 
     /// The initial scroll position of a `List`; `.bottom` starts at the end and stays there as rows are added.
