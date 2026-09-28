@@ -893,6 +893,11 @@ extension View {
         return self
     }
 
+    // SKIP @bridge
+    public func textSelection(bridgedEnabled: Bool) -> any View {
+        return textSelection(bridgedEnabled ? TextSelectability.enabled : TextSelectability.disabled)
+    }
+
     public func textSelection(_ selectability: TextSelectability) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
