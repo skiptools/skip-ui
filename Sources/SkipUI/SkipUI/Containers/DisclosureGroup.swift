@@ -24,6 +24,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -39,14 +41,14 @@ public struct DisclosureGroup : View, Renderable {
     let label: ComposeBuilder
     let content: ComposeBuilder
     let expandedBinding: Binding<Bool>
+    /// Whether expansion is internal state, as in SwiftUI's unbound initializers.
+    var isStateful = false
 
-    // We cannot support this constructor because we have not been able to get expansion working reliably
-    // in Lists without an external Binding
-    @available(*, unavailable)
     public init(@ViewBuilder content: @escaping () -> any View, @ViewBuilder label: () -> any View) {
         self.label = ComposeBuilder.from(label)
         self.content = ComposeBuilder.from(content)
         self.expandedBinding = Binding(get: { false }, set: { _ in })
+        self.isStateful = true
     }
 
     public init(isExpanded: Binding<Bool>, @ViewBuilder content: @escaping () -> any View, @ViewBuilder label: () -> any View) {
@@ -62,17 +64,12 @@ public struct DisclosureGroup : View, Renderable {
         self.expandedBinding = Binding(get: getExpanded, set: setExpanded)
     }
 
-    @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: @escaping () -> any View) {
-        self.label = ComposeBuilder.from({ Text(titleKey) })
-        self.content = ComposeBuilder.from(content)
-        self.expandedBinding = Binding(get: { false }, set: { _ in })
+        self.init(content: content, label: { Text(titleKey) })
     }
 
     public init(_ titleResource: LocalizedStringResource, @ViewBuilder content: @escaping () -> any View) {
-        self.label = ComposeBuilder.from({ Text(titleResource) })
-        self.content = ComposeBuilder.from(content)
-        self.expandedBinding = Binding(get: { false }, set: { _ in })
+        self.init(content: content, label: { Text(titleResource) })
     }
 
     public init(_ titleKey: LocalizedStringKey, isExpanded: Binding<Bool>, @ViewBuilder content: @escaping () -> any View) {
@@ -83,11 +80,8 @@ public struct DisclosureGroup : View, Renderable {
         self.init(isExpanded: isExpanded, content: content, label: { Text(titleResource) })
     }
 
-    @available(*, unavailable)
     public init(_ label: String, @ViewBuilder content: @escaping () -> any View) {
-        self.label = ComposeBuilder.from({ Text(verbatim: label) })
-        self.content = ComposeBuilder.from(content)
-        self.expandedBinding = Binding(get: { false }, set: { _ in })
+        self.init(content: content, label: { Text(verbatim: label) })
     }
 
     public init(_ label: String, isExpanded: Binding<Bool>, @ViewBuilder content: @escaping () -> any View) {
@@ -96,6 +90,9 @@ public struct DisclosureGroup : View, Renderable {
 
     #if SKIP
     @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        if isStateful {
+            return StatefulDisclosureGroup(label: label, content: content).Evaluate(context: context, options: options)
+        }
         guard let level = EvaluateOptions(options).lazyItemLevel else {
             return listOf(self)
         }
@@ -247,4 +244,17 @@ public struct DisclosureGroupStyleConfiguration {
 //    public var $isExpanded: Binding<Bool> { get { fatalError() } }
 }
 */
+#if SKIP
+/// Holds the expansion state of an unbound `DisclosureGroup`, like SwiftUI's internal state.
+struct StatefulDisclosureGroup : View {
+    let label: ComposeBuilder
+    let content: ComposeBuilder
+    @State private var isExpanded = false
+
+    var body: some View {
+        DisclosureGroup(isExpanded: $isExpanded, content: { content }, label: { label })
+    }
+}
+#endif
+
 #endif
