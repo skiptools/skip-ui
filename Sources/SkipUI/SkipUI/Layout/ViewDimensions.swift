@@ -1,5 +1,59 @@
 // Copyright 2023–2026 Skip
 // SPDX-License-Identifier: MPL-2.0
+#if !SKIP_BRIDGE
+import Foundation
+#if !SKIP
+import struct CoreGraphics.CGFloat
+#endif
+
+/// A view's size and alignment guides in its own coordinate space.
+public struct ViewDimensions {
+    public let width: CGFloat
+    public let height: CGFloat
+
+    init(width: CGFloat, height: CGFloat) {
+        self.width = width
+        self.height = height
+    }
+
+    public subscript(guide: HorizontalAlignment) -> CGFloat {
+        switch guide {
+        case HorizontalAlignment.center: return width / 2.0
+        case HorizontalAlignment.trailing, HorizontalAlignment.listRowSeparatorTrailing: return width
+        default: return 0.0
+        }
+    }
+
+    public subscript(guide: VerticalAlignment) -> CGFloat {
+        switch guide {
+        case VerticalAlignment.center: return height / 2.0
+        case VerticalAlignment.bottom: return height
+        default: return 0.0
+        }
+    }
+}
+
+extension View {
+    /// Positions a list row's separator, as SwiftUI does with `.listRowSeparatorLeading` and `.listRowSeparatorTrailing`.
+    ///
+    /// - Note: Other alignment guides are not yet supported and have no effect.
+    public func alignmentGuide(_ g: HorizontalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> any View {
+        #if SKIP
+        switch g {
+        case HorizontalAlignment.listRowSeparatorLeading:
+            return ModifiedContent(content: self, modifier: ListItemModifier(separatorLeading: computeValue))
+        case HorizontalAlignment.listRowSeparatorTrailing:
+            return ModifiedContent(content: self, modifier: ListItemModifier(separatorTrailing: computeValue))
+        default:
+            return self
+        }
+        #else
+        return self
+        #endif
+    }
+}
+
+#endif
 /*
 import struct CoreGraphics.CGFloat
 
