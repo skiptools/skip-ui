@@ -153,7 +153,13 @@ public final class List : View, Renderable {
     }
 
     // SKIP @bridge
-    public init(bridgedContent: any View) {
+    public convenience init(bridgedContent: any View) {
+        self.init(bridgedContent: bridgedContent, getSelection: nil, setSelection: nil)
+    }
+
+    /// Bridged selection: a single row tag, or a `Set` of row tags.
+    // SKIP @bridge
+    public init(bridgedContent: any View, getSelection: (() -> Any?)?, setSelection: ((Any?) -> Void)?) {
         if let forEach = bridgedContent as? ForEach {
             self.fixedContent = nil
             self.forEach = forEach
@@ -162,7 +168,11 @@ public final class List : View, Renderable {
             self.forEach = nil
         }
         self.itemTransformer = nil
-        self.selection = nil
+        if let getSelection, let setSelection {
+            self.selection = Binding<Any?>(get: getSelection, set: setSelection) as! Binding<Any>
+        } else {
+            self.selection = nil
+        }
     }
 
     #if SKIP
@@ -1825,6 +1835,11 @@ extension View {
         return listRowSeparator(Visibility(rawValue: bridgedVisibility) ?? .automatic, edges: VerticalEdge.Set(rawValue: bridgedEdges))
     }
 
+    // SKIP @bridge
+    public func listRowSeparatorTint(_ color: Color?, bridgedEdges: Int) -> any View {
+        return listRowSeparatorTint(color, edges: VerticalEdge.Set(rawValue: bridgedEdges))
+    }
+
     public func listRowSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> any View {
         #if SKIP
         guard edges.contains(.bottom) else {
@@ -1837,6 +1852,11 @@ extension View {
     }
 
     /// Shows or hides the trailing section index built from `sectionIndexLabel`; `.automatic` shows it when sections have labels.
+    // SKIP @bridge
+    public func listSectionIndexVisibility(bridgedVisibility: Int) -> any View {
+        return listSectionIndexVisibility(Visibility(rawValue: bridgedVisibility) ?? .automatic)
+    }
+
     public func listSectionIndexVisibility(_ visibility: Visibility) -> any View {
         #if SKIP
         return environment(\._listSectionIndexVisibility, visibility, affectsEvaluate: false)
@@ -1846,6 +1866,11 @@ extension View {
     }
 
     /// - Note: Sections draw only their bottom separator, below the last row, so the `.top` edge alone has no effect.
+    // SKIP @bridge
+    public func listSectionSeparator(bridgedVisibility: Int, bridgedEdges: Int) -> any View {
+        return listSectionSeparator(Visibility(rawValue: bridgedVisibility) ?? .automatic, edges: VerticalEdge.Set(rawValue: bridgedEdges))
+    }
+
     public func listSectionSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> any View {
         #if SKIP
         guard edges.contains(.bottom) else {
@@ -1855,6 +1880,11 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func listSectionSeparatorTint(_ color: Color?, bridgedEdges: Int) -> any View {
+        return listSectionSeparatorTint(color, edges: VerticalEdge.Set(rawValue: bridgedEdges))
     }
 
     public func listSectionSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> any View {
@@ -1916,6 +1946,11 @@ extension View {
         #endif
     }
 
+    // SKIP @bridge
+    public func listRowInsets(top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat) -> any View {
+        return listRowInsets(EdgeInsets(top: top, leading: leading, bottom: bottom, trailing: trailing))
+    }
+
     public func listRowInsets(_ insets: EdgeInsets?) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: ListItemModifier(insets: insets))
@@ -1948,7 +1983,9 @@ extension View {
         return listSectionSpacingValue(spacing)
     }
 
-    private func listSectionSpacingValue(_ spacing: CGFloat?) -> any View {
+    /// Bridged section spacing; `nil` restores the default.
+    // SKIP @bridge
+    public func listSectionSpacingValue(_ spacing: CGFloat?) -> any View {
         #if SKIP
         return environment(\._listSectionSpacing, spacing, affectsEvaluate: false)
         #else
