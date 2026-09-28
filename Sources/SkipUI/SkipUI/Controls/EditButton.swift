@@ -6,7 +6,9 @@ import Foundation
 /// A button that toggles the edit mode environment value.
 ///
 /// Shows "Edit", then a bold "Done" while editing, as on iOS.
+// SKIP @bridge
 public struct EditButton : View {
+    // SKIP @bridge
     public init() {
     }
 

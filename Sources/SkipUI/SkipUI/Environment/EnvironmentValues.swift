@@ -305,8 +305,16 @@ extension EnvironmentValues {
             return EnvironmentSupport(builtinValue: backgroundStyle)
         case "colorScheme":
             return EnvironmentSupport(builtinValue: colorScheme.rawValue)
+        case "defaultMinListHeaderHeight":
+            return EnvironmentSupport(builtinValue: defaultMinListHeaderHeight)
+        case "defaultMinListRowHeight":
+            return EnvironmentSupport(builtinValue: defaultMinListRowHeight)
         case "dismiss":
             return EnvironmentSupport(builtinValue: dismiss)
+        case "editMode":
+            return EnvironmentSupport(builtinValue: editMode == nil ? nil : EditModeBinding(editMode!))
+        case "headerProminence":
+            return EnvironmentSupport(builtinValue: headerProminence == .increased)
         case "font":
             return EnvironmentSupport(builtinValue: font)
         case "horizontalSizeClass":
@@ -365,8 +373,20 @@ extension EnvironmentValues {
             return true
         case "colorScheme":
             return false // Doesn't support setting outside of `.colorScheme(_:)` func
+        case "defaultMinListHeaderHeight":
+            setdefaultMinListHeaderHeight(value?.builtinValue as? CGFloat)
+            return true
+        case "defaultMinListRowHeight":
+            setdefaultMinListRowHeight(value?.builtinValue as? CGFloat ?? 48.0)
+            return true
         case "dismiss":
             setdismiss(value?.builtinValue as? DismissAction ?? DismissAction.default)
+            return true
+        case "editMode":
+            seteditMode((value?.builtinValue as? EditModeBinding)?.binding)
+            return true
+        case "headerProminence":
+            setheaderProminence(value?.builtinValue as? Bool == true ? Prominence.increased : Prominence.standard)
             return true
         case "font":
             setfont(value?.builtinValue as? Font)

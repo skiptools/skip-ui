@@ -410,6 +410,17 @@ extension View {
         return contextMenu(menuItems: { bridgedMenuItems }, preview: { bridgedPreview })
     }
 
+    /// Bridged selection menu; `menu` and `primaryAction` receive the `Set` of selected row tags.
+    // SKIP @bridge
+    public func contextMenu(bridgedMenu: @escaping (Any) -> any View, bridgedPrimaryAction: ((Any) -> Void)?) -> any View {
+        #if SKIP
+        let selectionContextMenu = SelectionContextMenu(menu: { bridgedMenu($0) }, primaryAction: bridgedPrimaryAction == nil ? nil : { bridgedPrimaryAction!($0) })
+        return environment(\._selectionContextMenu, selectionContextMenu, affectsEvaluate: false)
+        #else
+        return self
+        #endif
+    }
+
     /// A context menu for the rows of a selectable `List`; `primaryAction` runs when a row is tapped outside edit mode.
     // SKIP DECLARE: fun <I: Any> contextMenu(forSelectionType: KClass<I>, menu: (Set<I>) -> View, primaryAction: ((Set<I>) -> Unit)? = null): View
     public func contextMenu<I>(forSelectionType itemType: I.Type, @ViewBuilder menu: @escaping (Set<I>) -> any View, primaryAction: ((Set<I>) -> Void)? = nil) -> any View where I: Hashable {
@@ -659,6 +670,11 @@ extension View {
     @available(*, unavailable)
     public func handlesExternalEvents(preferring: Set<String>, allowing: Set<String>) -> some View {
         return self
+    }
+
+    // SKIP @bridge
+    public func headerProminence(bridgedIncreased: Bool) -> any View {
+        return headerProminence(bridgedIncreased ? Prominence.increased : Prominence.standard)
     }
 
     public func headerProminence(_ prominence: Prominence) -> any View {
@@ -1403,6 +1419,7 @@ extension View {
         return self
     }
 
+    // SKIP @bridge
     public func selectionDisabled(_ isDisabled: Bool = true) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: ListItemModifier(selectionDisabled: isDisabled))
