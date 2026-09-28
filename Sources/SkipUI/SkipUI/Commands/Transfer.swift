@@ -54,6 +54,29 @@ extension View {
         #endif
     }
 
+    /// Bridged drag source; in-app drops receive the same payload object.
+    // SKIP @bridge
+    public func draggable(bridgedPayload: @escaping () -> Any) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: DraggableModifier(payload: bridgedPayload))
+        #else
+        return self
+        #endif
+    }
+
+    /// Bridged drop target; items are in-app payloads or other apps' text.
+    // SKIP @bridge
+    public func dropDestination(bridgedAccepts: @escaping (Any) -> Bool, bridgedAction: @escaping ([Any], CGFloat, CGFloat) -> Bool, isTargeted: @escaping (Bool) -> Void) -> any View {
+        #if SKIP
+        let modifier = DropTargetModifier(accepts: bridgedAccepts, isTargeted: isTargeted, showsInsertionIndicator: false) { items, location, _ in
+            return bridgedAction(Array(items), location.x, location.y)
+        }
+        return ModifiedContent(content: self, modifier: modifier)
+        #else
+        return self
+        #endif
+    }
+
     /// Accepts dropped payloads of the given type; `location` is in this view's coordinate space.
     // SKIP DECLARE: fun <T: Any> dropDestination(for_: KClass<T>, action: (Array<T>, CGPoint) -> Boolean, isTargeted: (Boolean) -> Unit = { _ -> }): View
     public func dropDestination<T>(for payloadType: T.Type, action: @escaping (_ items: [T], _ location: CGPoint) -> Bool, isTargeted: @escaping (Bool) -> Void = { _ in }) -> any View {
@@ -69,6 +92,15 @@ extension View {
 }
 
 extension ForEach {
+    /// Bridged row drop target.
+    // SKIP @bridge
+    public func dropDestination(bridgedAccepts: @escaping (Any) -> Bool, bridgedAction: @escaping ([Any], Int) -> Void) -> ForEach {
+        #if SKIP
+        dropAction = ForEachDropAction(accepts: bridgedAccepts, action: { items, index in bridgedAction(Array(items), index) })
+        #endif
+        return self
+    }
+
     /// Accepts payloads dropped onto a `List`'s rows, inserting above or below the row under the drop, as on iOS.
     // SKIP DECLARE: fun <T: Any> dropDestination(for_: KClass<T>, action: (Array<T>, Int) -> Unit): ForEach
     public func dropDestination<T>(for payloadType: T.Type, action: @escaping ([T], Int) -> Void) -> ForEach {
