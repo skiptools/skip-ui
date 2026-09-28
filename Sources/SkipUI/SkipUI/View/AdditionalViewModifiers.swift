@@ -410,9 +410,15 @@ extension View {
         return contextMenu(menuItems: { bridgedMenuItems }, preview: { bridgedPreview })
     }
 
-    @available(*, unavailable)
-    public func contextMenu<I>(forSelectionType itemType: Any.Type? = nil, @ViewBuilder menu: @escaping (Set<I>) -> any View, primaryAction: ((Set<I>) -> Void)? = nil) -> some View where I: Hashable {
+    /// A context menu for the rows of a selectable `List`; `primaryAction` runs when a row is tapped outside edit mode.
+    // SKIP DECLARE: fun <I: Any> contextMenu(forSelectionType: KClass<I>, menu: (Set<I>) -> View, primaryAction: ((Set<I>) -> Unit)? = null): View
+    public func contextMenu<I>(forSelectionType itemType: I.Type, @ViewBuilder menu: @escaping (Set<I>) -> any View, primaryAction: ((Set<I>) -> Void)? = nil) -> any View where I: Hashable {
+        #if SKIP
+        let selectionContextMenu = SelectionContextMenu(menu: { menu($0 as! Set<I>) }, primaryAction: primaryAction == nil ? nil : { primaryAction!($0 as! Set<I>) })
+        return environment(\._selectionContextMenu, selectionContextMenu, affectsEvaluate: false)
+        #else
         return self
+        #endif
     }
 
     // SKIP @bridge
@@ -655,9 +661,12 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func headerProminence(_ prominence: Prominence) -> some View {
+    public func headerProminence(_ prominence: Prominence) -> any View {
+        #if SKIP
+        return environment(\.headerProminence, prominence)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -1394,9 +1403,12 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func selectionDisabled(_ isDisabled: Bool = true) -> some View {
+    public func selectionDisabled(_ isDisabled: Bool = true) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: ListItemModifier(selectionDisabled: isDisabled))
+        #else
         return self
+        #endif
     }
 
     // SKIP @bridge
