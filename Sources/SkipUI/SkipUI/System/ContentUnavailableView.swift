@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 /// An interface, consisting of a label and additional content, that you display when the content of your app is unavailable to users.
 ///
 /// Renders centered like iOS: a large secondary icon above a bold title, then the description and actions.
+// SKIP @bridge
 public struct ContentUnavailableView : View {
     let label: ComposeBuilder
     let description: ComposeBuilder?
@@ -18,6 +19,13 @@ public struct ContentUnavailableView : View {
         self.label = ComposeBuilder.from(label)
         self.description = ComposeBuilder.from(description)
         self.actions = ComposeBuilder.from(actions)
+    }
+
+    // SKIP @bridge
+    public init(bridgedLabel: any View, bridgedDescription: any View, bridgedActions: any View) {
+        self.label = ComposeBuilder.from { bridgedLabel }
+        self.description = ComposeBuilder.from { bridgedDescription }
+        self.actions = ComposeBuilder.from { bridgedActions }
     }
 
     public init(_ titleKey: LocalizedStringKey, image: String, description: Text? = nil) {
