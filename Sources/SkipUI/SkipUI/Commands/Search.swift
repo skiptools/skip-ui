@@ -53,6 +53,11 @@ extension View {
         return searchable(text: Binding(get: getText, set: setText), prompt: prompt)
     }
 
+    // SKIP @bridge
+    public func searchable(getText: @escaping () -> String, setText: @escaping (String) -> Void, prompt: Text?, bridgedPlacement: Int) -> any View {
+        return searchable(text: Binding(get: getText, set: setText), placement: SearchFieldPlacement(rawValue: bridgedPlacement), prompt: prompt)
+    }
+
     public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> any View {
         return searchable(text: text, placement: placement, prompt: Text(prompt))
     }
@@ -86,6 +91,16 @@ extension View {
         #endif
     }
 
+    // SKIP @bridge
+    public func searchSuggestions(bridgedSuggestions: any View) -> any View {
+        return searchSuggestions { bridgedSuggestions }
+    }
+
+    // SKIP @bridge
+    public func searchSuggestions(bridgedVisibility: Int, bridgedPlacements: Int) -> any View {
+        return searchSuggestions(Visibility(rawValue: bridgedVisibility) ?? .automatic, for: SearchSuggestionsPlacement.Set(rawValue: bridgedPlacements))
+    }
+
     public func searchSuggestions(_ visibility: Visibility, for placements: SearchSuggestionsPlacement.Set) -> any View {
         #if SKIP
         guard placements.contains(.content) else {
@@ -98,6 +113,7 @@ extension View {
     }
 
     /// Tapping this suggestion replaces the search text with `completion` and submits the search.
+    // SKIP @bridge
     public func searchCompletion(_ completion: String) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: SearchCompletionModifier(completion: completion))
@@ -108,6 +124,18 @@ extension View {
 
     public func searchScopes<V>(_ scope: Binding<V>, @ViewBuilder scopes: () -> any View) -> any View where V : Hashable {
         return searchScopes(scope, activation: .automatic, scopes)
+    }
+
+    /// Bridged scopes, tagged like `Picker` options.
+    // SKIP @bridge
+    public func searchScopes(getScope: @escaping () -> Any?, setScope: @escaping (Any?) -> Void, bridgedActivation: Int, bridgedScopes: any View) -> any View {
+        #if SKIP
+        let selection = Binding<Any?>(get: getScope, set: setScope) as! Binding<Any>
+        let searchScopes = SearchScopes(selection: selection, content: ComposeBuilder.from { bridgedScopes }, activation: SearchScopeActivation(rawValue: bridgedActivation))
+        return environment(\._searchScopes, searchScopes, affectsEvaluate: false)
+        #else
+        return self
+        #endif
     }
 
     /// Scopes render as a segmented picker below the search field.
