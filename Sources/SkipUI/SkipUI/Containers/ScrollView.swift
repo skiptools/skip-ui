@@ -363,9 +363,13 @@ extension View {
         return contentMargins(Edge.Set(rawValue: edges), EdgeInsets(top: top, leading: leading, bottom: bottom, trailing: trailing), for: placementValue)
     }
 
-    @available(*, unavailable)
-    public func scrollBounceBehavior(_ behavior: ScrollBounceBehavior, axes: Axis.Set = [.vertical]) -> some View {
+    /// With `.basedOnSize`, a `List` whose rows fit shows no overscroll stretch.
+    public func scrollBounceBehavior(_ behavior: ScrollBounceBehavior, axes: Axis.Set = [.vertical]) -> any View {
+        #if SKIP
+        return environment(\._scrollBounceBehavior, behavior, affectsEvaluate: false)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -408,9 +412,13 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func scrollEdgeEffectStyle(_ style: ScrollEdgeEffectStyle?, for edges: Edge.Set) -> some View {
+    /// Treats a `List`'s content as it scrolls under an edge: `.soft` fades it out, `.hard` shows a crisp dividing edge.
+    public func scrollEdgeEffectStyle(_ style: ScrollEdgeEffectStyle?, for edges: Edge.Set) -> any View {
+        #if SKIP
+        return environment(\._scrollEdgeEffect, style == nil ? nil : ScrollEdgeEffect(style: style!, edges: edges), affectsEvaluate: false)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -437,14 +445,25 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func scrollIndicatorsFlash(onAppear: Bool) -> some View {
+    /// Briefly shows a `List`'s scroll indicator when it appears.
+    public func scrollIndicatorsFlash(onAppear: Bool) -> any View {
+        #if SKIP
+        guard onAppear else {
+            return self
+        }
+        return ModifiedContent(content: self, modifier: ScrollIndicatorsFlashModifier(trigger: "onAppear"))
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func scrollIndicatorsFlash(trigger value: some Equatable) -> some View {
+    /// Briefly shows a `List`'s scroll indicator whenever `value` changes.
+    public func scrollIndicatorsFlash<V>(trigger value: V) -> any View where V : Equatable {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: ScrollIndicatorsFlashModifier(trigger: value as Any))
+        #else
         return self
+        #endif
     }
 
     public func scrollPosition(id: Binding<(some Hashable)?>, anchor: UnitPoint? = nil) -> some View {
@@ -492,6 +511,24 @@ extension View {
         return self
     }
 }
+
+#if SKIP
+/// Combines flash triggers, so stacked `scrollIndicatorsFlash` modifiers each flash the indicator.
+final class ScrollIndicatorsFlashModifier: RenderModifier {
+    init(trigger: Any) {
+        super.init()
+        self.action = { renderable, context in
+            let outer = EnvironmentValues.shared._scrollIndicatorsFlashTrigger
+            EnvironmentValues.shared.setValues {
+                $0.set_scrollIndicatorsFlashTrigger(outer == nil ? trigger : listOf(outer!, trigger))
+                return ComposeResult.ok
+            } in: {
+                renderable.Render(context: context)
+            }
+        }
+    }
+}
+#endif
 
 // MARK: ScrollTargetBehavior
 
