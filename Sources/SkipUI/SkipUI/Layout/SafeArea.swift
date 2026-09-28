@@ -97,6 +97,23 @@ extension View {
         #endif
     }
 
+    /// Bridged inset on any edge, using `Edge` raw values.
+    // SKIP @bridge
+    public func safeAreaInset(bridgedEdge: Int, horizontalAlignmentKey: String, verticalAlignmentKey: String, spacing: CGFloat?, bridgedContent: any View) -> any View {
+        #if SKIP
+        let edge = Edge(rawValue: bridgedEdge) ?? Edge.bottom
+        let alignment = Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey))
+        return ModifiedContent(content: self, modifier: SafeAreaInsetModifier(edge: edge, alignment: alignment, spacing: spacing, inset: ComposeBuilder.from { bridgedContent }))
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func safeAreaPadding(top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat) -> any View {
+        return safeAreaPadding(EdgeInsets(top: top, leading: leading, bottom: bottom, trailing: trailing))
+    }
+
     public func safeAreaPadding(_ insets: EdgeInsets) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: SafeAreaPaddingModifier(insets: insets))
