@@ -71,6 +71,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.TextToolbar
 import androidx.compose.ui.platform.TextToolbarStatus
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsConfiguration
@@ -517,6 +518,22 @@ final class SkipUITests: SkipUITestCase {
                     }
             }
         }
+    }
+
+    func testUpdatesFrequentlyTraitIsPoliteLiveRegion() throws {
+        #if !SKIP
+        throw XCTSkip("Live regions are a Compose behavior")
+        #else
+        try testUI(view: {
+            VStack {
+                Text("Live").accessibilityAddTraits(.updatesFrequently)
+                Text("Header").accessibilityAddTraits(.isHeader)
+            }
+        }, eval: { rule in
+            rule.onNodeWithText("Live").assert(SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite))
+            rule.onNodeWithText("Header").assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.LiveRegion))
+        })
+        #endif
     }
 
     func testMenuAccessibilityIdentifier() throws {
