@@ -1,5 +1,100 @@
 // Copyright 2023–2026 Skip
 // SPDX-License-Identifier: MPL-2.0
+#if !SKIP_BRIDGE
+import Foundation
+#if SKIP
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+#endif
+
+/// A structure that computes views and disclosure groups on demand from an underlying collection of tree-structured data.
+///
+/// Elements with children render as `DisclosureGroup`s, which a `List` expands into indented rows.
+// SKIP @bridge
+public struct OutlineGroup : View {
+    let data: any RandomAccessCollection<Any>
+    let identifier: (Any) -> AnyHashable?
+    let children: (Any) -> (any RandomAccessCollection<Any>)?
+    let content: (Any) -> any View
+
+    init(data: any RandomAccessCollection<Any>, identifier: @escaping (Any) -> AnyHashable?, children: @escaping (Any) -> (any RandomAccessCollection<Any>)?, content: @escaping (Any) -> any View) {
+        self.data = data
+        self.identifier = identifier
+        self.children = children
+        self.content = content
+    }
+
+    /// Bridged outline whose nodes are index paths into native data; `childCount` is nil for leaves.
+    // SKIP @bridge
+    public init(bridgedRootCount: Int, childCount: @escaping ([Int]) -> Int?, identifier: @escaping ([Int]) -> AnyHashable?, bridgedContent: @escaping ([Int]) -> any View) {
+        self.data = Array(0..<bridgedRootCount).map { [$0] } as! RandomAccessCollection<Any>
+        self.identifier = { identifier($0 as! [Int]) }
+        self.children = { node in
+            let path = node as! [Int]
+            guard let count = childCount(path) else {
+                return nil
+            }
+            return Array(0..<count).map { path + [$0] } as! RandomAccessCollection<Any>
+        }
+        self.content = { bridgedContent($0 as! [Int]) }
+    }
+
+    #if SKIP
+    // Evaluate nodes directly rather than through ForEach, which only unrolls rows based on its first element
+    @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        var renderables: kotlin.collections.MutableList<Renderable> = mutableListOf()
+        for element in data {
+            // Key by ID so each node keeps its expansion state when the data changes
+            androidx.compose.runtime.key(identifier(element)) {
+                renderables.addAll(OutlineGroupNode(element: element, outline: self).Evaluate(context: context, options: options))
+            }
+        }
+        return renderables
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+#if SKIP
+/// One element of an outline, with its own expansion state.
+struct OutlineGroupNode : View {
+    let element: Any
+    let outline: OutlineGroup
+    @State private var isExpanded = false
+
+    var body: some View {
+        if let children = outline.children(element) {
+            DisclosureGroup(isExpanded: $isExpanded) {
+                OutlineGroup(data: children, identifier: outline.identifier, children: outline.children, content: outline.content)
+            } label: {
+                outline.content(element)
+            }
+        } else {
+            outline.content(element)
+        }
+    }
+}
+
+public func OutlineGroup<E>(_ data: any RandomAccessCollection<E>, children: @escaping (E) -> (any RandomAccessCollection<E>)?, @ViewBuilder content: @escaping (E) -> any View) -> OutlineGroup {
+    return OutlineGroup(data: data as! RandomAccessCollection<Any>, identifier: { ($0 as! Identifiable<Hashable>).id }, children: { children($0 as! E) as! RandomAccessCollection<Any>? }, content: { content($0 as! E) })
+}
+
+public func OutlineGroup<E>(_ data: any RandomAccessCollection<E>, id: @escaping (E) -> AnyHashable?, children: @escaping (E) -> (any RandomAccessCollection<E>)?, @ViewBuilder content: @escaping (E) -> any View) -> OutlineGroup {
+    return OutlineGroup(data: data as! RandomAccessCollection<Any>, identifier: { id($0 as! E) }, children: { children($0 as! E) as! RandomAccessCollection<Any>? }, content: { content($0 as! E) })
+}
+
+// OutlineGroup(_ root:children:content:) is omitted: Kotlin cannot distinguish a single root from a collection of roots
+#endif
+
+#endif
+
 /*
 /// A structure that computes views and disclosure groups on demand from an
 /// underlying collection of tree-structured, identified data.
