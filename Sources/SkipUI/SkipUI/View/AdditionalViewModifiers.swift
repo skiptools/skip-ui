@@ -410,9 +410,26 @@ extension View {
         return contextMenu(menuItems: { bridgedMenuItems }, preview: { bridgedPreview })
     }
 
-    @available(*, unavailable)
-    public func contextMenu<I>(forSelectionType itemType: Any.Type? = nil, @ViewBuilder menu: @escaping (Set<I>) -> any View, primaryAction: ((Set<I>) -> Void)? = nil) -> some View where I: Hashable {
+    /// Bridged selection menu; `menu` and `primaryAction` receive the `Set` of selected row tags.
+    // SKIP @bridge
+    public func contextMenu(bridgedMenu: @escaping (Any) -> any View, bridgedPrimaryAction: ((Any) -> Void)?) -> any View {
+        #if SKIP
+        let selectionContextMenu = SelectionContextMenu(menu: { bridgedMenu($0) }, primaryAction: bridgedPrimaryAction == nil ? nil : { bridgedPrimaryAction!($0) })
+        return environment(\._selectionContextMenu, selectionContextMenu, affectsEvaluate: false)
+        #else
         return self
+        #endif
+    }
+
+    /// A context menu for the rows of a selectable `List`; `primaryAction` runs when a row is tapped outside edit mode.
+    // SKIP DECLARE: fun <I: Any> contextMenu(forSelectionType: KClass<I>, menu: (Set<I>) -> View, primaryAction: ((Set<I>) -> Unit)? = null): View
+    public func contextMenu<I>(forSelectionType itemType: I.Type, @ViewBuilder menu: @escaping (Set<I>) -> any View, primaryAction: ((Set<I>) -> Void)? = nil) -> any View where I: Hashable {
+        #if SKIP
+        let selectionContextMenu = SelectionContextMenu(menu: { menu($0 as! Set<I>) }, primaryAction: primaryAction == nil ? nil : { primaryAction!($0 as! Set<I>) })
+        return environment(\._selectionContextMenu, selectionContextMenu, affectsEvaluate: false)
+        #else
+        return self
+        #endif
     }
 
     // SKIP @bridge
@@ -655,9 +672,17 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func headerProminence(_ prominence: Prominence) -> some View {
+    // SKIP @bridge
+    public func headerProminence(bridgedIncreased: Bool) -> any View {
+        return headerProminence(bridgedIncreased ? Prominence.increased : Prominence.standard)
+    }
+
+    public func headerProminence(_ prominence: Prominence) -> any View {
+        #if SKIP
+        return environment(\.headerProminence, prominence)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -1009,16 +1034,17 @@ extension View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             let globalFramePx = remember { mutableStateOf<Rect?>(nil) }
-            let previousValue = remember { mutableStateOf(nil as Any?) }
+            let storage = remember { GeometryChangeValueStorage() }
             let density = LocalDensity.current
+            let safeArea = EnvironmentValues.shared._safeArea
 
             if let rect = globalFramePx.value {
-                let proxy = GeometryProxy(globalFramePx: rect, density: density, safeArea: EnvironmentValues.shared._safeArea)
+                let proxy = GeometryProxy(globalFramePx: rect, density: density, safeArea: safeArea)
                 let newValue = transform(proxy)
-                let oldValue = previousValue.value as? T
+                let oldValue = storage.previousValue as? T
                 if oldValue == nil || oldValue != newValue {
                     let effectiveOldValue = oldValue ?? newValue
-                    previousValue.value = newValue
+                    storage.previousValue = newValue
                     SideEffect { action(effectiveOldValue, newValue) }
                 }
             }
@@ -1086,7 +1112,7 @@ extension View {
         let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
             let animatable = Float(opacity).asAnimatable(context: context, animTx: animTx)
-            return context.modifier.graphicsLayer { alpha = animatable.value }
+            return context.modifier.then(OpacityModifier(opacity: animatable.value))
         })
         #else
         return self
@@ -1345,14 +1371,61 @@ extension View {
         return scaleEffect(x: x, y: y, anchor: UnitPoint(x: anchorX, y: anchorY))
     }
 
+    /// Applies scale and translation in one compositor layer without changing layout position.
+    ///
+    /// Use this for native-backed content whose pixels should move without relocating its
+    /// Compose layout node. Translation values use SwiftUI points and are converted to pixels.
+    // SKIP @bridge
+    public func compositorTransform(
+        scaleX: CGFloat,
+        scaleY: CGFloat,
+        translationX: CGFloat,
+        translationY: CGFloat,
+        anchorX: CGFloat,
+        anchorY: CGFloat
+    ) -> any View {
+        #if SKIP
+        let animTx = StateTracking.captureLastReadAndClear()
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            let animatedScale = (Float(scaleX), Float(scaleY)).asAnimatable(
+                context: context,
+                animTx: animTx
+            )
+            let animatedTranslation = (Float(translationX), Float(translationY)).asAnimatable(
+                context: context,
+                animTx: animTx
+            )
+            let density = LocalDensity.current
+            let translationXPixels = with(density) { animatedTranslation.value.0.dp.toPx() }
+            let translationYPixels = with(density) { animatedTranslation.value.1.dp.toPx() }
+            return context.modifier.graphicsLayer(
+                transformOrigin: TransformOrigin(
+                    pivotFractionX: Float(anchorX),
+                    pivotFractionY: Float(anchorY)
+                ),
+                scaleX: animatedScale.value.0,
+                scaleY: animatedScale.value.1,
+                translationX: translationXPixels,
+                translationY: translationYPixels
+            )
+        })
+        #else
+        return self
+        #endif
+    }
+
     @available(*, unavailable)
     public func sectionActions(@ViewBuilder content: () -> any View) -> some View {
         return self
     }
 
-    @available(*, unavailable)
-    public func selectionDisabled(_ isDisabled: Bool = true) -> some View {
+    // SKIP @bridge
+    public func selectionDisabled(_ isDisabled: Bool = true) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: ListItemModifier(selectionDisabled: isDisabled))
+        #else
         return self
+        #endif
     }
 
     // SKIP @bridge
@@ -1801,6 +1874,12 @@ final class AnimatedBorderModifier: RenderModifier {
         content.Render(context: context)
     }
 }
+
+#if SKIP
+final class GeometryChangeValueStorage {
+    var previousValue: Any?
+}
+#endif
 
 #if SKIP
 final class AndroidVerticalOverscrollPullDownConnection: NestedScrollConnection {

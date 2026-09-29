@@ -238,8 +238,21 @@ public struct NavigationStack : View, Renderable {
         }
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+    /// Render a navigation entry with its own edit mode, shared by its toolbar's `EditButton` and its content as on iOS.
     @Composable private func RenderEntry(navigator: MutableState<Navigator>, toolbarContent: MutableState<Preference<ToolbarContentPreferences>>, arguments: NavigationEntryArguments, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+        let editMode = remember { mutableStateOf(EditMode.inactive) }
+        EnvironmentValues.shared.setValues {
+            if $0.editMode == nil {
+                $0.seteditMode(Binding(get: { editMode.value }, set: { editMode.value = $0 }))
+            }
+            return ComposeResult.ok
+        } in: {
+            RenderEntryContent(navigator: navigator, toolbarContent: toolbarContent, arguments: arguments, context: context, content: content)
+        }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+    @Composable private func RenderEntryContent(navigator: MutableState<Navigator>, toolbarContent: MutableState<Preference<ToolbarContentPreferences>>, arguments: NavigationEntryArguments, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
         let state = arguments.state
         let context = context.content(stateSaver: state.stateSaver)
 

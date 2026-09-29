@@ -1,5 +1,114 @@
 // Copyright 2023–2026 Skip
 // SPDX-License-Identifier: MPL-2.0
+#if !SKIP_BRIDGE
+import Foundation
+#if SKIP
+import androidx.compose.runtime.Composable
+#endif
+
+/// An interface, consisting of a label and additional content, that you display when the content of your app is unavailable to users.
+///
+/// Renders centered like iOS: a large secondary icon above a bold title, then the description and actions.
+// SKIP @bridge
+public struct ContentUnavailableView : View {
+    let label: ComposeBuilder
+    let description: ComposeBuilder?
+    let actions: ComposeBuilder?
+
+    public init(@ViewBuilder label: () -> any View, @ViewBuilder description: () -> any View = { EmptyView() }, @ViewBuilder actions: () -> any View = { EmptyView() }) {
+        self.label = ComposeBuilder.from(label)
+        self.description = ComposeBuilder.from(description)
+        self.actions = ComposeBuilder.from(actions)
+    }
+
+    // SKIP @bridge
+    public init(bridgedLabel: any View, bridgedDescription: any View, bridgedActions: any View) {
+        self.label = ComposeBuilder.from { bridgedLabel }
+        self.description = ComposeBuilder.from { bridgedDescription }
+        self.actions = ComposeBuilder.from { bridgedActions }
+    }
+
+    public init(_ titleKey: LocalizedStringKey, image: String, description: Text? = nil) {
+        self.init(label: { Label(titleKey, image: image) }, description: { description.map { $0 as any View } ?? EmptyView() })
+    }
+
+    public init(_ titleKey: LocalizedStringKey, systemImage: String, description: Text? = nil) {
+        self.init(label: { Label(titleKey, systemImage: systemImage) }, description: { description.map { $0 as any View } ?? EmptyView() })
+    }
+
+    public init(_ title: String, image: String, description: Text? = nil) {
+        self.init(label: { Label(title, image: image) }, description: { description.map { $0 as any View } ?? EmptyView() })
+    }
+
+    public init(_ title: String, systemImage: String, description: Text? = nil) {
+        self.init(label: { Label(title, systemImage: systemImage) }, description: { description.map { $0 as any View } ?? EmptyView() })
+    }
+
+    /// A view that indicates that there are no search results.
+    public static var search: ContentUnavailableView {
+        return ContentUnavailableView("No Results", systemImage: "magnifyingglass", description: Text("Check the spelling or try a new search."))
+    }
+
+    /// A view that indicates that there are no search results for the given query.
+    public static func search(text: String) -> ContentUnavailableView {
+        return ContentUnavailableView("No Results for \u{201C}\(text)\u{201D}", systemImage: "magnifyingglass", description: Text("Check the spelling or try a new search."))
+    }
+
+    #if SKIP
+    public var body: some View {
+        VStack(spacing: 8.0) {
+            ContentUnavailableLabel(label: label)
+            if let description {
+                description
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            if let actions {
+                actions
+                    .padding(.top, 8.0)
+            }
+        }
+        .padding(32.0)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+/// Stacks a `Label`'s large icon above its title, as iOS's content-unavailable label style does.
+struct ContentUnavailableLabel : View, Renderable {
+    let label: ComposeBuilder
+
+    #if SKIP
+    @Composable override func Render(context: ComposeContext) {
+        let renderables = label.Evaluate(context: context, options: 0)
+        guard let labelView = renderables.firstOrNull()?.strip() as? Label, renderables.size == 1 else {
+            label.font(.title2.bold()).Compose(context: context)
+            return
+        }
+        VStack(spacing: 12.0) {
+            labelView.image
+                .font(.system(size: 48.0))
+                .foregroundStyle(.secondary)
+            labelView.title
+                .font(.title2.bold())
+                .multilineTextAlignment(.center)
+        }
+        .Compose(context: context)
+    }
+    #else
+    var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+#endif
+
 /*
 /// An interface, consisting of a label and additional content, that you
 /// display when the content of your app is unavailable to users.
@@ -74,7 +183,7 @@ extension ContentUnavailableView where LabelX == Label /*<Text, Image>*/, Descri
     ///    - title: A title generated from a localized string.
     ///    - image: The name of the image resource to lookup.
     ///    - description: The view that describes the interface.
-    public init(_ title: LocalizedStringKey, image name: String, description: Text? = nil) { fatalError() }
+    public init(_ title: LocalizedStringKey, image: String, description: Text? = nil) { fatalError() }
 
     /// Creates an interface, consisting of a title generated from a localized
     /// string, a system icon image and additional content, that you display when the
@@ -85,7 +194,7 @@ extension ContentUnavailableView where LabelX == Label /*<Text, Image>*/, Descri
     ///    - systemImage: The name of the system symbol image resource to lookup.
     ///      Use the SF Symbols app to look up the names of system symbol images.
     ///    - description: The view that describes the interface.
-    public init(_ title: LocalizedStringKey, systemImage name: String, description: Text? = nil) { fatalError() }
+    public init(_ title: LocalizedStringKey, systemImage: String, description: Text? = nil) { fatalError() }
 
     /// Creates an interface, consisting of a title generated from a string,
     /// an image and additional content, that you display when the content of
@@ -95,7 +204,7 @@ extension ContentUnavailableView where LabelX == Label /*<Text, Image>*/, Descri
     ///    - title: A string used as the title.
     ///    - image: The name of the image resource to lookup.
     ///    - description: The view that describes the interface.
-    public init<S>(_ title: S, image name: String, description: Text? = nil) where S : StringProtocol { fatalError() }
+    public init<S>(_ title: S, image: String, description: Text? = nil) where S : StringProtocol { fatalError() }
 
     /// Creates an interface, consisting of a title generated from a string,
     /// a system icon image and additional content, that you display when the
@@ -106,7 +215,7 @@ extension ContentUnavailableView where LabelX == Label /*<Text, Image>*/, Descri
     ///    - systemImage: The name of the system symbol image resource to lookup.
     ///      Use the SF Symbols app to look up the names of system symbol images.
     ///    - description: The view that describes the interface.
-    public init<S>(_ title: S, systemImage name: String, description: Text? = nil) where S : StringProtocol { fatalError() }
+    public init<S>(_ title: S, systemImage: String, description: Text? = nil) where S : StringProtocol { fatalError() }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)

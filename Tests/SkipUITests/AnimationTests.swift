@@ -7,6 +7,7 @@ import XCTest
 #if SKIP
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -78,6 +79,69 @@ final class AnimationTests: SkipUITestCase {
         }
         XCTAssertFalse(observed, "nil-animation scope should not flip isInWithAnimation inside")
         XCTAssertFalse(Animation.isInWithAnimation, "nil-animation scope should not set the post-exit marker")
+        #endif
+    }
+
+    func testEnvironmentOverrideConsumesPendingBridgedProvenance() throws {
+        #if !SKIP
+        throw XCTSkip("bridged provenance resolution is Android-only")
+        #else
+        let firstResult = PendingAnimationResult()
+        let nextResult = PendingAnimationResult()
+
+        Animation.primeBridgedProvenance(.linear(duration: 1))
+        let capturedTransaction = StateTracking.captureLastReadAndClear()
+
+        composeRule.setContent {
+            VStack {
+                PendingAnimationProbe(
+                    animTx: capturedTransaction,
+                    result: firstResult
+                )
+                .animation(.easeIn(duration: 0.5))
+
+                PendingAnimationProbe(
+                    animTx: nil,
+                    result: nextResult
+                )
+            }
+            .Compose()
+        }
+        composeRule.waitForIdle()
+
+        XCTAssertNotNil(firstResult.animation, "the environment animation should win for the primed consumer")
+        XCTAssertNil(nextResult.animation, "the overridden bridge prime must not leak to the next consumer")
+        #endif
+    }
+
+    func testDisabledTransactionConsumesPendingBridgedProvenance() throws {
+        #if !SKIP
+        throw XCTSkip("bridged provenance resolution is Android-only")
+        #else
+        let firstResult = PendingAnimationResult()
+        let nextResult = PendingAnimationResult()
+
+        Animation.primeBridgedProvenance(.linear(duration: 1))
+        let capturedTransaction = StateTracking.captureLastReadAndClear() as? Transaction
+        capturedTransaction?.disablesAnimations = true
+
+        composeRule.setContent {
+            VStack {
+                PendingAnimationProbe(
+                    animTx: capturedTransaction,
+                    result: firstResult
+                )
+                PendingAnimationProbe(
+                    animTx: nil,
+                    result: nextResult
+                )
+            }
+            .Compose()
+        }
+        composeRule.waitForIdle()
+
+        XCTAssertNil(firstResult.animation, "a disabled transaction should suppress its animation")
+        XCTAssertNil(nextResult.animation, "the suppressed bridge prime must not leak to the next consumer")
         #endif
     }
 
@@ -325,6 +389,26 @@ final class AnimationTests: SkipUITestCase {
 }
 
 #if SKIP
+private final class PendingAnimationResult {
+    var animation: Animation?
+}
+
+private struct PendingAnimationProbe: View, Renderable {
+    let animTx: StateMutationTransaction?
+    let result: PendingAnimationResult
+
+    @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        return listOf(self)
+    }
+
+    @Composable override func Render(context: ComposeContext) {
+        let animation = Animation.current(isAnimating: false, animTx: animTx)
+        SideEffect {
+            result.animation = animation
+        }
+    }
+}
+
 /// Small test view whose frame width is driven by a shared `skip.ui.State` instance so the test
 /// can mutate it externally while still exercising the real `@State` plumbing — including the
 /// per-slot transaction stamping that animatable modifiers use to decide animate-vs-snap.

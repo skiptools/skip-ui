@@ -21,6 +21,7 @@ import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.TwoWayConverter
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
@@ -204,11 +205,21 @@ public struct Animation : Hashable {
     /// not animated sources and the modifier must snap.
     // SKIP @bridge
     public static func primeBridgedProvenance(_ animation: Animation?) {
+        primeBridgedProvenance(animation, onApplied: nil)
+    }
+
+    /// Experiment: acknowledge captured native provenance after successful composition.
+    /// The callback expires the source stamp, not the animation already captured by this
+    /// modifier. Existing consumers can finish animating after the acknowledgement.
+    // SKIP @bridge
+    public static func primeBridgedProvenance(_ animation: Animation?, onApplied: (() -> Void)?) {
         #if SKIP
         bridgedProvenance = true
         StateTracking.clearReadCursor()
         if let animation {
-            StateTracking.recordRead(Transaction(animation: animation))
+            let transaction = Transaction(animation: animation)
+            transaction.bridgedCompositionApplied = onApplied
+            StateTracking.recordRead(transaction)
         }
         #endif
     }
@@ -274,6 +285,8 @@ public struct Animation : Hashable {
     /// The explicit `.animation(_:)` environment override still wins over the transaction,
     /// matching SwiftUI's modifier-overrides-ambient-transaction semantics.
     @Composable static func current(isAnimating: Bool, animTx: StateMutationTransaction?) -> Animation? {
+        // Bridged provenance is captured at modifier construction and travels in animTx.
+        // Rendering can occur in a different order, so a shared pending prime is not safe here.
         var ambient = EnvironmentValues.shared._animation
         if ambient == nil, let tx = animTx as? Transaction, !tx.disablesAnimations {
             ambient = tx.animation
@@ -644,12 +657,27 @@ public enum AnimationCompletionCriteria : Hashable {
 /// Animatable plumbing for modifiers that capture provenance at entry: `animTx` carries the
 /// per-slot transaction (or nil → snap); the marker fallback is NOT consulted.
 @Composable func toAnimatable<T, VectorT>(value: T, converter: TwoWayConverter<T, VectorT>, context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<T, VectorT> where T: Any, VectorT: AnimationVector {
+    if let transaction = animTx as? Transaction, let applied = transaction.bridgedCompositionApplied {
+        // Do not clear during evaluation: sibling bodies still need the same stamp, and an
+        // abandoned composition must not consume it. A settled/unchanged target consumes it
+        // too, so unrelated future changes cannot borrow an animation that did no work here.
+        SideEffect {
+            applied()
+            transaction.bridgedCompositionApplied = nil
+        }
+    }
     // SKIP NOWARN
     let resetValue = rememberSaveable(stateSaver: context.stateSaver as Saver<T?, Any>) { mutableStateOf<T?>(nil) }
     let animatable = remember { Animatable(resetValue.value ?? value, converter) }
     let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
+    let isNewTarget = animatable.targetValue != value
     if isAnimating || animatable.value != value {
-        let animation = Animation.current(isAnimating: isAnimating, animTx: animTx)
+        // A new target with no provenance is a plain state write, so it must cancel any
+        // previous in-flight animation instead of inheriting the remembered animation.
+        // Only the computed target reaches this layer. For `anchor + drag`, we cannot tell
+        // a changed drag operand from a plain replacement of the animated anchor. Keeping
+        // the old interpolation for every plain target would also animate intentional snaps.
+        let animation = Animation.current(isAnimating: isAnimating && !isNewTarget, animTx: animTx)
         LaunchedEffect(value, animation) {
             if let animation {
                 if animation.isInfinite {
@@ -677,6 +705,7 @@ extension Float {
     @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<Float, AnimationVector1D> {
         return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector1D($0) }, { $0.value }), context: context, animTx: animTx)
     }
+
 }
 
 extension Tuple2 where E0 == Float, E1 == Float {
@@ -689,6 +718,7 @@ extension Tuple2 where E0 == Float, E1 == Float {
     @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
         return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }), context: context, animTx: animTx)
     }
+
 }
 
 extension androidx.compose.ui.graphics.Color {

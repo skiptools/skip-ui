@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 
 class ColorInvertModifier : DrawModifier {
     // SKIP DECLARE: override fun ContentDrawScope.draw()
@@ -217,6 +218,33 @@ class ColorMultiplyModifier : DrawModifier {
         }
         drawIntoCanvas {
             $0.saveLayer(Rect(Float(0.0), Float(0.0), size.width, size.height), paint)
+            drawContent()
+            $0.restore()
+        }
+    }
+}
+
+/// Applies opacity to the content.
+///
+/// A `graphicsLayer` alpha would be enough, but its layer is sized to the layout bounds and
+/// therefore cuts off anything the content draws outside them - an unbounded `blur()` underneath
+/// an `opacity()` ends up with a hard edge. The layer opened here is bounded by the current clip
+/// instead, which is what SwiftUI does.
+class OpacityModifier : DrawModifier {
+    let opacity: Float
+
+    init(opacity: Float) {
+        self.opacity = opacity
+    }
+
+    // SKIP DECLARE: override fun ContentDrawScope.draw()
+    override func draw() {
+        let paint = Paint().apply {
+            alpha = opacity
+        }
+        drawIntoCanvas {
+            let clip = $0.nativeCanvas.clipBounds
+            $0.saveLayer(Rect(Float(clip.left), Float(clip.top), Float(clip.right), Float(clip.bottom)), paint)
             drawContent()
             $0.restore()
         }
