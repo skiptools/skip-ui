@@ -56,6 +56,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
@@ -263,8 +264,13 @@ public final class List : View, Renderable {
         // this must be done when the items are composed *prior* to any animated change. So by default we compose all items
         // with `animateItemPlacement`. If the entire List is recomposed without an animation in progress (e.g. an unanimated
         // data change), we recompose without animation, then after some time to complete the recompose we flip back to the
-        // animated state in anticipation of the next, potentially animated, update
+        // animated state in anticipation of the next, potentially animated, update.
         let forceUnanimatedItems = remember { mutableStateOf(false) }
+
+        // Section chrome has separate placement rules from rows: row inserts/deletes should animate, while
+        // initial/bulk section loads need their rounded bottom chrome to appear at the settled position.
+        let sectionChromeAnimationState = remember { SectionChromeAnimationState() }
+        let sectionBottomPlacementInvalidation = remember { mutableStateOf(0) }
         if Animation.current(isAnimating: false) == nil {
             forceUnanimatedItems.value = true
             LaunchedEffect(System.currentTimeMillis()) {
@@ -280,6 +286,7 @@ public final class List : View, Renderable {
            opens, all others observe this state and animate closed. Matches
            iOS list behavior of "only one row's swipe actions visible at once". */
         let activeSwipeKey = remember { mutableStateOf<String?>(nil) }
+
         // Combine contentPadding with contentMargins additively
         var contentPadding = EnvironmentValues.shared._contentPadding.asPaddingValues()
         if let contentMargins = EnvironmentValues.shared._contentMargins?.asComposePaddingValues(for: .automatic) {
@@ -288,6 +295,9 @@ public final class List : View, Renderable {
         let listRowSpacing = EnvironmentValues.shared._listRowSpacing
         let listVerticalArrangement = listRowSpacing != nil ? Arrangement.spacedBy(listRowSpacing!.dp) : Arrangement.Top
         LazyColumn(state: reorderableState.listState, modifier: modifier, contentPadding: contentPadding, verticalArrangement: listVerticalArrangement) {
+            // Intentionally invalidate the LazyColumn after a section bottom has seen one frame at its unanimated baseline
+            let _ = sectionBottomPlacementInvalidation.value
+
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
             let shouldAnimateItems: @Composable () -> Bool = {
@@ -297,14 +307,56 @@ public final class List : View, Renderable {
             }
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
+            var itemKeyOccurrences = mutableMapOf<String, Int>()
+            var currentSectionBodyItemCounts: [String: Int] = [:]
+            var implicitPathComponents: [String] = []
+            var implicitSiblingOccurrences: [Int: Int] = [:]
+
+            // Build stable Compose keys for non-ForEach renderables. Explicit IDs/tags become path
+            // components, while untagged siblings get occurrence-based components so nested content
+            // does not accidentally reuse another item's placement animation state.
+            let itemKey: (Renderable, Int) -> String = { renderable, level in
+                let identity = TagModifier.on(content: renderable, role: .id)?.value
+                    ?? TagModifier.on(content: renderable, role: .tag)?.value
+                let siblingOccurrence = implicitSiblingOccurrences[level] ?? 0
+                implicitSiblingOccurrences[level] = siblingOccurrence + 1
+                implicitSiblingOccurrences.keys.filter { $0 > level }.forEach {
+                    implicitSiblingOccurrences.removeValue(forKey: $0)
+                }
+                while implicitPathComponents.count > level {
+                    implicitPathComponents.removeLast()
+                }
+
+                let pathComponent: String
+                if let identity {
+                    pathComponent = "explicit:\(composeBundleString(for: identity))"
+                } else {
+                    pathComponent = "implicit:\(siblingOccurrence)"
+                }
+                implicitPathComponents.append(pathComponent)
+
+                let baseKey: String
+                if let identity {
+                    baseKey = "explicit-path:\(implicitPathComponents.joined(separator: "/"))"
+                } else {
+                    baseKey = "implicit-path:\(implicitPathComponents.joined(separator: "/"))"
+                }
+
+                let occurrence = itemKeyOccurrences[baseKey] ?? 0
+                itemKeyOccurrences[baseKey] = occurrence + 1
+                return "\(baseKey)#\(occurrence)"
+            }
+
+            var sectionIndex = -1
             var startItemIndex = hasHeader ? 1 : 0 // Header inset
             if isSearchable {
                 startItemIndex += 1 // Search field
             }
+
             itemCollector.value.initialize(
                 startItemIndex: startItemIndex,
                 item: { renderable, level in
-                    item {
+                    item(key: itemKey(renderable, level)) {
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                         RenderItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling)
                     }
@@ -340,29 +392,97 @@ public final class List : View, Renderable {
                         RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
                     }
                 },
-                sectionHeader: { content in
+                sectionHeader: { content, sectionIdentity in
+                    sectionIndex += 1
+                    let currentSectionIndex = sectionIndex
+                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: currentSectionIndex)
                     let headerRenderables = content.size == 0 ? listOf(EmptyView()) : content
                     let firstRenderable = (renderables.firstOrNull() as? LazySectionHeader)?.content.firstOrNull()
                     let isTop = firstRenderable === headerRenderables.firstOrNull()
-                    for renderable in headerRenderables {
+                    var renderedCount = 0
+                    for renderableIndex in 0..<headerRenderables.size {
+                        let renderable = headerRenderables[renderableIndex]
                         if styling.style == .plain {
                             stickyHeader { _ in
                                 RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
                             }
                         } else {
-                            item {
-                                RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
+                            if !isTop && renderableIndex == 0 {
+                                // Keep the inter-section gap as its own lazy item so Compose can place it independently
+                                // from the header content. Rendering it inside RenderSectionHeader makes the chrome jump.
+                                item(key: "section-\(sectionKey)-top-gap") {
+                                    let itemModifier: Modifier
+                                    if itemCollector.value.hasActiveMove {
+                                        itemModifier = Modifier
+                                    } else {
+                                        itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
+                                    }
+                                    RenderFooter(styling: styling, modifier: itemModifier, safeAreaHeight: 0.dp, hasBottomSection: true)
+                                }
+                                renderedCount = renderedCount + 1
+                            }
+
+                            item(key: "section-\(sectionKey)-header-\(renderableIndex)") {
+                                let itemModifier: Modifier
+                                if itemCollector.value.hasActiveMove {
+                                    itemModifier = Modifier
+                                } else {
+                                    itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
+                                }
+                                RenderSectionHeader(content: renderable, context: itemContext, modifier: itemModifier, styling: styling, isTop: isTop)
+                            }
+                        }
+                        renderedCount = renderedCount + 1
+                    }
+                    return renderedCount
+                },
+                sectionFooter: { content, sectionIdentity, sectionItemCount in
+                    let currentSectionIndex = sectionIndex
+                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: currentSectionIndex)
+                    let footerRenderables = content.size == 0 ? listOf(EmptyView()) : content
+                    let currentSectionItemCount = sectionItemCount ?? 0
+                    currentSectionBodyItemCounts[sectionKey] = currentSectionItemCount
+
+                    let shouldAnimateFooterPlacement: Bool
+                    if let previousSectionItemCount = sectionChromeAnimationState.sectionBodyItemCounts[sectionKey], sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] == true {
+                        let countDelta = currentSectionItemCount > previousSectionItemCount ? currentSectionItemCount - previousSectionItemCount : previousSectionItemCount - currentSectionItemCount
+                        shouldAnimateFooterPlacement = countDelta <= 1
+                    } else {
+                        shouldAnimateFooterPlacement = false
+                    }
+
+                    if !shouldAnimateFooterPlacement {
+                        // First/bulk layouts establish their footer baseline without placement animation. The next
+                        // frame enables normal placement animation for small changes such as DisclosureGroup toggles.
+                        sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] = false
+                        if sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] != true {
+                            sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] = true
+                            coroutineScope.launch {
+                                // SKIP INSERT: withFrameNanos { _ -> }
+                                sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] = true
+                                sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] = false
+                                sectionBottomPlacementInvalidation.value = sectionBottomPlacementInvalidation.value + 1
                             }
                         }
                     }
-                },
-                sectionFooter: { content in
-                    let footerRenderables = content.size == 0 ? listOf(EmptyView()) : content
-                    for renderable in footerRenderables {
-                        item {
-                            RenderSectionFooter(content: renderable, context: itemContext, styling: styling)
+
+                    var renderedCount = 0
+                    for renderableIndex in 0..<footerRenderables.size {
+                        let renderable = footerRenderables[renderableIndex]
+                        item(key: "section-\(sectionKey)-footer-\(renderableIndex)") {
+                            let itemModifier: Modifier
+                            if itemCollector.value.hasActiveMove {
+                                itemModifier = Modifier
+                            } else if shouldAnimateFooterPlacement && EnvironmentValues.shared._searchableState?.isSearching.value != true {
+                                itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
+                            } else {
+                                itemModifier = Modifier.animateItem(fadeInSpec: nil, placementSpec: nil, fadeOutSpec: nil)
+                            }
+                            RenderSectionFooter(content: renderable, context: itemContext, modifier: itemModifier, styling: styling)
                         }
+                        renderedCount = renderedCount + 1
                     }
+                    return renderedCount
                 }
             )
 
@@ -384,15 +504,58 @@ public final class List : View, Renderable {
                     itemCollector.value.item(renderable, 0)
                 }
             }
+
+            sectionChromeAnimationState.sectionBodyItemCounts = currentSectionBodyItemCounts
+
+            let currentListItemCount = itemCollector.value.count
+            let previousListItemCount = sectionChromeAnimationState.listItemCount
+            let shouldAnimateListFooterPlacement: Bool
+            if let previousListItemCount {
+                let countDelta = currentListItemCount > previousListItemCount ? currentListItemCount - previousListItemCount : previousListItemCount - currentListItemCount
+                shouldAnimateListFooterPlacement = countDelta <= 1
+            } else {
+                shouldAnimateListFooterPlacement = false
+            }
+
+            sectionChromeAnimationState.listItemCount = currentListItemCount
+
+            let hasBottomSection = itemCollector.value.endsWithSectionFooter
             if hasFooter {
-                let hasBottomSection = renderables.lastOrNull() is LazySectionFooter
-                item {
-                    RenderFooter(styling: styling, safeAreaHeight: arguments.footerSafeAreaHeight, hasBottomSection: hasBottomSection)
+                item(key: "list-footer") {
+                    let itemModifier: Modifier
+                    if itemCollector.value.hasActiveMove {
+                        itemModifier = Modifier
+                    } else if shouldAnimateListFooterPlacement && EnvironmentValues.shared._searchableState?.isSearching.value != true {
+                        itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
+                    } else {
+                        itemModifier = Modifier.animateItem(fadeInSpec: nil, placementSpec: nil, fadeOutSpec: nil)
+                    }
+                    RenderFooter(styling: styling, modifier: itemModifier, safeAreaHeight: arguments.footerSafeAreaHeight, hasBottomSection: hasBottomSection)
                 }
             }
         }
     }
-    
+
+    /// Build a stable key for section chrome animation state.
+    private static func sectionKey(for sectionIdentity: Any?, fallbackIndex: Int) -> String {
+        guard let sectionIdentity else {
+            // Sections without an explicit identity can only be tracked by their rendered order.
+            return "index-\(fallbackIndex)"
+        }
+
+        // Prefer explicit Section/ForEach identity so chrome animation state follows the section
+        // across insertions and deletions instead of sticking to a numeric position.
+        return "id-\(composeBundleString(for: sectionIdentity))"
+    }
+
+    /// Tracks section chrome placement separately from row animation state.
+    private final class SectionChromeAnimationState {
+        var sectionBodyItemCounts: [String: Int] = [:]
+        var sectionBottomPlacementReady: [String: Bool] = [:]
+        var sectionBottomPlacementPending: [String: Bool] = [:]
+        var listItemCount: Int? = nil
+    }
+
     private static let horizontalInset = 16.0
     private static let verticalInset = 16.0
     private static let minimumItemHeight = 32.0
@@ -1047,13 +1210,9 @@ public final class List : View, Renderable {
         }
     }
 
-    @Composable private func RenderSectionHeader(content: Renderable, context: ComposeContext, styling: ListStyling, isTop: Bool) {
-        if !isTop && styling.style != ListStyle.plain {
-            // Vertical padding
-            RenderFooter(styling: styling, safeAreaHeight: 0.dp, hasBottomSection: true)
-        }
+    @Composable private func RenderSectionHeader(content: Renderable, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isTop: Bool) {
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
-        let modifier = Modifier
+        let containerModifier = modifier.fillMaxWidth()
             .zIndex(Float(0.5))
             .background(backgroundColor)
             .then(context.modifier)
@@ -1063,7 +1222,7 @@ public final class List : View, Renderable {
         } else {
             contentModifier = contentModifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
         }
-        Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.BottomCenter) {
+        Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.BottomCenter) {
             Column(modifier: Modifier.fillMaxWidth()) {
                 EnvironmentValues.shared.setValues {
                     $0.set_listSectionHeaderStyle(styling.style)
@@ -1078,7 +1237,7 @@ public final class List : View, Renderable {
         }
     }
 
-    @Composable private func RenderSectionFooter(content: Renderable, context: ComposeContext, styling: ListStyling) {
+    @Composable private func RenderSectionFooter(content: Renderable, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling) {
         if styling.style == .plain {
             let footerContent: Renderable
             if let lazySectionFooter = content as? LazySectionFooter, !lazySectionFooter.content.any({ !$0.isSwiftUIEmptyView }) {
@@ -1087,15 +1246,15 @@ public final class List : View, Renderable {
             } else {
                 footerContent = content
             }
-            RenderItem(content: footerContent, level: 0, context: context, styling: styling, isItem: false)
+            RenderItem(content: footerContent, level: 0, context: context, modifier: modifier, styling: styling, isItem: false)
         } else {
             let backgroundColor = BackgroundColor(styling: styling, isItem: false)
-            let modifier = Modifier.offset(y: -1.dp) // Cover last row's divider
+            let containerModifier = modifier.offset(y: -1.dp) // Cover last row's divider
                 .zIndex(Float(0.5))
                 .background(backgroundColor)
                 .then(context.modifier)
             let contentModifier = Modifier.fillMaxWidth().padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
-            Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
+            Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
                 Column(modifier: Modifier.fillMaxWidth().heightIn(min: 1.dp)) {
                     EnvironmentValues.shared.setValues {
                         $0.set_listSectionFooterStyle(styling.style)
@@ -1130,7 +1289,7 @@ public final class List : View, Renderable {
 
     /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
     /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
-    @Composable private func RenderFooter(styling: ListStyling, safeAreaHeight: Dp, hasBottomSection: Bool) {
+    @Composable private func RenderFooter(styling: ListStyling, modifier: Modifier = Modifier, safeAreaHeight: Dp, hasBottomSection: Bool) {
         var height = safeAreaHeight
         var offset = 0.dp
         if styling.style != .plain {
@@ -1138,12 +1297,12 @@ public final class List : View, Renderable {
             offset = -1.dp // Cover last row's divider
         }
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
-        let modifier = Modifier.fillMaxWidth()
+        let containerModifier = modifier.fillMaxWidth()
             .height(height)
             .offset(y: offset)
             .zIndex(Float(0.5))
             .background(backgroundColor)
-        Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
+        Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
             if !hasBottomSection && styling.style != .plain {
                 RenderRoundedCorners(isTop: false, fill: backgroundColor)
             }
