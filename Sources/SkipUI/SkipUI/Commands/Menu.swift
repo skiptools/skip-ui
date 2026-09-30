@@ -5,6 +5,7 @@ import Foundation
 #if SKIP
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.DropdownMenu
@@ -169,6 +170,7 @@ public final class Menu : View, Renderable {
             // resulting Compose `DropdownMenuItem` carries the same test tag
             // and content description a regular Button would.
             let itemModifier = accessibilityModifier(for: renderable, context: context)
+            let isItemEnabled = !isDisabled(renderable)
             if let button = stripped as? Button {
                 let isSelected: Bool?
                 if let tagModifier = TagModifier.on(content: renderable, role: .tag) {
@@ -176,8 +178,12 @@ public final class Menu : View, Renderable {
                 } else {
                     isSelected = nil
                 }
-                let tintColor = Color(colorImpl: { button.role == .destructive ? MaterialTheme.colorScheme.error : MaterialTheme.colorScheme.onSurface })
-                RenderDropdownMenuItem(for: button.label, context: context, modifier: itemModifier, tintColor: tintColor, isSelected: isSelected) {
+                var tintColor = Color(colorImpl: { button.role == .destructive ? MaterialTheme.colorScheme.error : MaterialTheme.colorScheme.onSurface })
+                if !isItemEnabled {
+                    // The explicit tint overrides DropdownMenuItem's own disabled colors
+                    tintColor = tintColor.opacity(Double(ContentAlpha.disabled))
+                }
+                RenderDropdownMenuItem(for: button.label, context: context, modifier: itemModifier, tintColor: tintColor, isSelected: isSelected, isEnabled: isItemEnabled) {
                     button.action()
                     replaceMenu(nil)
                 }
@@ -193,7 +199,8 @@ public final class Menu : View, Renderable {
             } else if let menu = stripped as? Menu {
                 if let button = menu.label.Evaluate(context: context, options: 0).firstOrNull()?.strip() as? Button {
                     RenderDropdownMenuItem(for: button.label, context: context, modifier: itemModifier) {
-                        replaceMenu(menu)
+                        // As in SwiftUI, a disabled nested menu still opens, with all of its items disabled
+                        replaceMenu(isItemEnabled ? menu : Menu(bridgedContent: ModifiedContent(content: menu.content, modifier: DisabledModifier(true)), bridgedLabel: EmptyView(), primaryAction: nil))
                     }
                 }
             } else {
@@ -229,7 +236,21 @@ public final class Menu : View, Renderable {
         return modifier
     }
 
-    @Composable private static func RenderDropdownMenuItem(for view: ComposeBuilder, context: ComposeContext, modifier: Modifier = Modifier, tintColor: Color? = nil, isSelected: Bool? = nil, action: () -> Void) {
+    /// Whether a `.disabled(true)` modifier is in the item's chain. A menu item is
+    /// rendered from its stripped `Button`, so without this the modifier is dropped and
+    /// a disabled item stays tappable — call sites that guard a force-unwrap with
+    /// `.disabled` then crash.
+    @Composable private static func isDisabled(_ renderable: Renderable) -> Bool {
+        let disabled: Bool? = renderable.forEachModifier { (mod: ModifierProtocol) -> Bool? in
+            if let disabledMod = mod as? DisabledModifier, disabledMod.disabled {
+                return true
+            }
+            return nil
+        }
+        return disabled == true
+    }
+
+    @Composable private static func RenderDropdownMenuItem(for view: ComposeBuilder, context: ComposeContext, modifier: Modifier = Modifier, tintColor: Color? = nil, isSelected: Bool? = nil, isEnabled: Bool = true, action: () -> Void) {
         let renderables = view.Evaluate(context: context, options: 0)
         let label = renderables.firstOrNull()?.strip() as? Label
         if let isSelected {
@@ -240,7 +261,7 @@ public final class Menu : View, Renderable {
                 selectedIcon = {}
             }
             if let label {
-                DropdownMenuItem(text: { label.RenderTitle(context: context, titleColor: tintColor) }, leadingIcon: selectedIcon, trailingIcon: { label.RenderImage(context: context, imageColor: tintColor) }, onClick: action, modifier: modifier)
+                DropdownMenuItem(text: { label.RenderTitle(context: context, titleColor: tintColor) }, leadingIcon: selectedIcon, trailingIcon: { label.RenderImage(context: context, imageColor: tintColor) }, onClick: action, modifier: modifier, enabled: isEnabled)
             } else {
                 DropdownMenuItem(text: {
                     EnvironmentValues.shared.setValues{
@@ -251,11 +272,11 @@ public final class Menu : View, Renderable {
                             renderable.Render(context: context)
                         }
                     }
-                }, leadingIcon: selectedIcon, onClick: action, modifier: modifier)
+                }, leadingIcon: selectedIcon, onClick: action, modifier: modifier, enabled: isEnabled)
             }
         } else {
             if let label {
-                DropdownMenuItem(text: { label.RenderTitle(context: context, titleColor: tintColor) }, trailingIcon: { label.RenderImage(context: context, imageColor: tintColor) }, onClick: action, modifier: modifier)
+                DropdownMenuItem(text: { label.RenderTitle(context: context, titleColor: tintColor) }, trailingIcon: { label.RenderImage(context: context, imageColor: tintColor) }, onClick: action, modifier: modifier, enabled: isEnabled)
             } else {
                 DropdownMenuItem(text: {
                     EnvironmentValues.shared.setValues {
@@ -266,7 +287,7 @@ public final class Menu : View, Renderable {
                             renderable.Render(context: context)
                         }
                     }
-                }, onClick: action, modifier: modifier)
+                }, onClick: action, modifier: modifier, enabled: isEnabled)
             }
         }
     }

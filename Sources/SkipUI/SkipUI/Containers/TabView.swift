@@ -131,10 +131,11 @@ public struct TabView : View, Renderable {
         let coroutineScope = rememberCoroutineScope()
         let isSyncingToSelection = remember { mutableStateOf(false) }
         let pagerState = rememberPagerState(pageCount: { tabRenderables.size })
+        let isScrollDisabled = EnvironmentValues.shared._scrollDisabled
         ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
             Box(modifier: modifier) {
                 syncPagerStateToSelection(pagerState, tags: tags, isSyncingToSelection: isSyncingToSelection, coroutineScope: coroutineScope)
-                RenderPageViewPager(pagerState: pagerState, tabRenderables: tabRenderables, tags: tags, isSyncingToSelection: isSyncingToSelection, context: contentContext)
+                RenderPageViewPager(pagerState: pagerState, tabRenderables: tabRenderables, tags: tags, isSyncingToSelection: isSyncingToSelection, isScrollDisabled: isScrollDisabled, context: contentContext)
                 if indexDisplayMode == .always || (indexDisplayMode == .automatic && tabRenderables.size > 1) {
                     let modifier = Modifier
                         .wrapContentHeight()
@@ -147,8 +148,8 @@ public struct TabView : View, Renderable {
         }
     }
 
-    @Composable private func RenderPageViewPager(pagerState: PagerState, tabRenderables: kotlin.collections.List<Renderable>, tags: kotlin.collections.List<Any?>, isSyncingToSelection: MutableState<Bool>, context: ComposeContext) {
-        HorizontalPager(state: pagerState, modifier: Modifier.fillMaxSize()) { page in
+    @Composable private func RenderPageViewPager(pagerState: PagerState, tabRenderables: kotlin.collections.List<Renderable>, tags: kotlin.collections.List<Any?>, isSyncingToSelection: MutableState<Bool>, isScrollDisabled: Bool, context: ComposeContext) {
+        HorizontalPager(state: pagerState, modifier: Modifier.fillMaxSize(), userScrollEnabled: !isScrollDisabled) { page in
             if page >= 0 && page < tabRenderables.size {
                 Box(modifier: Modifier.fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
                     tabRenderables[page].Render(context: context)

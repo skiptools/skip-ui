@@ -10,6 +10,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 #endif
 
@@ -24,12 +25,15 @@ public struct GeometryReader : View, Renderable {
 
     #if SKIP
     @Composable override func Render(context: ComposeContext) {
-        let rememberedGlobalFramePx = remember { mutableStateOf<Rect?>(nil) }
-        Box(modifier: context.modifier.fillSize().onGloballyPositionedInRoot {
-            rememberedGlobalFramePx.value = $0
+        let geometry = remember { GeometryReaderState() }
+        UpdateGeometryReaderSafeArea(geometry)
+        Box(modifier: context.modifier.fillSize().onGloballyPositioned {
+            geometry.update(size: $0.size, frame: $0.boundsInRoot())
         }) {
-            if let globalFramePx = rememberedGlobalFramePx.value {
-                let proxy = GeometryProxy(globalFramePx: globalFramePx, density: LocalDensity.current, safeArea: EnvironmentValues.shared._safeArea)
+            if geometry.isPositioned {
+                // Constructing the proxy must not read its frame or safe area. The content decides
+                // which properties it needs, including across the native Swift bridge.
+                let proxy = GeometryProxy(geometry: geometry, density: LocalDensity.current)
                 content(proxy).Compose(context.content())
             }
         }
