@@ -1811,6 +1811,10 @@ Support levels:
               <ul>
                   <li>func lineLimit(_ number: Int?) -> some View</li>
                   <li>func lineLimit(_ number: Int, reservesSpace: Bool) -> some View</li>
+                  <li>func lineLimit(_ limit: ClosedRange<Int>) -> some View</li>
+                  <li>func lineLimit(_ limit: Range<Int>) -> some View</li>
+                  <li>func lineLimit(_ limit: PartialRangeFrom<Int>) -> some View (SkipFuse only)</li>
+                  <li>func lineLimit(_ limit: PartialRangeThrough<Int>) -> some View (SkipFuse only)</li>
               </ul>
           </details>      
        </td>
