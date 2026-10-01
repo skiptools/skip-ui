@@ -102,13 +102,16 @@ private let AlertDialogMaxWidth: Dp = 560.dp
         // to get at the modifiers to look for `BackDismissDisabled`
         let contentRenderables = ComposeBuilder.from(content).Evaluate(context: context, options: EvaluateOptions(isKeepNonModified: true).value)
         let topInset = remember { mutableStateOf(0.dp) }
-        let topInsetPx = with(LocalDensity.current) { topInset.value.toPx() }
+        let density = LocalDensity.current
         let handleHeight = isFullScreen ? 0.dp : 8.dp
         let handleHeightPx = with(LocalDensity.current) { handleHeight.toPx() }
         let handlePadding = isFullScreen ? 0.dp : 10.dp
         let handlePaddingPx = with(LocalDensity.current) { handlePadding.toPx() }
         let sheetMaxWidth = isFullScreen ? Dp.Unspecified : BottomSheetDefaults.SheetMaxWidth
         let shape = GenericShape { size, _ in
+            // The modal content resolves window insets later in composition. Read here,
+            // when constructing the outline, so clipping and content use the same inset.
+            let topInsetPx = with(density) { topInset.value.toPx() }
             let y = topInsetPx - handleHeightPx - handlePaddingPx
             addRect(Rect(offset = Offset(x: Float(0.0), y: y), size: Size(width: size.width, height: size.height - y)))
         }
