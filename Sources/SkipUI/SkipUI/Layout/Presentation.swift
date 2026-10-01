@@ -1260,8 +1260,9 @@ extension View {
         return self
     }
 
-    /// Sets a solid presentation background, including clear for content that reveals its presenter.
-    /// Apply directly to the sheet or full-screen cover content. Other ShapeStyles are unsupported.
+    /// Sets a Color-only presentation background, including clear and partially opaque colors.
+    /// Apply directly to the root view returned by the sheet or fullScreenCover content closure.
+    /// Other ShapeStyles and custom background views are unsupported.
     // SKIP @bridge
     public func presentationBackground(_ color: Color) -> any View {
         #if SKIP
