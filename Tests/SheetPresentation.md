@@ -53,9 +53,7 @@ animation. The modified presenter serves Android sheets and full-screen covers;
 it does not change the shared geometry observer, alerts, or iOS presentation.
 
 The regression fails on the original code and passes with the change on a
-Samsung SM-S721U and Pixel 9 Pro emulator, both running Android 16. Eleven
-behavioral checks pass on each target. The recording helper is opt-in and is
-skipped during the regular suite. Frame inspection supports the narrow clipping
+Samsung SM-S721U and Pixel 9 Pro emulator, both running Android 16. Frame inspection supports the narrow clipping
 finding; the brief artifact is not a persuasive normal-speed video demonstration
 of a broader flicker improvement.
 
@@ -86,6 +84,7 @@ allows real orientation changes while retaining the same Compose tree.
 
 ## Coverage
 
+- Clear, solid, and adaptive presentation backgrounds, including an open-sheet appearance change.
 - Fixed, medium, large, and fractional detents; expanding and shrinking.
 - Full-screen presentation and dismissal callback.
 - Taps near the top edge, Back, drag dismissal, and reopening.
@@ -101,27 +100,9 @@ surface type. Video surfaces, popup windows, and every possible nested gesture
 combination are not covered. Visual recordings give a provisional motion pass;
 live motion quality still benefits from human review.
 
-## Recording the minimal reproduction
-
-Start an Android screen recording before running:
-
-```sh
-adb -s DEVICE shell am instrument -w \
-  -e class skip.ui.SheetPresentationTests#recordDetentTransitions \
-  -e sheetVideo true \
-  skip.ui.module.test/androidx.test.runner.AndroidJUnitRunner
-```
-
-Use identical test code and device settings for the original and fixed library.
-The recording steps the Compose clock at roughly real-time cadence and changes
-only the requested detent. Keep original recordings for frame analysis. Label
-any slowed copies explicitly, and preserve variable frame timestamps when
-encoding: an average-frame-rate conversion can drop or lengthen the bad frame.
-
 ## Separate compact-sheet keyboard limitation
 
 On both the original and fixed library, a 260-point sheet can lose its content
 when the keyboard opens. The expanded sheet works. This is not fixed by the
-outline change. To reproduce that separate issue, run the keyboard test with
-`-e compactKeyboard true`; its visible-header assertion is expected to fail.
-Keep this investigation separate from the clipping fix.
+outline change. The keyboard regression uses an expanded sheet. Investigate
+short-sheet keyboard avoidance separately from this clipping fix.

@@ -51,6 +51,9 @@ class SheetPresentationTests {
     private val presented = mutableStateOf(true)
     private val detent = mutableStateOf(PresentationDetent.height(260.0))
     private var headerBounds = Rect.Zero
+    private var contentBounds = Rect.Zero
+    private var backgroundColor: Color? = null
+    private val colorScheme = mutableStateOf<ColorScheme?>(null)
     private val mode = mutableStateOf("plain")
     private val query = mutableStateOf("")
     private val rowCount = mutableStateOf(4)
@@ -74,7 +77,7 @@ class SheetPresentationTests {
                     Text("Sheet clipping reproduction", color = ComposeColor.White,
                         modifier = Modifier.padding(24.dp))
                     SheetPresentation(Binding(get = { presented.value }, set = { presented.value = it }),
-                        fullScreen, ComposeContext(), { content }, { dismissals.incrementAndGet() })
+                        fullScreen, ComposeContext(), { configuredContent() }, { dismissals.incrementAndGet() })
                 }
             }
         }
@@ -82,11 +85,65 @@ class SheetPresentationTests {
         assertTrue("The sheet header must be laid out", headerBounds.height > 0)
     }
 
+    // Presentation background must be a direct modifier so it is known before the modal opens.
+    private fun configuredContent(): View {
+        var result: View = content
+        backgroundColor?.let { result = result.presentationBackground(it) }
+        colorScheme.value?.let { result = result.preferredColorScheme(it) }
+        return result
+    }
+
+    @Test fun clearPresentationBackgroundRevealsPresenter() {
+        mode.value = "background"
+        backgroundColor = Color.clear
+        install()
+        Thread.sleep(80)
+        val image = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+        val x = (contentBounds.left + contentBounds.width / 2).toInt()
+        val outside = image.getPixel(x, (contentBounds.top - 100).toInt())
+        val inside = image.getPixel(x, (contentBounds.bottom - 30).toInt())
+        image.recycle()
+        assertEquals("Transparent content should reveal the dimmed presenter", outside, inside)
+    }
+
+    @Test fun solidPresentationBackgroundColorsContent() {
+        mode.value = "background"
+        backgroundColor = Color.red
+        install()
+        Thread.sleep(80)
+        val pixel = backgroundPixel()
+        assertTrue(android.graphics.Color.red(pixel) > 200)
+        assertTrue(android.graphics.Color.green(pixel) < 100)
+        assertTrue(android.graphics.Color.blue(pixel) < 100)
+    }
+
+    @Test fun adaptiveBackgroundUsesPresentedColorScheme() {
+        mode.value = "background"
+        backgroundColor = Color.primary
+        colorScheme.value = ColorScheme.light
+        install()
+        Thread.sleep(80)
+        assertTrue("Light primary should resolve dark", android.graphics.Color.red(backgroundPixel()) < 80)
+        rule.runOnIdle { colorScheme.value = ColorScheme.dark }
+        rule.waitForIdle()
+        Thread.sleep(80)
+        assertTrue("Dark primary should resolve light in the same open sheet", android.graphics.Color.red(backgroundPixel()) > 180)
+    }
+
+    private fun backgroundPixel(): Int {
+        val image = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+        val pixel = image.getPixel((contentBounds.left + contentBounds.width / 2).toInt(), (contentBounds.bottom - 30).toInt())
+        image.recycle()
+        return pixel
+    }
+
     // Read the detent inside the sheet's content scope, not the presenting parent's scope.
     private val content = ComposeView { context ->
         ComposeView {
             SideEffect { compositions.incrementAndGet() }
-            Column(Modifier.fillMaxSize().background(ComposeColor.White)
+            Column(Modifier.fillMaxSize()
+                .background(if (mode.value == "background") ComposeColor.Transparent else ComposeColor.White)
+                .onGloballyPositioned { contentBounds = it.boundsInWindow() }
                 .drawWithContent { draws.incrementAndGet(); drawContent() }) {
                 Box(Modifier.fillMaxWidth().height(64.dp).background(ComposeColor.Green)
                     .onGloballyPositioned { headerBounds = it.boundsInWindow() }
@@ -210,11 +267,7 @@ class SheetPresentationTests {
 
     @Test fun keyboardBackKeepsSheetThenDismissesIt() {
         mode.value = "input"
-        // Use the expanded presentation for editing. Opt in to the separate,
-        // pre-existing compact-sheet/IME investigation with compactKeyboard=true.
-        if (InstrumentationRegistry.getArguments().getString("compactKeyboard") != "true") {
-            detent.value = PresentationDetent.large
-        }
+        detent.value = PresentationDetent.large
         install()
         rule.onNodeWithTag("input").performClick().performTextInput("typed text")
         rule.waitForIdle()
@@ -290,24 +343,6 @@ class SheetPresentationTests {
                 assertHeaderVisible("detent-$step-frame-$frame")
             }
         }
-    }
-
-    /** Opt-in real-time sequence for before/after PR recordings using the same production presenter. */
-    @Test fun recordDetentTransitions() {
-        org.junit.Assume.assumeTrue(InstrumentationRegistry.getArguments().getString("sheetVideo") == "true")
-        install()
-        Thread.sleep(1500)
-        rule.mainClock.autoAdvance = false
-        repeat(160) { frame ->
-            if (frame == 20 || frame == 60 || frame == 100 || frame == 140) {
-                rule.runOnUiThread {
-                    detent.value = PresentationDetent.height(if (frame == 20 || frame == 100) 560.0 else 260.0)
-                }
-            }
-            rule.mainClock.advanceTimeByFrame()
-            Thread.sleep(16)
-        }
-        Thread.sleep(1200)
     }
 
     private fun assertHeaderVisible(label: String) {
