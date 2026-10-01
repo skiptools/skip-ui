@@ -297,7 +297,7 @@ final class ForEachIdentityModifier: RenderModifier {
         self.namespace = namespace
         self.identity = identity
         super.init(action: { renderable, context in
-            androidx.compose.runtime.key(namespace, identity) {
+            androidx.compose.runtime.key(identity) {
                 renderable.Render(context: context)
             }
         })
