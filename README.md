@@ -1804,7 +1804,7 @@ Support levels:
        </td>
     </tr>
     <tr>
-      <td>🟢</td>
+      <td>✅</td>
       <td>
           <details>
               <summary><code>.lineLimit</code></summary>
