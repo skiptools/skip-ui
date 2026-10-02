@@ -1837,8 +1837,7 @@ public struct NavigationLink : View, Renderable {
     }
 
     @Composable override func shouldRenderListItem(context: ComposeContext) -> (Bool, (() -> Void)?) {
-        let buttonStyle = EnvironmentValues.shared._buttonStyle
-        guard buttonStyle == nil || buttonStyle == .automatic || buttonStyle == .plain else {
+        guard Button.isListItemStyle(EnvironmentValues.shared._buttonStyle) else {
             return (false, nil)
         }
         let action: (() -> Void)? = value != nil || destination != nil ? navigationAction() : nil
