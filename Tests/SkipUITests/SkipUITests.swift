@@ -117,6 +117,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextInputSelection
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.performGesture
+import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.up
 import androidx.compose.ui.text.AnnotatedString
@@ -451,6 +452,30 @@ final class SkipUITests: SkipUITestCase {
                 }
             )
         }
+    }
+
+    func testRefreshableScrollViewTakesPullBelowShortContent() throws {
+        #if !SKIP
+        throw XCTSkip("Pull to refresh is a Compose behavior")
+        #else
+        let refreshCount = mutableStateOf(0)
+        try testUI(view: {
+            ScrollView {
+                Text("Short")
+                    .accessibilityIdentifier("refresh.content")
+            }
+            .refreshable { refreshCount.value += 1 }
+            .frame(height: 400)
+            .accessibilityIdentifier("refresh.container")
+        }, eval: { rule in
+            let container = rule.onNodeWithTag("refresh.container").fetchSemanticsNode().boundsInRoot
+            let content = rule.onNodeWithTag("refresh.content").fetchSemanticsNode().boundsInRoot
+            XCTAssertLessThan(content.bottom, container.top + container.height / 4, "The pull would start on the content")
+            rule.onNodeWithTag("refresh.container").performTouchInput { swipeDown(startY: centerY / 2, endY: bottom) }
+            rule.waitForIdle()
+            XCTAssertEqual(refreshCount.value, 1, "A pull starting below the content did not refresh")
+        })
+        #endif
     }
 
     func testConditionalTabDoesNotRenderBlankNavigationItem() throws {
