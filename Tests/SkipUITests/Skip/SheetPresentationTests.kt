@@ -4,6 +4,7 @@ package skip.ui
 
 import android.graphics.Bitmap
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -14,6 +15,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.test.*
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import androidx.activity.ComponentActivity
@@ -65,6 +67,7 @@ class SheetPresentationTests {
     private val draws = AtomicInteger()
     private val dismissals = AtomicInteger()
     private var webView: WebView? = null
+    private val webContentReady = AtomicBoolean()
 
     @org.junit.Before fun requireInstrumentedDisplay() {
         // These tests sample compositor pixels; Robolectric cannot supply that evidence.
@@ -162,6 +165,13 @@ class SheetPresentationTests {
                     "native" -> AndroidView(modifier = Modifier.weight(1f).testTag("web"), factory = { context ->
                         WebView(context).also {
                             webView = it
+                            it.webViewClient = object : WebViewClient() {
+                                override fun onPageFinished(view: WebView, url: String) {
+                                    view.postVisualStateCallback(0, object : WebView.VisualStateCallback() {
+                                        override fun onComplete(requestId: Long) { webContentReady.set(true) }
+                                    })
+                                }
+                            }
                             it.loadData("<html><body style='background:#ffeeaa'>Native content</body></html>", "text/html", "UTF-8")
                         }
                     })
@@ -302,6 +312,10 @@ class SheetPresentationTests {
         install()
         val original = webView
         assertTrue(original != null)
+        // Compose idleness does not include WebView's renderer. Finish initial rendering
+        // before pausing the clock to inspect individual height-change frames.
+        rule.waitUntil(10_000) { webContentReady.get() }
+        assertHeaderVisible("native-ready")
         checkTransitions(listOf(PresentationDetent.height(520.0), PresentationDetent.height(320.0)))
         assertTrue("Native view must retain its identity", original === webView)
         rule.mainClock.autoAdvance = true
