@@ -6,6 +6,8 @@ import Foundation
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.invisibleToUser
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.popup
 import androidx.compose.ui.semantics.role
@@ -399,6 +401,9 @@ extension View {
             }
             if traits.contains(.isToggle) {
                 modifier = modifier.semantics { role = androidx.compose.ui.semantics.Role.Switch }
+            }
+            if traits.contains(.updatesFrequently) {
+                modifier = modifier.semantics { liveRegion = LiveRegionMode.Polite }
             }
             return modifier
         })
