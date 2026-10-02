@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
@@ -175,7 +176,7 @@ class SheetPresentationTests {
         }.presentationDetents(skip.lib.setOf(detent.value)).Compose(context)
     }
 
-    /** Inspect actual window pixels after each clock step, not just the settled semantics tree. */
+    /** Inspect rendered pixels after each clock step, not just the settled semantics tree. */
     @Test fun changingHeightKeepsHeaderVisibleEveryFrame() {
         install()
         rule.mainClock.autoAdvance = false
@@ -336,10 +337,9 @@ class SheetPresentationTests {
             rule.runOnUiThread { detent.value = value }
             repeat(6) { frame ->
                 rule.mainClock.advanceTimeByFrame()
-                // Drawing runs outside the controlled Compose clock. Allow the display
-                // to present this frame without advancing composition to the next one.
+                // Drawing runs outside the controlled Compose clock. captureToImage below
+                // waits for drawing without advancing the paused composition clock.
                 rule.waitForIdle()
-                Thread.sleep(80)
                 assertHeaderVisible("detent-$step-frame-$frame")
             }
         }
@@ -347,9 +347,11 @@ class SheetPresentationTests {
 
     private fun assertHeaderVisible(label: String) {
         val bounds = headerBounds
-        val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
-        val x = (bounds.left + 20).toInt().coerceIn(0, bitmap.width - 1)
-        val y = (bounds.top + bounds.height / 2).toInt().coerceIn(0, bitmap.height - 1)
+        // Capture the header from its owning dialog window after drawing has completed.
+        // Window-relative layout bounds cannot index a device-wide screenshot reliably.
+        val bitmap = rule.onNodeWithTag("header").captureToImage().asAndroidBitmap()
+        val x = 20.coerceAtMost(bitmap.width - 1)
+        val y = bitmap.height / 2
         val pixel = bitmap.getPixel(x, y)
         val visible = android.graphics.Color.green(pixel) > 220 &&
             android.graphics.Color.red(pixel) < 40 && android.graphics.Color.blue(pixel) < 40
@@ -358,6 +360,6 @@ class SheetPresentationTests {
             FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
         }
         bitmap.recycle()
-        assertTrue("$label: header clipped at ($x,$y), bounds=$bounds, pixel=${pixel.toUInt().toString(16)}", visible)
+        assertTrue("$label: header clipped at local ($x,$y), window bounds=$bounds, pixel=${pixel.toUInt().toString(16)}", visible)
     }
 }
