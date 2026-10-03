@@ -47,6 +47,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -1008,13 +1009,13 @@ extension View {
     public func onGeometryChangeErased<T>(of transform: @escaping (GeometryProxy) -> T, action: @escaping (_ oldValue: T, _ newValue: T) -> Void) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
-            let globalFramePx = remember { mutableStateOf<Rect?>(nil) }
+            let geometry = remember { GeometryReaderState() }
             let storage = remember { GeometryChangeValueStorage() }
             let density = LocalDensity.current
             let safeArea = EnvironmentValues.shared._safeArea
 
-            if let rect = globalFramePx.value {
-                let proxy = GeometryProxy(globalFramePx: rect, density: density, safeArea: safeArea)
+            if geometry.isPositioned {
+                let proxy = GeometryProxy(sizePx: geometry.sizePx, globalFramePx: geometry.globalFramePx, density: density, safeArea: safeArea)
                 let newValue = transform(proxy)
                 let oldValue = storage.previousValue as? T
                 if oldValue == nil || oldValue != newValue {
@@ -1025,8 +1026,8 @@ extension View {
             }
 
             var updatedContext = context
-            updatedContext.modifier = context.modifier.onGloballyPositionedInRoot { rect in
-                globalFramePx.value = rect
+            updatedContext.modifier = context.modifier.onGloballyPositioned {
+                geometry.update(size: $0.size, frame: $0.boundsInRoot())
             }
             renderable.Render(context: updatedContext)
         })
