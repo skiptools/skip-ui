@@ -206,10 +206,13 @@ public struct Image : View, Renderable, Equatable {
             let hasValidIntrinsic = !painter.intrinsicSize.isUnspecified && !painter.intrinsicSize.width.isNaN() && painter.intrinsicSize.width > 0 && !painter.intrinsicSize.height.isNaN() && painter.intrinsicSize.height > 0
             if hasValidIntrinsic {
                 RenderPainter(painter: painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode, context: innerContext)
-            } else if resizingMode == .stretch {
+            } else if resizingMode == .stretch && contentMode == nil {
                 // Coil reports State.Empty on the first composition even when a cached image can draw
-                // in the first frame. Resizable images already have external constraints, so keep the
-                // slot filled instead of briefly replacing cached icons with a 0x0 placeholder.
+                // in the first frame. A resizable image without a content mode fills the space it is
+                // offered whether or not its size is known, so keep that slot filled instead of briefly
+                // replacing cached icons with a 0x0 placeholder. With a content mode the size depends on
+                // the image's aspect ratio, which is unknown until Coil loads it: filling here would
+                // claim all the width a stack offers, e.g. for `.aspectRatio(contentMode: .fit)` icons.
                 RenderPainter(painter: painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode, context: innerContext)
             } else {
                 // Without a valid intrinsic, RenderPainter will try to render the painter with
