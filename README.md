@@ -1451,7 +1451,8 @@ Support levels:
           <details>
               <summary><code>.accessibilityAddTraits</code></summary>
               <ul>
-                  <li>Only traits that map to Compose accessibility roles are used</li>
+                  <li>Only <code>.isButton</code>, <code>.isHeader</code>, <code>.isImage</code>, <code>.isModal</code>, <code>.isSelected</code>, <code>.isToggle</code> and <code>.updatesFrequently</code> are used</li>
+                  <li><code>.updatesFrequently</code> is a polite live region: TalkBack reads it when it appears and on each change</li>
               </ul>
           </details>      
        </td>
