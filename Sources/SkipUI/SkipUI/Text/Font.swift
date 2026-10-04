@@ -68,8 +68,10 @@ public struct Font : Hashable {
         adjust(MaterialTheme.typography.titleMedium, by: Float(0.0))
     })
 
+    // bodyMedium, not titleSmall: both are 14/20sp, but iOS's subheadline is regular weight
+    // and titleSmall is medium. `.callout` uses bodyMedium too.
     public static let subheadline = Font(fontImpl: {
-        adjust(MaterialTheme.typography.titleSmall, by: Float(0.0))
+        adjust(MaterialTheme.typography.bodyMedium, by: Float(0.0))
     })
 
     public static let body = Font(fontImpl: {
