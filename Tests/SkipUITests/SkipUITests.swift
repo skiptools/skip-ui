@@ -963,6 +963,27 @@ final class SkipUITests: SkipUITestCase {
         }
     }
 
+    func testInnermostListRowBackgroundWins() throws {
+        #if !SKIP
+        throw XCTSkip("List row backgrounds are not exposed to accessibility on Darwin")
+        #else
+        try testUI(view: {
+            List {
+                Text(verbatim: "Nested")
+                    .listRowBackground(Color.blue.accessibilityIdentifier("list.bg.inner"))
+                    .listRowBackground(Color.red.accessibilityIdentifier("list.bg.outer"))
+                Text(verbatim: "Single")
+                    .listRowBackground(Color.green.accessibilityIdentifier("list.bg.single"))
+            }
+        }, eval: { rule in
+            rule.waitForIdle()
+            rule.onNodeWithTag("list.bg.inner").assertExists()
+            rule.onNodeWithTag("list.bg.outer").assertDoesNotExist()
+            rule.onNodeWithTag("list.bg.single").assertExists()
+        })
+        #endif
+    }
+
 //    func testObservability() throws {
 //        try testUI(view: {
 //            ObservablesOuterView()
