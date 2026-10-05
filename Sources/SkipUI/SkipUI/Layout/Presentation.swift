@@ -102,13 +102,16 @@ private let AlertDialogMaxWidth: Dp = 560.dp
         // to get at the modifiers to look for `BackDismissDisabled`
         let contentRenderables = ComposeBuilder.from(content).Evaluate(context: context, options: EvaluateOptions(isKeepNonModified: true).value)
         let topInset = remember { mutableStateOf(0.dp) }
-        let topInsetPx = with(LocalDensity.current) { topInset.value.toPx() }
+        let density = LocalDensity.current
         let handleHeight = isFullScreen ? 0.dp : 8.dp
         let handleHeightPx = with(LocalDensity.current) { handleHeight.toPx() }
         let handlePadding = isFullScreen ? 0.dp : 10.dp
         let handlePaddingPx = with(LocalDensity.current) { handlePadding.toPx() }
         let sheetMaxWidth = isFullScreen ? Dp.Unspecified : BottomSheetDefaults.SheetMaxWidth
         let shape = GenericShape { size, _ in
+            // The modal content resolves window insets later in composition. Read here,
+            // when constructing the outline, so clipping and content use the same inset.
+            let topInsetPx = with(density) { topInset.value.toPx() }
             let y = topInsetPx - handleHeightPx - handlePaddingPx
             addRect(Rect(offset = Offset(x: Float(0.0), y: y), size: Size(width: size.width, height: size.height - y)))
         }
@@ -117,11 +120,14 @@ private let AlertDialogMaxWidth: Dp = 560.dp
         // and only the first composition of `ModalBottomSheetProperties` is taken into account. So we require the
         // modifier directly on the content view
         let backDismissDisabled = isBackDismissDisabled(on: contentRenderables)
+        let presentationColor = contentRenderables.firstNotNullOfOrNull { renderable in
+            renderable.forEachModifier { ($0 as? PresentationBackgroundColorModifier)?.color }
+        }
         let onDismissRequest = {
             isPresented.set(false)
         }
         let properties = ModalBottomSheetProperties(shouldDismissOnBackPress: !backDismissDisabled)
-        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
+        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: presentationColor != nil ? androidx.compose.ui.graphics.Color.Transparent : androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
             
             SyncSystemBarsWithTheme()
             
@@ -152,7 +158,11 @@ private let AlertDialogMaxWidth: Dp = 560.dp
                 case .medium:
                     inset = screenHeight / 2
                 case let .height(h):
-                    inset = screenHeight - h.dp
+                    // A fixed detent describes usable content height, excluding system bars.
+                    // The bottom inset is consumed by PresentationRoot or the spacer below it.
+                    let bottomBarHeight = max(0.dp, WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                    let topBarHeight = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                    inset = max(topBarHeight + (24 * sheetDepth).dp + 44.dp, screenHeight - h.dp - bottomBarHeight)
                 case let .fraction(f):
                     inset = screenHeight * Float(1 - f)
                 default:
@@ -193,7 +203,7 @@ private let AlertDialogMaxWidth: Dp = 560.dp
                 let stateSaver = remember { ComposeStateSaver() }
                 let presentationContext = context.content(stateSaver: stateSaver)
                 // Place inside of ModalBottomSheet, which renders content async
-                PresentationRoot(context: presentationContext, absoluteSystemBarEdges: systemBarEdges) { context in
+                PresentationRoot(backgroundColor: presentationColor, context: presentationContext, absoluteSystemBarEdges: systemBarEdges) { context in
                     EnvironmentValues.shared.setValues {
                         if !isFullScreen {
                             $0.set_sheetDepth(sheetDepth + 1)
@@ -1250,6 +1260,18 @@ extension View {
         return self
     }
 
+    /// Sets a Color-only presentation background, including clear and partially opaque colors.
+    /// Apply directly to the root view returned by the sheet or fullScreenCover content closure.
+    /// Other ShapeStyles and custom background views are unsupported.
+    // SKIP @bridge
+    public func presentationBackground(_ color: Color) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: PresentationBackgroundColorModifier(color: color))
+        #else
+        return self
+        #endif
+    }
+
     @available(*, unavailable)
     public func presentationBackground(_ style: any ShapeStyle) -> some View {
         return self
@@ -1323,6 +1345,16 @@ final class PresentationModifier: SideEffectModifier {
             }
             return ComposeResult.ok
         }
+    }
+}
+
+/// Carries the presentation color before the modal's first composition, avoiding an opaque first frame.
+final class PresentationBackgroundColorModifier: RenderModifier {
+    let color: Color
+
+    init(color: Color) {
+        self.color = color
+        super.init()
     }
 }
 
