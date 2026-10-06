@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,7 +35,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 #endif
@@ -48,6 +51,14 @@ extension View {
         #endif
     }
 
+    public func searchable(text: Binding<String>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: SearchableModifier(text: text, prompt: prompt, placement: placement, isPresented: isPresented))
+        #else
+        return self
+        #endif
+    }
+
     // SKIP @bridge
     public func searchable(getText: @escaping () -> String, setText: @escaping (String) -> Void, prompt: Text?) -> any View {
         return searchable(text: Binding(get: getText, set: setText), prompt: prompt)
@@ -56,6 +67,11 @@ extension View {
     // SKIP @bridge
     public func searchable(getText: @escaping () -> String, setText: @escaping (String) -> Void, prompt: Text?, bridgedPlacement: Int) -> any View {
         return searchable(text: Binding(get: getText, set: setText), placement: SearchFieldPlacement(rawValue: bridgedPlacement), prompt: prompt)
+    }
+
+    // SKIP @bridge
+    public func searchable(getText: @escaping () -> String, setText: @escaping (String) -> Void, getIsPresented: @escaping () -> Bool, setIsPresented: @escaping (Bool) -> Void, prompt: Text?) -> any View {
+        return searchable(text: Binding(get: getText, set: setText), isPresented: Binding(get: getIsPresented, set: setIsPresented), prompt: prompt)
     }
 
     public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> any View {
@@ -234,6 +250,7 @@ let searchFieldHeight = 56.0
     let prompt = state.prompt ?? Text(verbatim: stringResource(android.R.string.search_go))
     let focusManager = LocalFocusManager.current
     let focusRequester = remember { FocusRequester() }
+    let isPresented = state.isPresented?.wrappedValue == true
     let contentContext = context.content()
     let keyboardOptions = KeyboardOptions(imeAction: ImeAction.Search)
     let submitState = OnSubmitState(triggers: .search) {
@@ -246,15 +263,35 @@ let searchFieldHeight = 56.0
     }
     let keyboardActions = KeyboardActions(submitState)
     let scopes = state.scopes ?? EnvironmentValues.shared._searchScopes
+    let currentText = state.text.wrappedValue
+    let defaultTextFieldValue = TextFieldValue(text: currentText, selection: TextRange(currentText.count))
+    let textFieldValue = remember { mutableStateOf(defaultTextFieldValue) }
+    var currentTextFieldValue = textFieldValue.value
+    if currentTextFieldValue.text != currentText {
+        currentTextFieldValue = defaultTextFieldValue
+    }
+    LaunchedEffect(isPresented) {
+        if isPresented {
+            let presentedText = state.text.wrappedValue
+            textFieldValue.value = TextFieldValue(text: presentedText, selection: TextRange(presentedText.count))
+            state.isSearching.value = true
+            focusRequester.requestFocus()
+        } else if state.isPresented != nil {
+            focusManager.clearFocus()
+            state.isSearching.value = false
+        }
+    }
     Column(modifier: context.modifier) {
     Row(horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
         let isFocused = remember { mutableStateOf(false) }
-        OutlinedTextField(value: state.text.wrappedValue, onValueChange: {
-            state.text.wrappedValue = $0
+        OutlinedTextField(value: currentTextFieldValue, onValueChange: {
+            textFieldValue.value = $0
+            state.text.wrappedValue = $0.text
         }, modifier: Modifier.weight(Float(1.0)).semantics { testTagsAsResourceId = true }.testTag("skip_ui_automation_search_field").focusRequester(focusRequester).onFocusChanged {
             state.isFocused.value = $0.isFocused
             if $0.isFocused {
                 state.isSearching.value = true
+                state.isPresented?.wrappedValue = true
             }
         }, placeholder: {
             TextField.Placeholder(prompt: prompt, context: contentContext)
@@ -273,6 +310,7 @@ let searchFieldHeight = 56.0
                 state.text.wrappedValue = ""
                 focusManager.clearFocus()
                 state.isSearching.value = false
+                state.isPresented?.wrappedValue = false
             }
         }
     }
@@ -312,11 +350,13 @@ final class SearchableModifier: ModifierProtocol {
     let text: Binding<String>
     let prompt: Text?
     let placement: SearchFieldPlacement
+    let isPresented: Binding<Bool>?
 
-    init(text: Binding<String>, prompt: Text?, placement: SearchFieldPlacement = .automatic) {
+    init(text: Binding<String>, prompt: Text?, placement: SearchFieldPlacement = .automatic, isPresented: Binding<Bool>? = nil) {
         self.text = text
         self.prompt = prompt
         self.placement = placement
+        self.isPresented = isPresented
     }
 
     override var role: ModifierRole {
@@ -324,7 +364,9 @@ final class SearchableModifier: ModifierProtocol {
     }
 
     @Composable override func Evaluate(content: View, context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable>? {
-        let isSearching = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
+        let isSearching = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) {
+            mutableStateOf(isPresented?.wrappedValue == true)
+        }
         let isFocused = remember { mutableStateOf(false) }
         let renderables = EnvironmentValues.shared.setValuesWithReturn {
             $0.set_isSearching(isSearching)
@@ -334,7 +376,7 @@ final class SearchableModifier: ModifierProtocol {
         }
         var ret: kotlin.collections.MutableList<Renderable> = mutableListOf()
         for i in 0..<renderables.size {
-            ret.add(ModifiedContent(content: renderables[i], modifier: SearchableStateModifier(text: text, prompt: prompt, placement: placement, isSearching: isSearching, isFocused: isFocused, isFirstRenderable: i == 0)))
+            ret.add(ModifiedContent(content: renderables[i], modifier: SearchableStateModifier(text: text, prompt: prompt, placement: placement, isPresented: isPresented, isSearching: isSearching, isFocused: isFocused, isFirstRenderable: i == 0)))
         }
         return ret
     }
@@ -345,7 +387,7 @@ final class SearchableModifier: ModifierProtocol {
 }
 
 final class SearchableStateModifier: RenderModifier {
-    init(text: Binding<String>, prompt: Text?, placement: SearchFieldPlacement, isSearching: MutableState<Bool>, isFocused: MutableState<Bool>, isFirstRenderable: Bool) {
+    init(text: Binding<String>, prompt: Text?, placement: SearchFieldPlacement, isPresented: Binding<Bool>?, isSearching: MutableState<Bool>, isFocused: MutableState<Bool>, isFirstRenderable: Bool) {
         super.init()
         self.action = { renderable, context in
             let submitState = EnvironmentValues.shared._onSubmitState
@@ -355,7 +397,7 @@ final class SearchableStateModifier: RenderModifier {
             // so isNavigationRoot is not yet true. Treat "modifier on NavigationStack" as on-stack
             // so only Navigation shows the search bar; ScrollView/List/etc. must not show a second one.
             let isOnNavigationStack = isModifierOnNavigationStack || isNavigationRoot
-            let state = SearchableState(text: text, prompt: prompt, submitState: submitState, isSearching: isSearching, isOnNavigationStack: isOnNavigationStack, isFocused: isFocused, isAlwaysVisible: placement.isAlwaysVisible, scopes: EnvironmentValues.shared._searchScopes)
+            let state = SearchableState(text: text, prompt: prompt, submitState: submitState, isPresented: isPresented, isSearching: isSearching, isOnNavigationStack: isOnNavigationStack, isFocused: isFocused, isAlwaysVisible: placement.isAlwaysVisible, scopes: EnvironmentValues.shared._searchScopes)
             // Bubble the search state to the navigation stack if root, else down to the component
             if isModifierOnNavigationStack || isNavigationRoot != true {
                 EnvironmentValues.shared.setValues {
@@ -387,6 +429,7 @@ struct SearchableState: Equatable {
     let text: Binding<String>
     let prompt: Text?
     let submitState: OnSubmitState?
+    let isPresented: Binding<Bool>?
     let isSearching: MutableState<Bool>
     let isOnNavigationStack: Bool
     /// Whether the search field has focus, which shows search suggestions.

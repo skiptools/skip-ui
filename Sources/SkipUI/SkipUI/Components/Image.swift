@@ -221,13 +221,13 @@ public struct Image : View, Renderable, Equatable {
 
     @Composable private func RenderSymbolImage(name: String, url: URL, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
 
-        func symbolToImageVector(_ symbol: SymbolInfo, tintColor: androidx.compose.ui.graphics.Color) -> ImageVector {
+        func symbolToImageVector(_ symbol: SymbolInfo, tintColor: androidx.compose.ui.graphics.Color, fitToBounds: Bool) -> (ImageVector, Float) {
             // this is the default size for material icons (24f), defined in the internal MaterialIconDimension variable with the comment "All Material icons (currently) are 24dp by 24dp, with a viewport size of 24 by 24" at:
             // https://github.com/androidx/androidx/blob/androidx-main/compose/material/material-icons-core/src/commonMain/kotlin/androidx/compose/material/icons/Icons.kt#L257
             //let size = androidx.compose.ui.geometry.Size(Float(24), Float(24))
 
             // manually create the bounding rect for all the symbols so we know how to size the viewport and offset the group
-            // note that this does not take into account symbols that are designed to be smaller than their bounds, and ignores any baseline accommodation
+            // note that this ignores any baseline accommodation; symbols designed smaller than their bounds are handled below when the template has guides
             var symbolBounds = symbol.paths.first?.pathParser.toPath().getBounds() ?? Rect.Zero
             for symbolPath in symbol.paths.dropFirst() {
                 let bounds = symbolPath.pathParser.toPath().getBounds()
@@ -241,11 +241,11 @@ public struct Image : View, Renderable, Equatable {
 
             let symbolWidth = symbolBounds.right - symbolBounds.left
             let symbolHeight = symbolBounds.bottom - symbolBounds.top
-            let symbolSpan = maxOf(symbolWidth, symbolHeight)
+            let (symbolSpan, sizeRatio) = symbolViewport(width: symbolWidth, height: symbolHeight, capHeight: fitToBounds ? nil : symbol.capHeight, scale: symbol.size.scale)
 
             // the offsets are adjusted to center the symbol in the viewport
-            let symbolOffsetX = -symbolBounds.left + (symbolHeight > symbolWidth ? ((symbolHeight - symbolWidth) / Float(2.0)) : Float(0.0))
-            let symbolOffsetY = -symbolBounds.top + (symbolWidth > symbolHeight ? ((symbolWidth - symbolHeight) / Float(2.0)) : Float(0.0))
+            let symbolOffsetX = -symbolBounds.left + (symbolSpan - symbolWidth) / Float(2.0)
+            let symbolOffsetY = -symbolBounds.top + (symbolSpan - symbolHeight) / Float(2.0)
 
             //logger.debug("created union path symbolSpan=\(symbolSpan) bounds=\(symbolBounds)")
 
@@ -280,7 +280,7 @@ public struct Image : View, Renderable, Equatable {
                     }
                 }.build()
 
-            return imageVector
+            return (imageVector, sizeRatio)
         }
 
         // parse the Symbol Export XML and extract the SVG path representation that most closely matches the current font weight (e.g., "Black-S", "Regular-S", "Ultralight-S")
@@ -296,6 +296,8 @@ public struct Image : View, Renderable, Equatable {
             }
 
             var symbolInfos: [SymbolSize: SymbolInfo] = [:]
+
+            let capHeights = symbolCapHeights(document)
 
             let gnodes = document.getElementsByTagName("g")
             for symbolG in elements(gnodes) {
@@ -321,7 +323,7 @@ public struct Image : View, Renderable, Equatable {
                         }
                     }
 
-                    symbolInfos[symbolSize] = SymbolInfo(size: symbolSize, paths: paths)
+                    symbolInfos[symbolSize] = SymbolInfo(size: symbolSize, paths: paths, capHeight: capHeights[symbolSize.scale])
                 }
             }
 
@@ -394,8 +396,8 @@ public struct Image : View, Renderable, Equatable {
 
         //logger.info("symbolInfos for name=\(name) against weightPriority=\(weightPriority): \(Array(symbolInfos.keys))")
         if let symbolInfo = weightPriority.compactMap({ symbolInfos[$0] }).first {
-            let imageVector = symbolToImageVector(symbolInfo, tintColor: tintColor)
-            RenderScaledImageVector(image: imageVector, name: name, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
+            let (imageVector, sizeRatio) = symbolToImageVector(symbolInfo, tintColor: tintColor, fitToBounds: resizingMode == .stretch)
+            RenderScaledImageVector(image: imageVector, name: name, sizeRatio: sizeRatio, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         }
     }
 
@@ -462,7 +464,7 @@ public struct Image : View, Renderable, Equatable {
         RenderScaledImageVector(image: image, name: effectiveName, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
     }
 
-    @Composable private func RenderScaledImageVector(image: ImageVector, name: String, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
+    @Composable private func RenderScaledImageVector(image: ImageVector, name: String, sizeRatio: Float = Float(1.0), aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
 
         let tintColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl()
         switch resizingMode {
@@ -476,7 +478,7 @@ public struct Image : View, Renderable, Equatable {
                 let textSizeDp = with(LocalDensity.current) {
                     textStyle.fontSize.toDp()
                 }
-                modifier = Modifier.size(textSizeDp)
+                modifier = Modifier.size(textSizeDp * sizeRatio)
             } else {
                 modifier = Modifier
             }
@@ -524,6 +526,8 @@ public struct Image : View, Renderable, Equatable {
         case "bookmark": return "Icons.Outlined.BookmarkBorder" //􀉞
         case "wrench": return "Icons.Outlined.Build" //􀎕
         case "phone": return "Icons.Outlined.Call" //􀌾
+        case "bubble": return "Icons.Outlined.ChatBubbleOutline" //􀌪
+        case "message": return "Icons.Outlined.Chat" //􀌤
         case "checkmark.circle": return "Icons.Outlined.CheckCircle" //􀁢
         case "checkmark": return "Icons.Outlined.Check" //􀆅
         case "xmark": return "Icons.Outlined.Clear" //􀆄
@@ -533,9 +537,11 @@ public struct Image : View, Renderable, Equatable {
         case "trash": return "Icons.Outlined.Delete" //􀈑
         case "envelope": return "Icons.Outlined.Email" //􀍕
         case "arrow.forward.square": return "Icons.Outlined.ExitToApp" //􀰔
+        case "safari": return "Icons.Outlined.Explore" //􀎬
         case "face.smiling": return "Icons.Outlined.Face" //􀎸
         case "heart": return "Icons.Outlined.FavoriteBorder" //􀊴
         case "heart.fill": return "Icons.Outlined.Favorite" //􀊵
+        case "exclamationmark.bubble": return "Icons.Outlined.Feedback" //􀌬
         case "house": return "Icons.Outlined.Home" //􀎞
         case "info.circle": return "Icons.Outlined.Info" //􀅴
         case "chevron.down": return "Icons.Outlined.KeyboardArrowDown" //􀆈
@@ -553,11 +559,13 @@ public struct Image : View, Renderable, Equatable {
         case "play": return "Icons.Outlined.PlayArrow" //􀊃
         case "camera.viewfinder": return "Icons.Outlined.QrCodeScanner"
         case "arrow.clockwise.circle": return "Icons.Outlined.Refresh" //􀚁
+        case "square.and.arrow.down": return "Icons.Outlined.SaveAlt" //􀈄
         case "magnifyingglass": return "Icons.Outlined.Search" //􀊫
         case "paperplane": return "Icons.Outlined.Send" //􀈟
         case "gearshape": return "Icons.Outlined.Settings" //􀣋
         case "square.and.arrow.up": return "Icons.Outlined.Share" //􀈂
         case "cart": return "Icons.Outlined.ShoppingCart" //􀍩
+        case "ellipsis.bubble": return "Icons.Outlined.Sms" //􀕺
         // #148 Icons.Outlined.Star is not actually outlined!
         // case "star": return "Icons.Outlined.Star" //􀋃
         case "hand.thumbsup": return "Icons.Outlined.ThumbUp" //􀉿
@@ -608,6 +616,8 @@ public struct Image : View, Renderable, Equatable {
         case "Icons.Outlined.BookmarkBorder": return Icons.Outlined.BookmarkBorder
         case "Icons.Outlined.Build": return Icons.Outlined.Build
         case "Icons.Outlined.Call": return Icons.Outlined.Call
+        case "Icons.Outlined.ChatBubbleOutline": return Icons.Outlined.ChatBubbleOutline
+        case "Icons.Outlined.Chat": return Icons.Outlined.Chat
         case "Icons.Outlined.CheckCircle": return Icons.Outlined.CheckCircle
         case "Icons.Outlined.Check": return Icons.Outlined.Check
         case "Icons.Outlined.Clear": return Icons.Outlined.Clear
@@ -620,9 +630,11 @@ public struct Image : View, Renderable, Equatable {
         case "Icons.Outlined.Edit": return Icons.Outlined.Edit
         case "Icons.Outlined.Email": return Icons.Outlined.Email
         case "Icons.Outlined.ExitToApp": return Icons.Outlined.ExitToApp // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.ExitToApp
+        case "Icons.Outlined.Explore": return Icons.Outlined.Explore
         case "Icons.Outlined.Face": return Icons.Outlined.Face
         case "Icons.Outlined.FavoriteBorder": return Icons.Outlined.FavoriteBorder
         case "Icons.Outlined.Favorite": return Icons.Outlined.Favorite
+        case "Icons.Outlined.Feedback": return Icons.Outlined.Feedback
         case "Icons.Outlined.Home": return Icons.Outlined.Home
         case "Icons.Outlined.Info": return Icons.Outlined.Info
         case "Icons.Outlined.KeyboardArrowDown": return Icons.Outlined.KeyboardArrowDown
@@ -642,11 +654,13 @@ public struct Image : View, Renderable, Equatable {
         case "Icons.Outlined.PlayArrow": return Icons.Outlined.PlayArrow
         case "Icons.Outlined.QrCodeScanner": return Icons.Outlined.QrCodeScanner
         case "Icons.Outlined.Refresh": return Icons.Outlined.Refresh
+        case "Icons.Outlined.SaveAlt": return Icons.Outlined.SaveAlt
         case "Icons.Outlined.Search": return Icons.Outlined.Search
         case "Icons.Outlined.Send": return Icons.Outlined.Send // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.Send
         case "Icons.Outlined.Settings": return Icons.Outlined.Settings
         case "Icons.Outlined.Share": return Icons.Outlined.Share
         case "Icons.Outlined.ShoppingCart": return Icons.Outlined.ShoppingCart
+        case "Icons.Outlined.Sms": return Icons.Outlined.Sms
         case "Icons.Outlined.Star": return Icons.Outlined.Star
         case "Icons.Outlined.ThumbUp": return Icons.Outlined.ThumbUp
         case "Icons.Outlined.Warning": return Icons.Outlined.Warning
@@ -992,9 +1006,52 @@ extension View {
 }
 
 #if SKIP
+/// The cap height of each symbol scale ("S", "M", "L"), from the `Baseline-<scale>` and `Capline-<scale>` guides of an SF Symbols template.
+func symbolCapHeights(_ document: org.w3c.dom.Document) -> [String: Float] {
+    var baselines: [String: Float] = [:]
+    var caplines: [String: Float] = [:]
+    let lines = document.getElementsByTagName("line")
+    for i in 0..<lines.length {
+        guard let line = lines.item(i) as? org.w3c.dom.Element, let y = line.getAttribute("y1").toFloatOrNull() else {
+            continue
+        }
+        let lineID = line.getAttribute("id")
+        if lineID.hasPrefix("Baseline-") {
+            baselines[lineID.removePrefix("Baseline-")] = y
+        } else if lineID.hasPrefix("Capline-") {
+            caplines[lineID.removePrefix("Capline-")] = y
+        }
+    }
+    var capHeights: [String: Float] = [:]
+    for (scale, baseline) in baselines {
+        if let capline = caplines[scale], baseline > capline {
+            capHeights[scale] = baseline - capline
+        }
+    }
+    return capHeights
+}
+
+/// The square viewport for a symbol's ink box, and the rendered size relative to the font size.
+///
+/// Without a cap height the ink is stretched to the font size. With one, the symbol keeps its designed size like on Darwin:
+/// the template's cap height is the font's (SF Pro: 0.7046 em), so the viewport is padded to one em. Image.Scale is always
+/// medium here, so small and large variants are scaled by the ratio between the symbol scales (1 : 1.276 : 1.647).
+func symbolViewport(width: Float, height: Float, capHeight: Float?, scale: String) -> (span: Float, sizeRatio: Float) {
+    let inkSpan = max(width, height)
+    guard let capHeight = capHeight else {
+        return (inkSpan, Float(1.0))
+    }
+    let scaleToMedium: Float = scale == "S" ? Float(1.276) : scale == "L" ? Float(1.276 / 1.647) : Float(1.0)
+    let em = capHeight / Float(0.7046) / scaleToMedium
+    let span = max(inkSpan, em)
+    return (span, span / em)
+}
+
 private struct SymbolInfo {
     let size: SymbolSize
     let paths: [SymbolPath]
+    /// Distance between the template's `Baseline-<scale>` and `Capline-<scale>` guides, if the export has them
+    let capHeight: Float?
 }
 
 private struct SymbolPath {
@@ -1113,6 +1170,11 @@ private enum SymbolSize : String {
     case BoldL = "Bold-L"
     case HeavyL = "Heavy-L"
     case BlackL = "Black-L"
+
+    /// The symbol scale: "S", "M" or "L"
+    var scale: String {
+        return String(rawValue.last!)
+    }
 
     var fontWeight: Font.Weight {
         switch self {
