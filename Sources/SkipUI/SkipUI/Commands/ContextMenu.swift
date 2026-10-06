@@ -18,6 +18,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
 
+/// The menu and primary action set by `contextMenu(forSelectionType:menu:primaryAction:)`.
+struct SelectionContextMenu {
+    let menu: (Set<AnyHashable>) -> any View
+    let primaryAction: ((Set<AnyHashable>) -> Void)?
+}
+
 /// Modifier that wraps content in a long-press-triggered dropdown menu.
 class ContextMenuModifier: RenderModifier {
     let menuItems: ComposeBuilder

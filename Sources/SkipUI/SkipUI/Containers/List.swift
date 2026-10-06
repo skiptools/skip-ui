@@ -3,15 +3,24 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animate
+import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.gestures.snapTo
 import androidx.compose.animation.core.tween
@@ -30,17 +39,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
@@ -48,6 +64,8 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.SwipeToDismissBoxDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
@@ -58,9 +76,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
@@ -68,6 +89,7 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Path.Companion.combine
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -105,8 +127,10 @@ public final class List : View, Renderable {
     let fixedContent: ComposeBuilder?
     let forEach: ForEach?
     let itemTransformer: ((any Renderable) -> any Renderable)?
+    /// A single-value or `Set` selection binding; rows are identified by their tags.
+    let selection: Binding<Any>?
 
-    init(fixedContent: (any View)? = nil, identifier: ((Any) -> AnyHashable?)? = nil, itemTransformer: ((any Renderable) -> any Renderable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> any View)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> any View)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> any View)? = nil, editActions: EditActions = []) {
+    init(fixedContent: (any View)? = nil, identifier: ((Any) -> AnyHashable?)? = nil, itemTransformer: ((any Renderable) -> any Renderable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> any View)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> any View)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> any View)? = nil, editActions: EditActions = [], selection: Binding<Any>? = nil) {
         if let fixedContent {
             self.fixedContent = fixedContent as? ComposeBuilder ?? ComposeBuilder(view: fixedContent)
         } else {
@@ -122,19 +146,21 @@ public final class List : View, Renderable {
             self.forEach = nil
         }
         self.itemTransformer = itemTransformer
+        self.selection = selection
     }
 
     public convenience init(@ViewBuilder content: () -> any View) {
         self.init(fixedContent: content())
     }
 
-    @available(*, unavailable)
-    public convenience init(selection: Binding<Any>, @ViewBuilder content: () -> any View) {
-        self.init(fixedContent: content())
+    // SKIP @bridge
+    public convenience init(bridgedContent: any View) {
+        self.init(bridgedContent: bridgedContent, getSelection: nil, setSelection: nil)
     }
 
+    /// Bridged selection: a single row tag, or a `Set` of row tags.
     // SKIP @bridge
-    public init(bridgedContent: any View) {
+    public init(bridgedContent: any View, getSelection: (() -> Any?)?, setSelection: ((Any?) -> Void)?) {
         if let forEach = bridgedContent as? ForEach {
             self.fixedContent = nil
             self.forEach = forEach
@@ -143,14 +169,19 @@ public final class List : View, Renderable {
             self.forEach = nil
         }
         self.itemTransformer = nil
+        if let getSelection, let setSelection {
+            self.selection = Binding<Any?>(get: getSelection, set: setSelection) as! Binding<Any>
+        } else {
+            self.selection = nil
+        }
     }
 
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalMaterialApi::class)
     @Composable public override func Render(context: ComposeContext) {
-        let style = EnvironmentValues.shared._listStyle ?? ListStyle.automatic
+        let style = EnvironmentValues.shared._listStyle ?? DefaultListStyle()
         let backgroundVisibility = EnvironmentValues.shared._scrollContentBackground ?? Visibility.visible
-        let styling = ListStyling(style: style, backgroundVisibility: backgroundVisibility)
+        let styling = ListStyling(kind: ListStyleKind.of(style), backgroundVisibility: backgroundVisibility, sectionSpacing: EnvironmentValues.shared._listSectionSpacing)
         let itemContext = context.content()
 
         // When we layout, extend into safe areas that are due to system bars, not into any app chrome
@@ -194,26 +225,29 @@ public final class List : View, Renderable {
     }
 
     @Composable private func RenderList(context: ComposeContext, styling: ListStyling, arguments: ListArguments) {
-        let renderables: kotlin.collections.List<Renderable>
+        let contentRenderables: kotlin.collections.List<Renderable>
         if let forEach {
-            renderables = forEach.EvaluateLazyItems(level: 0, context: context)
+            contentRenderables = forEach.EvaluateLazyItems(level: 0, context: context)
         } else if let fixedContent {
-            renderables = fixedContent.EvaluateLazyItems(level: 0, context: context)
+            contentRenderables = fixedContent.EvaluateLazyItems(level: 0, context: context)
         } else {
-            renderables = listOf()
+            contentRenderables = listOf()
         }
+        let searchableState = EnvironmentValues.shared._searchableState
+        let renderables = EvaluateSearchSuggestions(state: searchableState, context: context) ?? contentRenderables
 
         var modifier = context.modifier
-        if styling.style != .plain {
+        if styling.isInset {
             modifier = modifier.padding(start: Self.horizontalInset.dp, end: Self.horizontalInset.dp)
         }
         modifier = modifier.fillMaxSize()
 
-        let searchableState = EnvironmentValues.shared._searchableState
         let isSearchable = searchableState?.isOnNavigationStack == false
 
-        let hasHeader = styling.style != ListStyle.plain || (!isSearchable && arguments.headerSafeAreaHeight.value > 0)
-        let hasFooter = styling.style != ListStyle.plain || arguments.footerSafeAreaHeight.value > 0
+        let hasHeader = !styling.isPlain || (!isSearchable && arguments.headerSafeAreaHeight.value > 0)
+        let hasFooter = !styling.isPlain || arguments.footerSafeAreaHeight.value > 0
+        // Indices of collapsed sections in a collapsible (sidebar) list
+        let collapsedSections = remember { mutableStateOf(Set<Int>()) }
 
         // Remember the factory because we use it in the remembered reorderable state
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
@@ -248,7 +282,7 @@ public final class List : View, Renderable {
             }
         }
         PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
-        let isSystemBackground = styling.style != ListStyle.plain && styling.backgroundVisibility != Visibility.hidden
+        let isSystemBackground = styling.isGroupedBackground && styling.backgroundVisibility != Visibility.hidden
         // We contribute top bar preferences even without knowing we're safe area-adjacent for multiple reasons:
         // - When there is a search bar we may not be adjacent to the top safe area, but we should act like it
         // - An expanding nav bar can causes issues detecting safe area adjacency
@@ -294,16 +328,52 @@ public final class List : View, Renderable {
         }
         let listRowSpacing = EnvironmentValues.shared._listRowSpacing
         let listVerticalArrangement = listRowSpacing != nil ? Arrangement.spacedBy(listRowSpacing!.dp) : Arrangement.Top
-        LazyColumn(state: reorderableState.listState, modifier: modifier, contentPadding: contentPadding, verticalArrangement: listVerticalArrangement) {
+        // Section index labels and their header item indices, gathered while producing lazy items
+        let sectionIndexEntries = remember { mutableStateOf([SectionIndexEntry]()) }
+        if (EnvironmentValues.shared._defaultScrollAnchor?.y ?? 0.0) >= 1.0 {
+            let listState = reorderableState.listState
+            LaunchedEffect(true) {
+                var previousCount = 0
+                // Start at the end, and stay there while the end is visible as rows are added or the viewport resizes
+                snapshotFlow { [listState.layoutInfo.totalItemsCount, listState.layoutInfo.viewportSize.height] }.collect { layout in
+                    let count = layout[0]
+                    let lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?? 0
+                    if count > 0 && (previousCount == 0 || lastVisible >= previousCount - 2) {
+                        listState.scrollToItem(count - 1)
+                    }
+                    previousCount = count
+                }
+            }
+        }
+        if let onScrollGeometryChange = EnvironmentValues.shared._onScrollGeometryChange {
+            let listState = reorderableState.listState
+            let density = LocalDensity.current
+            let updatedAction = rememberUpdatedState(onScrollGeometryChange)
+            LaunchedEffect(true) {
+                snapshotFlow { Self.scrollGeometry(of: listState, density: density.density) }.collect { geometry in
+                    updatedAction.value(geometry)
+                }
+            }
+        }
+        // scrollBounceBehavior(.basedOnSize) removes the overscroll stretch when rows fit
+        let isOverscrollDisabled = EnvironmentValues.shared._scrollBounceBehavior == ScrollBounceBehavior.basedOnSize && !reorderableState.listState.canScrollForward && !reorderableState.listState.canScrollBackward
+        Box(modifier: Modifier.fillMaxSize()) {
+        // SKIP INSERT: val providedOverscrollFactory = LocalOverscrollFactory provides (if (isOverscrollDisabled) null else LocalOverscrollFactory.current)
+        CompositionLocalProvider(providedOverscrollFactory) {
+        let edgeEffectModifier = EnvironmentValues.shared._scrollEdgeEffect?.modifier(isScrolledPastTop: reorderableState.listState.canScrollBackward, isScrolledPastBottom: reorderableState.listState.canScrollForward) ?? Modifier
+        LazyColumn(state: reorderableState.listState, modifier: modifier.then(edgeEffectModifier), contentPadding: contentPadding, verticalArrangement: listVerticalArrangement) {
             // Intentionally invalidate the LazyColumn after a section bottom has seen one frame at its unanimated baseline
             let _ = sectionBottomPlacementInvalidation.value
 
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
             let shouldAnimateItems: @Composable (Bool) -> Bool = { suppressTextInputAnimation in
+                // We disable animation to prevent filtered items from animating when they return.
                 // Focused text inputs can conflict with LazyColumn placement animation and visibly lag behind scrolling.
+                // Collapsible sections animate their rows with AnimatedVisibility instead.
                 let animate = !forceUnanimatedItems.value
                     && !suppressTextInputAnimation
+                    && !styling.isCollapsible
                     && EnvironmentValues.shared._searchableState?.isSearching.value != true
                 return animate
             }
@@ -358,15 +428,26 @@ public final class List : View, Renderable {
                 return "\(baseKey)#\(occurrence)"
             }
 
-            var sectionIndex = -1
+            var sectionIndex = -1 // Section of the items being produced; -1 before the first section
             var startItemIndex = hasHeader ? 1 : 0 // Header inset
             if isSearchable {
                 startItemIndex += 1 // Search field
             }
+            var hasProducedItems = false // Whether rows precede the current section
+            var sectionExpansion: Binding<Bool>? = nil // The current section's isExpanded binding
+            var producerIndex = 0 // Scopes item keys per ForEach, since SwiftUI allows the same ID in different ForEach
+            var sectionEnds: [Int: String] = [:] // "producer:position" of each section's last row, for section separators
+            var indexEntries: [SectionIndexEntry] = []
 
             itemCollector.value.initialize(
                 startItemIndex: startItemIndex,
                 item: { renderable, level in
+                    let section = sectionIndex
+                    let expansion = sectionExpansion
+                    hasProducedItems = true
+                    let producer = producerIndex
+                    producerIndex += 1
+                    sectionEnds[section] = "\(producer):0"
                     item(key: itemKey(renderable, level)) {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
@@ -376,14 +457,24 @@ public final class List : View, Renderable {
                             $0.set_listItemTextInputFocused(textInputFocused)
                             return ComposeResult.ok
                         } in: {
-                            RenderItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling)
+                            RenderSectionContent(section: section, expansion: expansion, collapsedSections: collapsedSections, styling: styling) {
+                                RenderItem(content: Self.markingSectionEnd(renderable, isSectionEnd: sectionEnds[section] == "\(producer):0"), level: level, context: itemContext, modifier: itemModifier, styling: styling)
+                            }
                         }
                     }
                 },
                 indexedItems: { range, identifier, offset, onDelete, onMove, level, factory in
                     let count = range.endExclusive - range.start
-                    let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!(range.start + itemCollector.value.remapIndex($0, from: offset))) }
+                    let section = sectionIndex
+                    let expansion = sectionExpansion
+                    hasProducedItems = true
+                    let producer = producerIndex
+                    let keyPrefix = "\(producer):"
+                    producerIndex += 1
+                    sectionEnds[section] = "\(producer):\(count - 1)"
+                    let key: ((Int) -> String)? = identifier == nil ? nil : { keyPrefix + composeBundleString(for: identifier!(range.start + itemCollector.value.remapIndex($0, from: offset))) }
                     items(count: count, key: key) { index in
+                        let isSectionEnd = sectionEnds[section] == "\(producer):\(index)"
                         let keyValue = key?(index) // Key closure already remaps index
                         let index = itemCollector.value.remapIndex(index, from: offset)
                         let textInputFocused = remember { mutableStateOf(false) }
@@ -395,13 +486,23 @@ public final class List : View, Renderable {
                             $0.set_listItemTextInputFocused(textInputFocused)
                             return ComposeResult.ok
                         } in: {
-                            RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                            RenderSectionContent(section: section, expansion: expansion, collapsedSections: collapsedSections, styling: styling) {
+                                RenderEditableItem(content: Self.markingSectionEnd(renderable, isSectionEnd: isSectionEnd), level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                            }
                         }
                     }
                 },
                 objectItems: { objects, identifier, offset, onDelete, onMove, level, factory in
-                    let key: (Int) -> String = { composeBundleString(for: identifier(objects[itemCollector.value.remapIndex($0, from: offset)])) }
+                    let section = sectionIndex
+                    let expansion = sectionExpansion
+                    hasProducedItems = true
+                    let producer = producerIndex
+                    let keyPrefix = "\(producer):"
+                    producerIndex += 1
+                    sectionEnds[section] = "\(producer):\(objects.count - 1)"
+                    let key: (Int) -> String = { keyPrefix + composeBundleString(for: identifier(objects[itemCollector.value.remapIndex($0, from: offset)])) }
                     items(count: objects.count, key: key) { index in
+                        let isSectionEnd = sectionEnds[section] == "\(producer):\(index)"
                         let keyValue = key(index) // Key closure already remaps index
                         let index = itemCollector.value.remapIndex(index, from: offset)
                         let textInputFocused = remember { mutableStateOf(false) }
@@ -413,13 +514,23 @@ public final class List : View, Renderable {
                             $0.set_listItemTextInputFocused(textInputFocused)
                             return ComposeResult.ok
                         } in: {
-                            RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                            RenderSectionContent(section: section, expansion: expansion, collapsedSections: collapsedSections, styling: styling) {
+                                RenderEditableItem(content: Self.markingSectionEnd(renderable, isSectionEnd: isSectionEnd), level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                            }
                         }
                     }
                 },
                 objectBindingItems: { objectsBinding, identifier, offset, editActions, onDelete, onMove, level, factory in
-                    let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[itemCollector.value.remapIndex($0, from: offset)])) }
+                    let section = sectionIndex
+                    let expansion = sectionExpansion
+                    hasProducedItems = true
+                    let producer = producerIndex
+                    let keyPrefix = "\(producer):"
+                    producerIndex += 1
+                    sectionEnds[section] = "\(producer):\(objectsBinding.wrappedValue.count - 1)"
+                    let key: (Int) -> String = { keyPrefix + composeBundleString(for: identifier(objectsBinding.wrappedValue[itemCollector.value.remapIndex($0, from: offset)])) }
                     items(count: objectsBinding.wrappedValue.count, key: key) { index in
+                        let isSectionEnd = sectionEnds[section] == "\(producer):\(index)"
                         let keyValue = key(index) // Key closure already remaps index
                         let index = itemCollector.value.remapIndex(index, from: offset)
                         let textInputFocused = remember { mutableStateOf(false) }
@@ -431,21 +542,31 @@ public final class List : View, Renderable {
                             $0.set_listItemTextInputFocused(textInputFocused)
                             return ComposeResult.ok
                         } in: {
-                            RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                            RenderSectionContent(section: section, expansion: expansion, collapsedSections: collapsedSections, styling: styling) {
+                                RenderEditableItem(content: Self.markingSectionEnd(renderable, isSectionEnd: isSectionEnd), level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                            }
                         }
                     }
                 },
                 sectionHeader: { content, sectionIdentity in
                     sectionIndex += 1
-                    let currentSectionIndex = sectionIndex
-                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: currentSectionIndex)
+                    let section = sectionIndex
+                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: section)
+                    if let label = content.firstOrNull()?.forEachModifier({ ($0 as? SectionIndexLabelModifier)?.label }) {
+                        indexEntries.append(SectionIndexEntry(label: label, itemIndex: startItemIndex + itemCollector.value.count))
+                    }
+                    sectionExpansion = itemCollector.value.sectionExpansion
+                    let expansion = sectionExpansion
                     let headerRenderables = content.size == 0 ? listOf(EmptyView()) : content
                     let firstRenderable = (renderables.firstOrNull() as? LazySectionHeader)?.content.firstOrNull()
-                    let isTop = firstRenderable === headerRenderables.firstOrNull()
+                    // The first section is top even when it has no header or comes from a ForEach
+                    let isTop = firstRenderable === headerRenderables.firstOrNull() || (section == 0 && !hasProducedItems)
+                    // Section(isExpanded:) always collapses; sidebar sections collapse when they have a visible header
+                    let isCollapsible = expansion != nil || (styling.isCollapsible && content.size > 0)
                     var renderedCount = 0
                     for renderableIndex in 0..<headerRenderables.size {
                         let renderable = headerRenderables[renderableIndex]
-                        if styling.style == .plain {
+                        if styling.isPlain {
                             stickyHeader { _ in
                                 RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
                             }
@@ -460,7 +581,7 @@ public final class List : View, Renderable {
                                     } else {
                                         itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
                                     }
-                                    RenderFooter(styling: styling, modifier: itemModifier, safeAreaHeight: 0.dp, hasBottomSection: true)
+                                    RenderFooter(styling: styling, modifier: itemModifier, safeAreaHeight: 0.dp, hasBottomSection: true, spacing: styling.sectionSpacing ?? Self.verticalInset)
                                 }
                                 renderedCount = renderedCount + 1
                             }
@@ -472,7 +593,23 @@ public final class List : View, Renderable {
                                 } else {
                                     itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
                                 }
-                                RenderSectionHeader(content: renderable, context: itemContext, modifier: itemModifier, styling: styling, isTop: isTop)
+                                if isCollapsible {
+                                    RenderSectionHeader(content: renderable, context: itemContext, modifier: itemModifier, styling: styling, isTop: isTop, isExpanded: expansion?.wrappedValue ?? !collapsedSections.value.contains(section)) {
+                                        if let expansion {
+                                            expansion.wrappedValue = !expansion.wrappedValue
+                                            return
+                                        }
+                                        var collapsed = collapsedSections.value
+                                        if collapsed.contains(section) {
+                                            collapsed.remove(section)
+                                        } else {
+                                            collapsed.insert(section)
+                                        }
+                                        collapsedSections.value = collapsed
+                                    }
+                                } else {
+                                    RenderSectionHeader(content: renderable, context: itemContext, modifier: itemModifier, styling: styling, isTop: isTop)
+                                }
                             }
                         }
                         renderedCount = renderedCount + 1
@@ -480,8 +617,9 @@ public final class List : View, Renderable {
                     return renderedCount
                 },
                 sectionFooter: { content, sectionIdentity, sectionItemCount in
-                    let currentSectionIndex = sectionIndex
-                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: currentSectionIndex)
+                    let section = sectionIndex
+                    let expansion = sectionExpansion
+                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: section)
                     let footerRenderables = content.size == 0 ? listOf(EmptyView()) : content
                     let currentSectionItemCount = sectionItemCount ?? 0
                     currentSectionBodyItemCounts[sectionKey] = currentSectionItemCount
@@ -521,7 +659,7 @@ public final class List : View, Renderable {
                             } else {
                                 itemModifier = Modifier.animateItem(fadeInSpec: nil, placementSpec: nil, fadeOutSpec: nil)
                             }
-                            RenderSectionFooter(content: renderable, context: itemContext, modifier: itemModifier, styling: styling)
+                            RenderSectionFooter(content: renderable, context: itemContext, modifier: itemModifier, styling: styling, isExpanded: expansion?.wrappedValue ?? !collapsedSections.value.contains(section))
                         }
                         renderedCount = renderedCount + 1
                     }
@@ -530,8 +668,15 @@ public final class List : View, Renderable {
             )
 
             if isSearchable {
-                item {
-                    RenderSearchField(state: searchableState!, context: context, styling: styling, safeAreaHeight: arguments.headerSafeAreaHeight)
+                if searchableState!.isAlwaysVisible {
+                    // navigationBarDrawer(displayMode: .always) keeps the field visible while rows scroll
+                    stickyHeader { _ in
+                        RenderSearchField(state: searchableState!, context: context, styling: styling, safeAreaHeight: arguments.headerSafeAreaHeight)
+                    }
+                } else {
+                    item {
+                        RenderSearchField(state: searchableState!, context: context, styling: styling, safeAreaHeight: arguments.headerSafeAreaHeight)
+                    }
                 }
             }
             if hasHeader {
@@ -576,6 +721,101 @@ public final class List : View, Renderable {
                     RenderFooter(styling: styling, modifier: itemModifier, safeAreaHeight: arguments.footerSafeAreaHeight, hasBottomSection: hasBottomSection)
                 }
             }
+            if indexEntries.map({ $0.itemIndex }) != sectionIndexEntries.value.map({ $0.itemIndex }) {
+                sectionIndexEntries.value = indexEntries
+            }
+        }
+        }
+        let indicatorVisibility = EnvironmentValues.shared._scrollIndicatorVisibility
+        if indicatorVisibility != ScrollIndicatorVisibility.hidden && indicatorVisibility != ScrollIndicatorVisibility.never {
+            RenderScrollIndicator(listState: reorderableState.listState, flashTrigger: EnvironmentValues.shared._scrollIndicatorsFlashTrigger, isAlwaysVisible: indicatorVisibility == ScrollIndicatorVisibility.visible, modifier: Modifier.align(androidx.compose.ui.Alignment.CenterEnd))
+        }
+        if sectionIndexEntries.value.count > 0 && EnvironmentValues.shared._listSectionIndexVisibility != Visibility.hidden {
+            RenderSectionIndex(entries: sectionIndexEntries.value, listState: reorderableState.listState, context: context, modifier: Modifier.align(androidx.compose.ui.Alignment.CenterEnd))
+        }
+        }
+    }
+
+    /// The scroll geometry of a lazy list, in points.
+    ///
+    /// Compose measures only visible rows, so offset and content size assume off-screen rows share the visible rows' average height.
+    static func scrollGeometry(of listState: LazyListState, density: Float) -> ScrollGeometry {
+        let layoutInfo = listState.layoutInfo
+        var visibleHeight = 0
+        for item in layoutInfo.visibleItemsInfo {
+            visibleHeight += item.size
+        }
+        let visibleCount = layoutInfo.visibleItemsInfo.size
+        let averageHeight = visibleCount > 0 ? Double(visibleHeight) / Double(visibleCount) : 0.0
+        let scale = Double(density)
+        let offsetY = (Double(listState.firstVisibleItemIndex) * averageHeight + Double(listState.firstVisibleItemScrollOffset)) / scale
+        let contentHeight = Double(layoutInfo.totalItemsCount) * averageHeight / scale
+        let containerSize = CGSize(width: Double(layoutInfo.viewportSize.width) / scale, height: Double(layoutInfo.viewportSize.height) / scale)
+        return ScrollGeometry(contentOffset: CGPoint(x: 0.0, y: offsetY), contentSize: CGSize(width: containerSize.width, height: contentHeight), contentInsets: EdgeInsets(), containerSize: containerSize)
+    }
+
+    /// Render an iOS-style scroll indicator that shows while the list scrolls or flashes, then fades out.
+    @Composable private func RenderScrollIndicator(listState: LazyListState, flashTrigger: Any?, isAlwaysVisible: Bool, modifier: Modifier) {
+        let isFlashing = remember { mutableStateOf(false) }
+        if let flashTrigger {
+            LaunchedEffect(flashTrigger) {
+                isFlashing.value = true
+                delay(800)
+                isFlashing.value = false
+            }
+        }
+        let layoutInfo = listState.layoutInfo
+        let totalCount = layoutInfo.totalItemsCount
+        let visibleCount = layoutInfo.visibleItemsInfo.size
+        guard totalCount > 0 && visibleCount < totalCount else {
+            return
+        }
+        let isShown = isAlwaysVisible || listState.isScrollInProgress || isFlashing.value
+        let alpha = animateFloatAsState(targetValue: isShown ? Float(1.0) : Float(0.0), animationSpec: tween(durationMillis: isShown ? 150 : 500, delayMillis: isShown ? 0 : 300), label: "scrollIndicator")
+        let viewportHeight = with(LocalDensity.current) { layoutInfo.viewportSize.height.toDp() }
+        let thumbHeight = max(36.dp, viewportHeight * (Float(visibleCount) / Float(totalCount)))
+        let firstItemSize = layoutInfo.visibleItemsInfo.firstOrNull()?.size ?? 1
+        let position = (Float(listState.firstVisibleItemIndex) + Float(listState.firstVisibleItemScrollOffset) / Float(max(1, firstItemSize))) / Float(max(1, totalCount - visibleCount))
+        let offset = (viewportHeight - thumbHeight) * min(Float(1.0), max(Float(0.0), position))
+        Box(modifier: modifier.fillMaxHeight().padding(end: 2.dp).width(3.dp)) {
+            Box(modifier: Modifier
+                .offset(y: offset)
+                .height(thumbHeight)
+                .width(3.dp)
+                .alpha(alpha.value)
+                .background(Color.secondary.opacity(0.6).colorImpl(), androidx.compose.foundation.shape.RoundedCornerShape(50)))
+        }
+    }
+
+    /// Render the trailing section index, which jumps to a section when a label is tapped or dragged over, as on iOS.
+    @Composable private func RenderSectionIndex(entries: [SectionIndexEntry], listState: LazyListState, context: ComposeContext, modifier: Modifier) {
+        let coroutineScope = rememberCoroutineScope()
+        let heightPx = remember { mutableStateOf(0) }
+        let tint = EnvironmentValues.shared._tint ?? Color.accentColor
+        let scrollToEntry: (Float) -> Void = { y in
+            guard heightPx.value > 0 else {
+                return
+            }
+            let index = min(entries.count - 1, max(0, Int(y / Float(heightPx.value) * Float(entries.count))))
+            coroutineScope.launch {
+                listState.scrollToItem(entries[index].itemIndex)
+            }
+        }
+        let contentContext = context.content()
+        Column(modifier: modifier
+            .padding(end: 4.dp)
+            .onSizeChanged { heightPx.value = $0.height }
+            .pointerInput(entries.count) { detectTapGestures(onTap: { scrollToEntry($0.y) }) }
+            .pointerInput(entries.count) { detectVerticalDragGestures(onDragStart: { scrollToEntry($0.y) }, onVerticalDrag: { change, _ in scrollToEntry(change.position.y) }) },
+            horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
+            for entry in entries {
+                entry.label
+                    .font(Font.caption2.bold())
+                    .foregroundStyle(tint)
+                    .padding(.horizontal, 4.0)
+                    .padding(.vertical, 1.0)
+                    .Compose(context: contentContext)
+            }
         }
     }
 
@@ -615,12 +855,21 @@ public final class List : View, Renderable {
     /// Minimum width for a single reveal button; grows to fit longer labels.
     private static let swipeButtonMinWidth: Dp = 80.dp
 
-    static func contentModifier(level: Int) -> Modifier {
-        return Modifier.padding(start: (horizontalItemInset + level * levelInset).dp, end: horizontalItemInset.dp, top: verticalItemInset.dp, bottom: verticalItemInset.dp).fillMaxWidth().requiredHeightIn(min: minimumItemHeight.dp)
+    /// - Parameters:
+    ///   - insets: Row insets from `listRowInsets`, replacing the default padding.
+    ///   - minRowHeight: The minimum row height, including vertical insets.
+    static func contentModifier(level: Int, insets: EdgeInsets? = nil, minRowHeight: CGFloat = minimumItemHeight + verticalItemInset * 2) -> Modifier {
+        let insets = insets ?? EdgeInsets(top: verticalItemInset, leading: horizontalItemInset, bottom: verticalItemInset, trailing: horizontalItemInset)
+        let minContentHeight = max(0.0, minRowHeight - insets.top - insets.bottom)
+        return Modifier.padding(start: (insets.leading + level * levelInset).dp, end: insets.trailing.dp, top: insets.top.dp, bottom: insets.bottom.dp).fillMaxWidth().requiredHeightIn(min: minContentHeight.dp)
     }
 
-    @Composable static func RenderSeparator(level: Int) {
-        androidx.compose.material3.Divider(modifier: Modifier.padding(start: (horizontalItemInset + level * levelInset).dp).fillMaxWidth(), color: Color.separator.colorImpl())
+    /// - Parameters:
+    ///   - leading: The separator's leading inset, defaulting to the row's content inset.
+    ///   - tint: The separator color from `listRowSeparatorTint`.
+    ///   - trailing: The separator's trailing inset from the row's trailing edge.
+    @Composable static func RenderSeparator(level: Int, leading: CGFloat? = nil, trailing: CGFloat = 0.0, tint: Color? = nil) {
+        androidx.compose.material3.Divider(modifier: Modifier.padding(start: ((leading ?? horizontalItemInset) + level * levelInset).dp, end: max(0.0, trailing).dp).fillMaxWidth(), color: (tint ?? Color.separator).colorImpl())
     }
 
     @Composable static func RenderItemContent(item: Renderable, context: ComposeContext, modifier: Modifier) {
@@ -681,33 +930,95 @@ public final class List : View, Renderable {
         }
     }
 
+    /// Mark a section's last row, whose separator is the section's bottom separator.
+    static func markingSectionEnd(_ renderable: Renderable, isSectionEnd: Bool) -> Renderable {
+        return isSectionEnd ? ModifiedContent.apply(modifiers: listOf(ListItemModifier(isSectionEnd: true)), to: renderable) : renderable
+    }
+
     @Composable private func RenderItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isItem: Bool = true) {
         guard !content.isSwiftUIEmptyView else {
             return
         }
 
-        let itemRenderable = itemTransformer?(content) ?? content
+        var itemRenderable = itemTransformer?(content) ?? content
         let listItemModifier = ListItemModifier.combined(for: itemRenderable)
         var itemModifier: Modifier = Modifier
         if listItemModifier?.background == nil {
-            itemModifier = itemModifier.background(BackgroundColor(styling: styling.withStyle(ListStyle.plain), isItem: isItem))
+            itemModifier = itemModifier.background(BackgroundColor(styling: styling.withKind(.plain), isItem: isItem))
+        }
+
+        // Selection: rows are identified by their tags, like SwiftUI
+        let selectionTag: Any? = isItem ? TagModifier.on(content: itemRenderable, role: .tag)?.value : nil
+        let selectionSet = selection?.wrappedValue as? Set<AnyHashable>
+        let isEditing = EnvironmentValues.shared.editMode?.wrappedValue.isEditing == true
+        // Multiple selection requires edit mode, as on iOS
+        let showsSelectionIndicator = selection != nil && selectionSet != nil && isEditing && selectionTag != nil
+        let isSelectable = selection != nil && selectionTag != nil && listItemModifier?.selectionDisabled != true && (selectionSet == nil || isEditing)
+        let isSelected = selectionTag != nil && (selectionSet != nil ? selectionSet!.contains(selectionTag as! AnyHashable) : selection?.wrappedValue == selectionTag)
+        if isSelected && (selectionSet == nil || isEditing) {
+            itemModifier = itemModifier.background(Color.primary.opacity(0.12).colorImpl())
+        }
+        let selectionContextMenu = selectionTag != nil ? EnvironmentValues.shared._selectionContextMenu : nil
+        if isSelectable || selectionContextMenu?.primaryAction != nil {
+            let selectionBinding = selection
+            itemModifier = itemModifier.clickable {
+                if isSelectable, let selectionBinding {
+                    Self.toggleSelection(selectionBinding, tag: selectionTag!)
+                }
+                if !isEditing, let primaryAction = selectionContextMenu?.primaryAction {
+                    primaryAction(Set<AnyHashable>([selectionTag as! AnyHashable]))
+                }
+            }
+        }
+        if let selectionContextMenu {
+            // Act on the whole selection when the pressed row is part of it, else on the pressed row
+            let ids: Set<AnyHashable> = isSelected && selectionSet != nil ? selectionSet! : Set<AnyHashable>([selectionTag as! AnyHashable])
+            itemRenderable = ModifiedContent.apply(modifiers: listOf(ContextMenuModifier(menuItems: ComposeBuilder.from { selectionContextMenu.menu(ids) })), to: itemRenderable)
+        }
+
+        // ForEach.dropDestination rows accept drops across the whole row
+        if let rowDrop = itemRenderable.forEachModifier({ $0 as? ListRowDropModifier }) {
+            itemModifier = itemModifier.then(dropTargetModifier(accepts: rowDrop.accepts, isTargeted: nil, showsInsertionIndicator: true, onDrop: rowDrop.onDrop))
         }
 
         // The given modifiers include elevation shadow for dragging, etc that need to go before the others
         let containerContext = context.content(modifier: modifier.then(itemModifier).then(context.modifier))
         let contentContext = context.content()
-        let contentModifier = Self.contentModifier(level: level)
+        let contentModifier = Self.contentModifier(level: level, insets: listItemModifier?.insets, minRowHeight: EnvironmentValues.shared.defaultMinListRowHeight)
+        // Measured row content size, for separator alignment guides
+        let contentSize = remember { mutableStateOf(CGSize.zero) }
+        let density = LocalDensity.current
+        let rowInsets = listItemModifier?.insets ?? EdgeInsets(top: Self.verticalItemInset, leading: Self.horizontalItemInset, bottom: Self.verticalItemInset, trailing: Self.horizontalItemInset)
         let renderContainer: @Composable (ComposeContext) -> Void = { context in
-            Column(modifier: context.modifier) {
+            Column(modifier: context.modifier.onSizeChanged {
+                let size = CGSize(width: Double($0.width) / Double(density.density) - rowInsets.leading - rowInsets.trailing - Double(level) * Self.levelInset, height: Double($0.height) / Double(density.density))
+                if contentSize.value != size {
+                    contentSize.value = size
+                }
+            }) {
                 let placement = EnvironmentValues.shared._placement
                 EnvironmentValues.shared.setValues {
                     $0.set_placement(placement.union(ViewPlacement.listItem))
                     return ComposeResult.ok
                 } in: {
-                    Self.RenderItemContent(item: itemRenderable, context: contentContext, modifier: contentModifier)
+                    Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                        AnimatedVisibility(visible: showsSelectionIndicator, enter: expandHorizontally(), exit: shrinkHorizontally()) {
+                            Self.RenderSelectionIndicator(isSelected: isSelected)
+                        }
+                        Box(modifier: Modifier.weight(Float(1.0))) {
+                            Self.RenderItemContent(item: itemRenderable, context: contentContext, modifier: contentModifier)
+                        }
+                    }
                 }
-                if listItemModifier?.separator != Visibility.hidden {
-                    Self.RenderSeparator(level: level)
+                // A section's last row draws the section separator, which the section's modifiers may style
+                let isSectionEnd = listItemModifier?.isSectionEnd == true
+                let separator = isSectionEnd ? listItemModifier?.sectionSeparator ?? listItemModifier?.separator : listItemModifier?.separator
+                let separatorTint = isSectionEnd ? listItemModifier?.sectionSeparatorTint ?? listItemModifier?.separatorTint : listItemModifier?.separatorTint
+                if separator != Visibility.hidden {
+                    let dimensions = ViewDimensions(width: contentSize.value.width, height: contentSize.value.height)
+                    let leading = listItemModifier?.separatorLeading.map { rowInsets.leading + $0(dimensions) } ?? listItemModifier?.insets?.leading
+                    let trailing = listItemModifier?.separatorTrailing.map { contentSize.value.width + rowInsets.trailing - $0(dimensions) } ?? 0.0
+                    Self.RenderSeparator(level: level, leading: leading, trailing: trailing, tint: separatorTint)
                 }
             }
         }
@@ -718,6 +1029,31 @@ public final class List : View, Renderable {
             })
         } else {
             renderContainer(containerContext)
+        }
+    }
+
+    /// Select a row in a single-value selection, or toggle it in a `Set` selection.
+    static func toggleSelection(_ selection: Binding<Any>, tag: Any) {
+        if var selectionSet = selection.wrappedValue as? Set<AnyHashable> {
+            let id = tag as! AnyHashable
+            if selectionSet.contains(id) {
+                selectionSet.remove(id)
+            } else {
+                selectionSet.insert(id)
+            }
+            selection.wrappedValue = selectionSet
+        } else {
+            selection.wrappedValue = tag
+        }
+    }
+
+    /// The leading checkmark circle of a row in an editing multi-selection list, as on iOS.
+    @Composable static func RenderSelectionIndicator(isSelected: Bool) {
+        let modifier = Modifier.padding(start: horizontalItemInset.dp).size(22.dp)
+        if isSelected {
+            Icon(imageVector: Icons.Filled.CheckCircle, contentDescription: nil, modifier: modifier, tint: (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl())
+        } else {
+            Box(modifier: modifier.border(1.5.dp, Color.secondary.colorImpl(), CircleShape))
         }
     }
 
@@ -1253,14 +1589,19 @@ public final class List : View, Renderable {
         }
     }
 
-    @Composable private func RenderSectionHeader(content: Renderable, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isTop: Bool) {
+    /// - Parameters:
+    ///   - isExpanded: Whether a collapsible section is expanded, or nil if the section does not collapse.
+    ///   - onToggle: Toggles a collapsible section.
+    /// - Note: The gap above non-top sections is rendered as its own lazy item, not here.
+    @Composable private func RenderSectionHeader(content: Renderable, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isTop: Bool, isExpanded: Bool? = nil, onToggle: (() -> Void)? = nil) {
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
         let containerModifier = modifier.fillMaxWidth()
+            .heightIn(min: (EnvironmentValues.shared.defaultMinListHeaderHeight ?? 0.0).dp)
             .zIndex(Float(0.5))
             .background(backgroundColor)
             .then(context.modifier)
         var contentModifier = Modifier.fillMaxWidth()
-        if isTop && styling.style != .plain {
+        if isTop && !styling.isPlain {
             contentModifier = contentModifier.padding(start: Self.horizontalItemInset.dp, top: 0.dp, end: Self.horizontalItemInset.dp, bottom: Self.verticalItemInset.dp)
         } else {
             contentModifier = contentModifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
@@ -1268,20 +1609,54 @@ public final class List : View, Renderable {
         Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.BottomCenter) {
             Column(modifier: Modifier.fillMaxWidth()) {
                 EnvironmentValues.shared.setValues {
-                    $0.set_listSectionHeaderStyle(styling.style)
+                    $0.set_listSectionHeaderStyle(styling.kind)
                     return ComposeResult.ok
                 } in: {
-                    content.Render(context: context.content(modifier: contentModifier))
+                    if let isExpanded, let onToggle {
+                        RenderCollapsibleSectionHeader(content: content, context: context, modifier: contentModifier, isExpanded: isExpanded, onToggle: onToggle)
+                    } else {
+                        content.Render(context: context.content(modifier: contentModifier))
+                    }
                 }
             }
-            if styling.style != ListStyle.plain {
+            if styling.isInset {
                 RenderRoundedCorners(isTop: true, fill: backgroundColor)
             }
         }
     }
 
-    @Composable private func RenderSectionFooter(content: Renderable, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling) {
-        if styling.style == .plain {
+    /// Render a sidebar section header whose trailing chevron rotates as the section expands, as on iOS.
+    @Composable private func RenderCollapsibleSectionHeader(content: Renderable, context: ComposeContext, modifier: Modifier, isExpanded: Bool, onToggle: () -> Void) {
+        let contentContext = context.content()
+        let rotationAngle = Float(isExpanded ? 90 : 0).asAnimatable(context: contentContext)
+        let isRTL = EnvironmentValues.shared.layoutDirection == .rightToLeft
+        let tint = EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl()
+        Row(modifier: Modifier.clickable(onClick: onToggle).then(modifier), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+            Box(modifier: Modifier.padding(end: 8.dp).weight(Float(1.0))) {
+                content.Render(context: contentContext)
+            }
+            Icon(imageVector: isRTL ? Icons.Outlined.KeyboardArrowLeft : Icons.Outlined.KeyboardArrowRight, contentDescription: nil, modifier: Modifier.rotate(rotationAngle.value), tint: tint)
+        }
+    }
+
+    /// Render a section's rows, hiding them while their collapsible section is collapsed.
+    ///
+    /// - Parameters:
+    ///   - expansion: The section's `Section(isExpanded:)` binding, which takes precedence over sidebar collapsing.
+    @Composable private func RenderSectionContent(section: Int, expansion: Binding<Bool>?, collapsedSections: MutableState<Set<Int>>, styling: ListStyling, content: @Composable () -> Void) {
+        guard expansion != nil || (styling.isCollapsible && section >= 0) else {
+            content()
+            return
+        }
+        AnimatedVisibility(visible: expansion?.wrappedValue ?? !collapsedSections.value.contains(section), enter: expandVertically(), exit: shrinkVertically()) {
+            content()
+        }
+    }
+
+    /// - Parameters:
+    ///   - isExpanded: Whether the footer's section is expanded; collapsed sections hide their footer.
+    @Composable private func RenderSectionFooter(content: Renderable, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isExpanded: Bool = true) {
+        if styling.isPlain {
             let footerContent: Renderable
             if let lazySectionFooter = content as? LazySectionFooter, !lazySectionFooter.content.any({ !$0.isSwiftUIEmptyView }) {
                 // Replace an empty footer with an empty view for RenderItem handling
@@ -1298,15 +1673,19 @@ public final class List : View, Renderable {
                 .then(context.modifier)
             let contentModifier = Modifier.fillMaxWidth().padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
             Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
-                Column(modifier: Modifier.fillMaxWidth().heightIn(min: 1.dp)) {
-                    EnvironmentValues.shared.setValues {
-                        $0.set_listSectionFooterStyle(styling.style)
-                        return ComposeResult.ok
-                    } in: {
-                        content.Render(context: context.content(modifier: contentModifier))
+                AnimatedVisibility(visible: isExpanded, enter: expandVertically(), exit: shrinkVertically()) {
+                    Column(modifier: Modifier.fillMaxWidth().heightIn(min: 1.dp)) {
+                        EnvironmentValues.shared.setValues {
+                            $0.set_listSectionFooterStyle(styling.kind)
+                            return ComposeResult.ok
+                        } in: {
+                            content.Render(context: context.content(modifier: contentModifier))
+                        }
                     }
                 }
-                RenderRoundedCorners(isTop: false, fill: backgroundColor)
+                if styling.isInset {
+                    RenderRoundedCorners(isTop: false, fill: backgroundColor)
+                }
             }
         }
     }
@@ -1315,7 +1694,7 @@ public final class List : View, Renderable {
     /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
     @Composable private func RenderHeader(styling: ListStyling, safeAreaHeight: Dp, hasTopSection: Bool) {
         var height = safeAreaHeight
-        if styling.style != .plain {
+        if !styling.isPlain {
             height += Self.verticalInset.dp
         }
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
@@ -1324,7 +1703,7 @@ public final class List : View, Renderable {
             .zIndex(Float(0.5))
             .background(backgroundColor)
         Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.BottomCenter) {
-            if !hasTopSection && styling.style != .plain {
+            if !hasTopSection && styling.isInset {
                 RenderRoundedCorners(isTop: true, fill: backgroundColor)
             }
         }
@@ -1332,11 +1711,11 @@ public final class List : View, Renderable {
 
     /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
     /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
-    @Composable private func RenderFooter(styling: ListStyling, modifier: Modifier = Modifier, safeAreaHeight: Dp, hasBottomSection: Bool) {
+    @Composable private func RenderFooter(styling: ListStyling, modifier: Modifier = Modifier, safeAreaHeight: Dp, hasBottomSection: Bool, spacing: CGFloat = verticalInset) {
         var height = safeAreaHeight
         var offset = 0.dp
-        if styling.style != .plain {
-            height += Self.verticalInset.dp
+        if !styling.isPlain {
+            height += spacing.dp
             offset = -1.dp // Cover last row's divider
         }
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
@@ -1346,7 +1725,7 @@ public final class List : View, Renderable {
             .zIndex(Float(0.5))
             .background(backgroundColor)
         Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
-            if !hasBottomSection && styling.style != .plain {
+            if !hasBottomSection && styling.isInset {
                 RenderRoundedCorners(isTop: false, fill: backgroundColor)
             }
         }
@@ -1377,13 +1756,38 @@ public final class List : View, Renderable {
         Box(modifier: modifier)
     }
 
+    /// Suggestion rows that replace the list's rows while its search field is focused, as on iOS, or nil.
+    @Composable private func EvaluateSearchSuggestions(state: SearchableState?, context: ComposeContext) -> kotlin.collections.List<Renderable>? {
+        guard let state, state.isFocused.value, EnvironmentValues.shared._searchSuggestionsVisibility != Visibility.hidden, let suggestions = EnvironmentValues.shared._searchSuggestions else {
+            return nil
+        }
+        let renderables = suggestions.Evaluate(context: context, options: 0).filter { !$0.isSwiftUIEmptyView }
+        guard renderables.size > 0 else {
+            return nil
+        }
+        let focusManager = LocalFocusManager.current
+        return renderables.map { renderable in
+            guard let completion = renderable.forEachModifier({ ($0 as? SearchCompletionModifier)?.completion }) else {
+                return renderable
+            }
+            // Completing fills the search text and submits, which dismisses the suggestions
+            return renderable.asView()
+                .frame(maxWidth: CGFloat.infinity, alignment: Alignment.leading)
+                .onTapGesture { _ in
+                    state.text.wrappedValue = completion
+                    focusManager.clearFocus()
+                    state.submitState?.onSubmit(trigger: SubmitTriggers.search)
+                }
+                .asRenderable()
+        }
+    }
+
     @Composable private func RenderSearchField(state: SearchableState, context: ComposeContext, styling: ListStyling, safeAreaHeight: Dp) {
         var modifier = Modifier.background(BackgroundColor(styling: styling, isItem: false))
-        if styling.style == ListStyle.plain {
-            modifier = modifier.padding(top: Self.verticalInset.dp + safeAreaHeight, start: Self.horizontalInset.dp, end: Self.horizontalInset.dp, bottom: Self.verticalInset.dp)
-        } else {
-            modifier = modifier.padding(top: Self.verticalInset.dp + safeAreaHeight)
-        }
+        // Inset lists are already padded horizontally
+        let horizontalPadding = styling.isInset ? 0.0 : Self.horizontalInset
+        let bottomPadding = styling.isPlain ? Self.verticalInset : 0.0
+        modifier = modifier.padding(top: Self.verticalInset.dp + safeAreaHeight, start: horizontalPadding.dp, end: horizontalPadding.dp, bottom: bottomPadding.dp)
         modifier = modifier.fillMaxWidth()
         SearchField(state: state, context: context.content(modifier: modifier))
     }
@@ -1391,7 +1795,7 @@ public final class List : View, Renderable {
     @Composable private func BackgroundColor(styling: ListStyling, isItem: Bool) -> androidx.compose.ui.graphics.Color {
         if !isItem && styling.backgroundVisibility == Visibility.hidden {
             return Color.clear.colorImpl()
-        } else if styling.style == ListStyle.plain {
+        } else if !styling.isGroupedBackground {
             return Color.background.colorImpl()
         } else {
             return Color.systemBarBackground.colorImpl()
@@ -1420,6 +1824,29 @@ public func List<ObjectType>(_ data: any RandomAccessCollection<ObjectType>, @Vi
 public func List<ObjectType>(_ data: any RandomAccessCollection<ObjectType>, id: (ObjectType) -> AnyHashable?, @ViewBuilder rowContent: (ObjectType) -> any View) -> List where ObjectType: Any {
     return List(identifier: { id($0 as! ObjectType) }, objects: data as! RandomAccessCollection<Any>, objectContent: { rowContent($0 as! ObjectType) })
 }
+/// A list whose rows select into a single optional value, or into a `Set` while editing, as on iOS.
+public func List<SelectionValue>(selection: Binding<SelectionValue>, @ViewBuilder content: () -> any View) -> List {
+    return List(fixedContent: content(), selection: selection as! Binding<Any>)
+}
+
+public func List<ObjectType, SelectionValue>(_ data: any RandomAccessCollection<ObjectType>, selection: Binding<SelectionValue>, @ViewBuilder rowContent: @escaping (ObjectType) -> any View) -> List {
+    return List(identifier: { ($0 as! Identifiable<Hashable>).id }, objects: data as! RandomAccessCollection<Any>, objectContent: { rowContent($0 as! ObjectType) }, selection: selection as! Binding<Any>)
+}
+
+public func List<ObjectType, SelectionValue>(_ data: any RandomAccessCollection<ObjectType>, id: (ObjectType) -> AnyHashable?, selection: Binding<SelectionValue>, @ViewBuilder rowContent: @escaping (ObjectType) -> any View) -> List {
+    return List(identifier: { id($0 as! ObjectType) }, objects: data as! RandomAccessCollection<Any>, objectContent: { rowContent($0 as! ObjectType) }, selection: selection as! Binding<Any>)
+}
+
+/// A hierarchical list whose rows with children expand like iOS outlines.
+// SKIP INSERT: @JvmName("ListWithChildren")
+public func List<ObjectType>(_ data: any RandomAccessCollection<ObjectType>, children: @escaping (ObjectType) -> (any RandomAccessCollection<ObjectType>)?, @ViewBuilder rowContent: @escaping (ObjectType) -> any View) -> List {
+    return List(fixedContent: OutlineGroup(data, children: children, content: rowContent))
+}
+
+public func List<ObjectType>(_ data: any RandomAccessCollection<ObjectType>, id: @escaping (ObjectType) -> AnyHashable?, children: @escaping (ObjectType) -> (any RandomAccessCollection<ObjectType>)?, @ViewBuilder rowContent: @escaping (ObjectType) -> any View) -> List {
+    return List(fixedContent: OutlineGroup(data, id: id, children: children, content: rowContent))
+}
+
 public func List(_ data: Range<Int>, id: ((Int) -> AnyHashable?)? = nil, @ViewBuilder rowContent: (Int) -> any View) -> List {
     return List(identifier: id == nil ? nil : { id!($0 as! Int) }, indexRange: data, indexedContent: rowContent)
 }
@@ -1446,11 +1873,33 @@ public func List<Data, ObjectType>(_ data: Binding<Data>, id: (ObjectType) -> An
 #endif
 
 struct ListStyling: Equatable {
-    let style: ListStyle
+    let kind: ListStyleKind
     let backgroundVisibility: Visibility
+    /// Spacing between grouped sections, or nil for the default.
+    var sectionSpacing: CGFloat? = nil
 
-    func withStyle(_ style: ListStyle) -> ListStyling {
-        return ListStyling(style: style, backgroundVisibility: backgroundVisibility)
+    func withKind(_ kind: ListStyleKind) -> ListStyling {
+        return ListStyling(kind: kind, backgroundVisibility: backgroundVisibility, sectionSpacing: sectionSpacing)
+    }
+
+    /// Full-width rows, pinned section headers, and footers rendered as rows.
+    var isPlain: Bool {
+        return kind == .plain
+    }
+
+    /// Rows inset from the list edges, with rounded section corners.
+    var isInset: Bool {
+        return kind == .insetGrouped || kind == .inset || kind == .sidebar
+    }
+
+    /// Rows sit on the grouped system background rather than the plain background.
+    var isGroupedBackground: Bool {
+        return kind == .grouped || kind == .insetGrouped || kind == .sidebar
+    }
+
+    /// Section headers toggle their section's rows.
+    var isCollapsible: Bool {
+        return kind == .sidebar
     }
 }
 
@@ -1462,28 +1911,90 @@ struct ListStyling: Equatable {
 }
 #endif
 
-public struct ListStyle: RawRepresentable, Equatable {
-    public let rawValue: Int
+/// A protocol that describes the behavior and appearance of a list.
+///
+/// To configure the list style for a view hierarchy, use the `listStyle(_:)` modifier.
+public protocol ListStyle {
+}
 
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
+/// The list style that describes a platform's default behavior and appearance for a list.
+public struct DefaultListStyle : ListStyle {
+    public init() {
     }
+}
 
-    public static let automatic = ListStyle(rawValue: 0) // For bridging
+/// The list style that describes the behavior and appearance of a plain list.
+public struct PlainListStyle : ListStyle {
+    public init() {
+    }
+}
 
-    @available(*, unavailable)
-    public static let sidebar = ListStyle(rawValue: 1) // For bridging
+/// The list style that describes the behavior and appearance of a grouped list.
+public struct GroupedListStyle : ListStyle {
+    public init() {
+    }
+}
 
-    @available(*, unavailable)
-    public static let insetGrouped = ListStyle(rawValue: 2) // For bridging
+/// The list style that describes the behavior and appearance of an inset grouped list.
+public struct InsetGroupedListStyle : ListStyle {
+    public init() {
+    }
+}
 
-    @available(*, unavailable)
-    public static let grouped = ListStyle(rawValue: 3) // For bridging
+/// The list style that describes the behavior and appearance of an inset list.
+public struct InsetListStyle : ListStyle {
+    public init() {
+    }
+}
 
-    @available(*, unavailable)
-    public static let inset = ListStyle(rawValue: 4) // For bridging
+/// The list style that describes the behavior and appearance of a sidebar list, whose sections collapse.
+public struct SidebarListStyle : ListStyle {
+    public init() {
+    }
+}
 
-    public static let plain = ListStyle(rawValue: 5) // For bridging
+extension ListStyle where Self == DefaultListStyle {
+    public static var automatic: DefaultListStyle { DefaultListStyle() }
+}
+
+extension ListStyle where Self == PlainListStyle {
+    public static var plain: PlainListStyle { PlainListStyle() }
+}
+
+extension ListStyle where Self == GroupedListStyle {
+    public static var grouped: GroupedListStyle { GroupedListStyle() }
+}
+
+extension ListStyle where Self == InsetGroupedListStyle {
+    public static var insetGrouped: InsetGroupedListStyle { InsetGroupedListStyle() }
+}
+
+extension ListStyle where Self == InsetListStyle {
+    public static var inset: InsetListStyle { InsetListStyle() }
+}
+
+extension ListStyle where Self == SidebarListStyle {
+    public static var sidebar: SidebarListStyle { SidebarListStyle() }
+}
+
+/// The built-in appearance a `ListStyle` renders as.
+enum ListStyleKind {
+    case plain
+    case grouped
+    case insetGrouped
+    case inset
+    case sidebar
+
+    /// Resolve a style; `.automatic` matches iOS, which uses `.insetGrouped`.
+    static func of(_ style: any ListStyle) -> ListStyleKind {
+        switch style {
+        case is PlainListStyle: return .plain
+        case is GroupedListStyle: return .grouped
+        case is InsetListStyle: return .inset
+        case is SidebarListStyle: return .sidebar
+        default: return .insetGrouped
+        }
+    }
 }
 
 public enum ListItemTint {
@@ -1508,8 +2019,12 @@ extension View {
         #endif
     }
     
+    /// - Note: Rows draw only their bottom separator, so the `.top` edge alone has no effect.
     public func listRowSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View {
         #if SKIP
+        guard edges.contains(.bottom) else {
+            return self
+        }
         return ModifiedContent(content: self, modifier: ListItemModifier(separator: visibility))
         #else
         return self
@@ -1521,27 +2036,70 @@ extension View {
         return listRowSeparator(Visibility(rawValue: bridgedVisibility) ?? .automatic, edges: VerticalEdge.Set(rawValue: bridgedEdges))
     }
 
-    @available(*, unavailable)
-    public func listRowSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View {
-        return self
+    // SKIP @bridge
+    public func listRowSeparatorTint(_ color: Color?, bridgedEdges: Int) -> any View {
+        return listRowSeparatorTint(color, edges: VerticalEdge.Set(rawValue: bridgedEdges))
     }
 
-    @available(*, unavailable)
-    public func listSectionIndexVisibility(_ visibility: Visibility) -> some View {
+    public func listRowSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> any View {
+        #if SKIP
+        guard edges.contains(.bottom) else {
+            return self
+        }
+        return ModifiedContent(content: self, modifier: ListItemModifier(separatorTint: color))
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func listSectionSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View {
-        return self
+    /// Shows or hides the trailing section index built from `sectionIndexLabel`; `.automatic` shows it when sections have labels.
+    // SKIP @bridge
+    public func listSectionIndexVisibility(bridgedVisibility: Int) -> any View {
+        return listSectionIndexVisibility(Visibility(rawValue: bridgedVisibility) ?? .automatic)
     }
 
-    @available(*, unavailable)
-    public func listSectionSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View {
+    public func listSectionIndexVisibility(_ visibility: Visibility) -> any View {
+        #if SKIP
+        return environment(\._listSectionIndexVisibility, visibility, affectsEvaluate: false)
+        #else
         return self
+        #endif
     }
 
-    public func listStyle(_ style: ListStyle) -> some View {
+    /// - Note: Sections draw only their bottom separator, below the last row, so the `.top` edge alone has no effect.
+    // SKIP @bridge
+    public func listSectionSeparator(bridgedVisibility: Int, bridgedEdges: Int) -> any View {
+        return listSectionSeparator(Visibility(rawValue: bridgedVisibility) ?? .automatic, edges: VerticalEdge.Set(rawValue: bridgedEdges))
+    }
+
+    public func listSectionSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> any View {
+        #if SKIP
+        guard edges.contains(.bottom) else {
+            return self
+        }
+        return ModifiedContent(content: self, modifier: ListItemModifier(sectionSeparator: visibility))
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func listSectionSeparatorTint(_ color: Color?, bridgedEdges: Int) -> any View {
+        return listSectionSeparatorTint(color, edges: VerticalEdge.Set(rawValue: bridgedEdges))
+    }
+
+    public func listSectionSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> any View {
+        #if SKIP
+        guard edges.contains(.bottom) else {
+            return self
+        }
+        return ModifiedContent(content: self, modifier: ListItemModifier(sectionSeparatorTint: color))
+        #else
+        return self
+        #endif
+    }
+
+    public func listStyle(_ style: any ListStyle) -> any View {
         #if SKIP
         return environment(\._listStyle, style, affectsEvaluate: false)
         #else
@@ -1551,7 +2109,33 @@ extension View {
 
     // SKIP @bridge
     public func listStyle(bridgedStyle: Int) -> any View {
-        return listStyle(ListStyle(rawValue: bridgedStyle))
+        switch bridgedStyle {
+        case 1:
+            return listStyle(SidebarListStyle())
+        case 2:
+            return listStyle(InsetGroupedListStyle())
+        case 3:
+            return listStyle(GroupedListStyle())
+        case 4:
+            return listStyle(InsetListStyle())
+        case 5:
+            return listStyle(PlainListStyle())
+        default:
+            return listStyle(DefaultListStyle())
+        }
+    }
+
+    public func listItemTint(_ tint: ListItemTint?) -> any View {
+        switch tint {
+        case .fixed(let color):
+            return listItemTint(color)
+        case .preferred(let color):
+            return listItemTint(color)
+        case .monochrome:
+            return listItemTint(Color.secondary)
+        case nil:
+            return listItemTint(nil as Color?)
+        }
     }
 
     // SKIP @bridge
@@ -1563,14 +2147,17 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func listItemTint(_ tint: ListItemTint?) -> some View {
-        return self
+    // SKIP @bridge
+    public func listRowInsets(top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat) -> any View {
+        return listRowInsets(EdgeInsets(top: top, leading: leading, bottom: bottom, trailing: trailing))
     }
 
-    @available(*, unavailable)
-    public func listRowInsets(_ insets: EdgeInsets?) -> some View {
+    public func listRowInsets(_ insets: EdgeInsets?) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: ListItemModifier(insets: insets))
+        #else
         return self
+        #endif
     }
 
     // SKIP @bridge
@@ -1582,40 +2169,106 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func listSectionSpacing(_ spacing: ListSectionSpacing) -> some View {
-        return self
+    public func listSectionSpacing(_ spacing: ListSectionSpacing) -> any View {
+        switch spacing {
+        case .default:
+            return listSectionSpacingValue(nil)
+        case .compact:
+            return listSectionSpacingValue(8.0)
+        case .custom(let length):
+            return listSectionSpacingValue(length)
+        }
     }
 
-    @available(*, unavailable)
-    public func listSectionSpacing(_ spacing: CGFloat) -> some View {
+    public func listSectionSpacing(_ spacing: CGFloat) -> any View {
+        return listSectionSpacingValue(spacing)
+    }
+
+    /// Bridged section spacing; `nil` restores the default.
+    // SKIP @bridge
+    public func listSectionSpacingValue(_ spacing: CGFloat?) -> any View {
+        #if SKIP
+        return environment(\._listSectionSpacing, spacing, affectsEvaluate: false)
+        #else
         return self
+        #endif
     }
 
 }
 
 #if SKIP
+/// A labelled section in a list's section index.
+struct SectionIndexEntry {
+    let label: Text
+    /// The lazy item index of the section's header.
+    let itemIndex: Int
+}
+
+/// Carries a section's `sectionIndexLabel`.
+final class SectionIndexLabelModifier: RenderModifier {
+    let label: Text
+
+    init(label: Text) {
+        self.label = label
+        super.init()
+    }
+}
+
 final class ListItemModifier: RenderModifier {
     let background: View?
     let separator: Visibility?
+    let separatorTint: Color?
+    let insets: EdgeInsets?
+    let sectionSeparator: Visibility?
+    let sectionSeparatorTint: Color?
+    let isSectionEnd: Bool
+    let selectionDisabled: Bool?
+    /// Separator edge guides from `alignmentGuide(.listRowSeparatorLeading/Trailing)`, in row content coordinates.
+    let separatorLeading: ((ViewDimensions) -> CGFloat)?
+    let separatorTrailing: ((ViewDimensions) -> CGFloat)?
 
-    init(background: View? = nil, separator: Visibility? = nil) {
+    init(background: View? = nil, separator: Visibility? = nil, separatorTint: Color? = nil, insets: EdgeInsets? = nil, sectionSeparator: Visibility? = nil, sectionSeparatorTint: Color? = nil, isSectionEnd: Bool = false, selectionDisabled: Bool? = nil, separatorLeading: ((ViewDimensions) -> CGFloat)? = nil, separatorTrailing: ((ViewDimensions) -> CGFloat)? = nil) {
         self.background = background
         self.separator = separator
+        self.separatorTint = separatorTint
+        self.insets = insets
+        self.sectionSeparator = sectionSeparator
+        self.sectionSeparatorTint = sectionSeparatorTint
+        self.isSectionEnd = isSectionEnd
+        self.selectionDisabled = selectionDisabled
+        self.separatorLeading = separatorLeading
+        self.separatorTrailing = separatorTrailing
         super.init()
     }
 
+    /// Merge all list item modifiers on the renderable; the innermost value of each property wins.
     static func combined(for renderable: Renderable) -> ListItemModifier {
         var background: View? = nil
         var separator: Visibility? = nil
+        var separatorTint: Color? = nil
+        var insets: EdgeInsets? = nil
+        var sectionSeparator: Visibility? = nil
+        var sectionSeparatorTint: Color? = nil
+        var isSectionEnd = false
+        var selectionDisabled: Bool? = nil
+        var separatorLeading: ((ViewDimensions) -> CGFloat)? = nil
+        var separatorTrailing: ((ViewDimensions) -> CGFloat)? = nil
         renderable.forEachModifier {
             if let listItemModifier = $0 as? ListItemModifier {
                 background = background ?? listItemModifier.background
                 separator = separator ?? listItemModifier.separator
+                separatorTint = separatorTint ?? listItemModifier.separatorTint
+                insets = insets ?? listItemModifier.insets
+                sectionSeparator = sectionSeparator ?? listItemModifier.sectionSeparator
+                sectionSeparatorTint = sectionSeparatorTint ?? listItemModifier.sectionSeparatorTint
+                isSectionEnd = isSectionEnd || listItemModifier.isSectionEnd
+                selectionDisabled = selectionDisabled ?? listItemModifier.selectionDisabled
+                separatorLeading = separatorLeading ?? listItemModifier.separatorLeading
+                separatorTrailing = separatorTrailing ?? listItemModifier.separatorTrailing
             }
             return nil
         }
-        return ListItemModifier(background: background, separator: separator)
+        return ListItemModifier(background: background, separator: separator, separatorTint: separatorTint, insets: insets, sectionSeparator: sectionSeparator, sectionSeparatorTint: sectionSeparatorTint, isSectionEnd: isSectionEnd, selectionDisabled: selectionDisabled, separatorLeading: separatorLeading, separatorTrailing: separatorTrailing)
     }
 }
 #endif

@@ -45,6 +45,7 @@ public struct DisclosureGroup : View, Renderable {
         self.initialExpanded = false
     }
 
+    /// Bridged unbound group, which keeps its own expansion state.
     // SKIP @bridge
     public init(bridgedContent: any View, bridgedLabel: any View) {
         self.label = ComposeBuilder.from { bridgedLabel }
