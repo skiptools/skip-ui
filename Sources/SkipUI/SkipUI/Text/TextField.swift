@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -119,6 +120,11 @@ public struct TextField : View, Renderable {
         // A vertical field takes Enter as a newline, so only single-line fields submit on it.
         let isVertical = axis == Axis.vertical
         var baseModifier = context.modifier.fillWidth()
+        if let listItemTextInputFocused = EnvironmentValues.shared._listItemTextInputFocused {
+            baseModifier = baseModifier.onFocusChanged {
+                listItemTextInputFocused.value = $0.hasFocus
+            }
+        }
         if !isVertical {
             baseModifier = baseModifier.onPreviewKeyEvent { keyEvent in
                 if keyEvent.type == KeyEventType.KeyDown &&

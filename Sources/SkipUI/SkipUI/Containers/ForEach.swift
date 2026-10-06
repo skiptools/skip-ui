@@ -210,9 +210,12 @@ public final class ForEach : View, Renderable, LazyItemFactory {
             return true
         }
         // We have to unroll if the ForEach body contains multiple views. We also unroll if this is
-        // e.g. a ForEach of Sections which each append lazy items
-        // A DisclosureGroup expands into multiple rows, so it also requires unrolling
-        return renderables.size > 1 || (renderables.firstOrNull() as? LazyItemFactory)?.shouldProduceLazyItems() == true || renderables.firstOrNull()?.strip() is DisclosureGroup
+        // e.g. a ForEach of Sections which each append lazy items. A DisclosureGroup can also
+        // append lazy child items when expanded, even when it is currently collapsed to one row.
+        let firstRenderable = renderables.firstOrNull()
+        return renderables.size > 1
+            || (firstRenderable as? LazyItemFactory)?.shouldProduceLazyItems() == true
+            || firstRenderable?.strip() is DisclosureGroup
     }
 
     override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
@@ -305,7 +308,7 @@ final class ForEachIdentityModifier: RenderModifier {
         self.namespace = namespace
         self.identity = identity
         super.init(action: { renderable, context in
-            androidx.compose.runtime.key(namespace, identity) {
+            androidx.compose.runtime.key(identity) {
                 renderable.Render(context: context)
             }
         })
