@@ -491,8 +491,7 @@ struct _Text: View, Renderable, Equatable {
         let maxLines = max(1, EnvironmentValues.shared.lineLimit ?? Int.MAX_VALUE)
         let truncationMode = EnvironmentValues.shared.truncationMode
         let hasLineLimit = (EnvironmentValues.shared.lineLimit != nil)
-        let reservesSpace = EnvironmentValues.shared._lineLimitReservesSpace ?? false
-        let minLines = reservesSpace ? maxLines : 1
+        let minLines = min(max(1, EnvironmentValues.shared._lineLimitMinimum ?? 1), maxLines)
         let redaction = EnvironmentValues.shared.redactionReasons
         let styleInfo = Text.styleInfo(textEnvironment: textEnvironment, redaction: redaction, context: context)
         let animatable = styleInfo.style.asAnimatable(context: context)
@@ -964,21 +963,41 @@ extension View {
     // SKIP @bridge
     public func lineLimit(_ number: Int?) -> any View {
         #if SKIP
-        return environment(\.lineLimit, number)
+        return environment(\.lineLimit, number).environment(\._lineLimitMinimum, nil, affectsEvaluate: false)
         #else
         return self
         #endif
     }
 
-    @available(*, unavailable)
-    public func lineLimit(_ limit: Range<Int>) -> some View {
+    public func lineLimit(_ limit: ClosedRange<Int>) -> any View {
+        #if SKIP
+        return lineLimit(bridgedMinimum: limit.start, maximum: limit.endInclusive)
+        #else
         return self
+        #endif
+    }
+
+    public func lineLimit(_ limit: Range<Int>) -> any View {
+        #if SKIP
+        return lineLimit(bridgedMinimum: limit.lowerBound, maximum: limit.upperBound - 1)
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func lineLimit(bridgedMinimum minimum: Int?, maximum: Int?) -> any View {
+        #if SKIP
+        return environment(\.lineLimit, maximum).environment(\._lineLimitMinimum, minimum, affectsEvaluate: false)
+        #else
+        return self
+        #endif
     }
 
     // SKIP @bridge
     public func lineLimit(_ limit: Int, reservesSpace: Bool) -> any View {
         #if SKIP
-        return environment(\.lineLimit, limit).environment(\._lineLimitReservesSpace, reservesSpace, affectsEvaluate: false)
+        return lineLimit(bridgedMinimum: reservesSpace ? limit : nil, maximum: limit)
         #else
         return self
         #endif
