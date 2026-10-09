@@ -41,9 +41,20 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
         self.stringInterpolation = interp
     }
 
-    /// Returns the pattern string to use for looking up localized values in the `.xcstrings` file
+    /// Returns the pattern string to use for looking up localized values in the `.xcstrings` file.
+    ///
+    /// Literal percent signs are stored doubled so a later `String.format` treats them as text.
+    /// Catalog keys and Markdown use `localizedPattern`, where those doubled percents are one character again.
     public var patternFormat: String {
         stringInterpolation.pattern
+    }
+
+    /// The key and display string, with a literal percent restored from the `%%` format escape.
+    ///
+    /// `Text("Perfect! 100% **bold**")` looks up and renders `100%`, not `100%%`.
+    /// Format specifiers such as `%@` are left intact.
+    public var localizedPattern: String {
+        return stringInterpolation.pattern.replacingOccurrences(of: "%%", with: "%")
     }
 
     #if SKIP

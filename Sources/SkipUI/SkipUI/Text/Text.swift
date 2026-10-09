@@ -464,7 +464,14 @@ struct _Text: View, Renderable, Equatable {
     var plainTextSeed: String {
         if let verbatim { return verbatim }
         if let attributedString { return attributedString.string }
-        if let key { return key.patternFormat }
+        if let key {
+            // A measurement seed is not passed to String.format. Interpolated text still
+            // needs the doubled pattern so "%lld%%" is not collapsed into an illegal "%lld%".
+            if key.stringInterpolation.values.isEmpty() {
+                return key.localizedPattern
+            }
+            return key.patternFormat
+        }
         return ""
     }
 
@@ -476,10 +483,22 @@ struct _Text: View, Renderable, Equatable {
         // localize and Kotlin-ize the format string. the string is cached by the bundle, and we
         // cache the Kotlin-ized version too so that we don't have to convert it on every compose
         let locale = self.locale ?? EnvironmentValues.shared.locale
+        let values = key.stringInterpolation.values
+        if values.isEmpty() {
+            // Catalog keys are the string the author wrote, with one "%". The stored pattern
+            // doubles that character. localizedInfo's miss path returns the key through
+            // kotlinFormatString, which leaves "%%" in place, so looking up the doubled
+            // pattern is what draws "100%%" and what Markdown styles. A lone "%" is not a
+            // format specifier, so this result must not be passed to String.format.
+            let lookupKey = key.localizedPattern
+            let (_, locfmt, _) = (self.bundle ?? Bundle.main).localizedInfo(forKey: lookupKey, value: nil, table: self.tableName, locale: locale)
+            let display = locfmt.replacingOccurrences(of: "%%", with: "%")
+            return (display, MarkdownNode.from(string: display), nil)
+        }
         if let (_, locfmt, locnode) = (self.bundle ?? Bundle.main).localizedInfo(forKey: key.patternFormat, value: nil, table: self.tableName, locale: locale) {
-            return (locfmt, locnode, key.stringInterpolation.values)
+            return (locfmt, locnode, values)
         } else {
-            return (key.patternFormat.kotlinFormatString, MarkdownNode.from(string: key.patternFormat), key.stringInterpolation.values)
+            return (key.patternFormat.kotlinFormatString, MarkdownNode.from(string: key.patternFormat), values)
         }
     }
 
