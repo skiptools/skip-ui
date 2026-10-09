@@ -71,8 +71,9 @@ public struct LazyHStack : View, Renderable {
             let coroutineScope = rememberCoroutineScope()
             let scrollToID = ScrollToIDAction(key: listState) { id in
                 if let itemIndex = itemCollector.value.index(for: id) {
+                    let animated = Animation.scrollToIsAnimated
                     coroutineScope.launch {
-                        if Animation.isInWithAnimation {
+                        if animated {
                             listState.animateScrollToItem(itemIndex)
                         } else {
                             listState.scrollToItem(itemIndex)
