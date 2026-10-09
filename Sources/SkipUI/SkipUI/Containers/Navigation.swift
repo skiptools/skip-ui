@@ -458,9 +458,10 @@ public struct NavigationStack : View, Renderable {
                                     if hasBackButton {
                                         let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
                                         let backIcon: @Composable () -> Void = {
+                                            let backLocale = Locale(androidx.compose.ui.platform.LocalConfiguration.current.locales[0])
                                             Icon(
                                                 imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack),
-                                                contentDescription: "Back",
+                                                contentDescription: NavigationAccessibilityLabel.backButton(locale: backLocale),
                                                 tint: tint.colorImpl()
                                             )
                                         }
