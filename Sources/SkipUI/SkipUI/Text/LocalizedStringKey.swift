@@ -52,9 +52,20 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
     /// The key and display string, with a literal percent restored from the `%%` format escape.
     ///
     /// `Text("Perfect! 100% **bold**")` looks up and renders `100%`, not `100%%`.
-    /// Format specifiers such as `%@` are left intact.
+    /// Format specifiers such as `%@` are left intact. An authored `100%%` is stored
+    /// as `100%%%%` and comes back as `100%%` — one unescape, not two.
     public var localizedPattern: String {
         return stringInterpolation.pattern.replacingOccurrences(of: "%%", with: "%")
+    }
+
+    /// The string drawn when this key has no interpolations.
+    ///
+    /// `resolvedFormat` is the catalog value, or `localizedPattern` when the key is
+    /// missing. That string is already the literal to draw. `kotlinFormatString`
+    /// does not turn a lone `%` back into `%%`, so collapsing `%` here would draw
+    /// an authored `100%%` as `100%`.
+    public func noInterpolationDisplay(resolvedFormat: String) -> String {
+        return resolvedFormat
     }
 
     #if SKIP

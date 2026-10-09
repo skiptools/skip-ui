@@ -492,7 +492,7 @@ struct _Text: View, Renderable, Equatable {
             // format specifier, so this result must not be passed to String.format.
             let lookupKey = key.localizedPattern
             let (_, locfmt, _) = (self.bundle ?? Bundle.main).localizedInfo(forKey: lookupKey, value: nil, table: self.tableName, locale: locale)
-            let display = locfmt.replacingOccurrences(of: "%%", with: "%")
+            let display = key.noInterpolationDisplay(resolvedFormat: locfmt)
             return (display, MarkdownNode.from(string: display), nil)
         }
         if let (_, locfmt, locnode) = (self.bundle ?? Bundle.main).localizedInfo(forKey: key.patternFormat, value: nil, table: self.tableName, locale: locale) {

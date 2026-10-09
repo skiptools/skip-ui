@@ -26,4 +26,18 @@ final class LocalizedStringKeyPercentTests: XCTestCase {
         XCTAssertEqual(key.localizedPattern, "Hello")
         XCTAssertEqual(key.localizedPattern, key.patternFormat)
     }
+
+    func testNoInterpolationDisplayKeepsOnePercent() {
+        let key = LocalizedStringKey(stringLiteral: "Perfect! 100% **bold**")
+        let display = key.noInterpolationDisplay(resolvedFormat: key.localizedPattern)
+        XCTAssertEqual(display, "Perfect! 100% **bold**")
+    }
+
+    func testNoInterpolationDisplayKeepsTwoPercents() {
+        let key = LocalizedStringKey(stringLiteral: "100%% **bold**")
+        XCTAssertEqual(key.patternFormat, "100%%%% **bold**")
+        XCTAssertEqual(key.localizedPattern, "100%% **bold**")
+        let display = key.noInterpolationDisplay(resolvedFormat: key.localizedPattern)
+        XCTAssertEqual(display, "100%% **bold**")
+    }
 }
