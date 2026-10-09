@@ -100,13 +100,11 @@ public final class UNUserNotificationCenter {
 
     // SKIP @bridge
     public func add(_ request: UNNotificationRequest) async throws {
-        guard let delegate else { return }
-
-        let notification = UNNotification(request: request, date: Date.now)
-        let options = await delegate.userNotificationCenter(self, willPresent: notification)
-        guard options.contains(.banner) || options.contains(.alert) else { return }
-
         #if SKIP
+        // Scheduling does not require a delegate. On iOS, willPresent runs only when a
+        // notification fires while the app is in the foreground. Gating enqueue on it
+        // drops every request from an app that never set a delegate, and drops
+        // background notifications whose presentation options are empty.
         guard let activity = UIApplication.shared.androidActivity else { return }
         
         // Build the data which should be displayed in the notification.
@@ -890,6 +888,11 @@ public class NotificationWorker : Worker {
             var resId = context.getResources().getIdentifier("ic_notification", "drawable", context.getPackageName())
             if resId == 0 {
                 resId = context.getResources().getIdentifier("ic_launcher", "mipmap", context.getPackageName())
+            }
+            // createWithResource throws when the id is 0, which fails the worker and
+            // the notification is never posted. A platform status icon always exists.
+            if resId == 0 {
+                resId = android.R.drawable.stat_notify_chat
             }
             builder.setSmallIcon(IconCompat.createWithResource(context, resId))
         }
