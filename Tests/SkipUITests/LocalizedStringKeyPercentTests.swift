@@ -29,15 +29,31 @@ final class LocalizedStringKeyPercentTests: XCTestCase {
 
     func testNoInterpolationDisplayKeepsOnePercent() {
         let key = LocalizedStringKey(stringLiteral: "Perfect! 100% **bold**")
-        let display = key.noInterpolationDisplay(resolvedFormat: key.localizedPattern)
-        XCTAssertEqual(display, "Perfect! 100% **bold**")
+        let literal = key.localizedPattern
+        XCTAssertEqual(literal, "Perfect! 100% **bold**")
+        XCTAssertEqual(key.noInterpolationDisplay(literal: literal, kotlinFormat: literal), "Perfect! 100% **bold**")
+        XCTAssertEqual(key.noInterpolationMarkdownSource(literal: literal, kotlinFormat: literal), "Perfect! 100% **bold**")
     }
 
     func testNoInterpolationDisplayKeepsTwoPercents() {
         let key = LocalizedStringKey(stringLiteral: "100%% **bold**")
         XCTAssertEqual(key.patternFormat, "100%%%% **bold**")
-        XCTAssertEqual(key.localizedPattern, "100%% **bold**")
-        let display = key.noInterpolationDisplay(resolvedFormat: key.localizedPattern)
-        XCTAssertEqual(display, "100%% **bold**")
+        let literal = key.localizedPattern
+        XCTAssertEqual(literal, "100%% **bold**")
+        XCTAssertEqual(key.noInterpolationDisplay(literal: literal, kotlinFormat: literal), "100%% **bold**")
+        XCTAssertEqual(key.noInterpolationMarkdownSource(literal: literal, kotlinFormat: literal), "100%% **bold**")
+    }
+
+    func testNoInterpolationDisplayKeepsObjCSpecifier() {
+        let key = LocalizedStringKey(stringLiteral: "Use %@")
+        let literal = key.localizedPattern
+        XCTAssertEqual(key.patternFormat, "Use %%@")
+        XCTAssertEqual(literal, "Use %@")
+        let kotlinFormat = "Use %s"
+        XCTAssertNotEqual(literal, kotlinFormat)
+        let display = key.noInterpolationDisplay(literal: literal, kotlinFormat: kotlinFormat)
+        XCTAssertEqual(display, "Use %@")
+        XCTAssertNotEqual(display, kotlinFormat)
+        XCTAssertNil(key.noInterpolationMarkdownSource(literal: literal, kotlinFormat: kotlinFormat))
     }
 }

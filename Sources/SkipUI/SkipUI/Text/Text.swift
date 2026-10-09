@@ -485,15 +485,20 @@ struct _Text: View, Renderable, Equatable {
         let locale = self.locale ?? EnvironmentValues.shared.locale
         let values = key.stringInterpolation.values
         if values.isEmpty() {
-            // Catalog keys are the string the author wrote, with one "%". The stored pattern
-            // doubles that character. localizedInfo's miss path returns the key through
-            // kotlinFormatString, which leaves "%%" in place, so looking up the doubled
-            // pattern is what draws "100%%" and what Markdown styles. A lone "%" is not a
-            // format specifier, so this result must not be passed to String.format.
+            // Catalog keys are the string the author wrote. The stored pattern doubles "%".
+            // localizedInfo returns (literal, kotlinFormat, markdown). kotlinFormat rewrites
+            // "%@" to "%s", so it is not the text to draw and not a markdown span source.
+            // A lone "%" is not a specifier, so the literal still parses as Markdown.
             let lookupKey = key.localizedPattern
-            let (_, locfmt, _) = (self.bundle ?? Bundle.main).localizedInfo(forKey: lookupKey, value: nil, table: self.tableName, locale: locale)
-            let display = key.noInterpolationDisplay(resolvedFormat: locfmt)
-            return (display, MarkdownNode.from(string: display), nil)
+            let (literal, kotlinFormat, _) = (self.bundle ?? Bundle.main).localizedInfo(forKey: lookupKey, value: nil, table: self.tableName, locale: locale)
+            let display = key.noInterpolationDisplay(literal: literal, kotlinFormat: kotlinFormat)
+            let markdown: MarkdownNode?
+            if let source = key.noInterpolationMarkdownSource(literal: literal, kotlinFormat: kotlinFormat) {
+                markdown = MarkdownNode.from(string: source)
+            } else {
+                markdown = nil
+            }
+            return (display, markdown, nil)
         }
         if let (_, locfmt, locnode) = (self.bundle ?? Bundle.main).localizedInfo(forKey: key.patternFormat, value: nil, table: self.tableName, locale: locale) {
             return (locfmt, locnode, values)

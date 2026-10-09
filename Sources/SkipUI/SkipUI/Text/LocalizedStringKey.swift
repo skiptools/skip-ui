@@ -60,12 +60,27 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
 
     /// The string drawn when this key has no interpolations.
     ///
-    /// `resolvedFormat` is the catalog value, or `localizedPattern` when the key is
-    /// missing. That string is already the literal to draw. `kotlinFormatString`
-    /// does not turn a lone `%` back into `%%`, so collapsing `%` here would draw
-    /// an authored `100%%` as `100%`.
-    public func noInterpolationDisplay(resolvedFormat: String) -> String {
-        return resolvedFormat
+    /// `localizedInfo` stores the catalog literal and its `kotlinFormatString`.
+    /// The format form rewrites `%@` to `%s` and `%lld` to `%d`. Nothing on this
+    /// path is passed to `String.format`, so that rewrite would be drawn as text.
+    /// An authored `100%%` is already one unescape in `literal`; do not collapse it again.
+    public func noInterpolationDisplay(literal: String, kotlinFormat: String) -> String {
+        // kotlinFormat is the String.format form. Callers pass it so a test can
+        // show that "Use %@" is kept and "Use %s" is not drawn.
+        return literal
+    }
+
+    /// Markdown source when this key has no interpolations.
+    ///
+    /// `MarkdownNode` stores the Kotlin format form inside each span. When that
+    /// form differs from the literal, parsing it would draw `Use %s` for `Use %@`.
+    /// Return nil so the caller draws `literal` as plain text. When the two match,
+    /// as with a lone `%`, the literal is safe to parse.
+    public func noInterpolationMarkdownSource(literal: String, kotlinFormat: String) -> String? {
+        if literal != kotlinFormat {
+            return nil
+        }
+        return literal
     }
 
     #if SKIP
