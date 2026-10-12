@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.requiredWidthIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -89,7 +90,7 @@ extension Modifier {
         } else if let min, min! > Float(0) {
             return requiredWidthIn(min: min!.dp)
         } else if let max, max! >= Float(0) {
-            return requiredWidthIn(max: max!.dp)
+            return widthIn(max: max!.dp)
         } else {
             return self
         }
