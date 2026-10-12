@@ -56,7 +56,13 @@ extension View {
                     }
                 }
             } else if isFocused.value {
-                SideEffect { focusManager.clearFocus() }
+                SideEffect {
+                    // Recheck ownership after other focus effects have run: in a transfer from
+                    // this field to another composed before it, the other's request has landed.
+                    if value != binding.wrappedValue && isFocused.value {
+                        focusManager.clearFocus()
+                    }
+                }
             }
             renderable.Render(context: context)
         })
