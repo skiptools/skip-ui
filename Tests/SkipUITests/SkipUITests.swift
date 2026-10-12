@@ -963,6 +963,117 @@ final class SkipUITests: SkipUITestCase {
         }
     }
 
+    func testIdResetsStateAndKeepsItRestorable() throws {
+        #if !SKIP
+        throw XCTSkip("Saved state restoration is a Compose behavior")
+        #else
+        try testUI(view: {
+            IdResetTestView()
+        }, eval: { rule in
+            try check(rule, id: "id.row", hasText: "A:fresh")
+            rule.onNodeWithTag("id.row").performClick()
+            try check(rule, id: "id.row", hasText: "A:edited")
+
+            // Scrolled out, the row saves its state. A new id while it is out resets that state.
+            rule.onNodeWithTag("id.bottom").performClick()
+            rule.waitForIdle()
+            rule.onNodeWithTag("id.row").assertDoesNotExist()
+            rule.onNodeWithTag("id.next").performClick()
+            rule.onNodeWithTag("id.top").performClick()
+            try check(rule, id: "id.row", hasText: "B:fresh")
+
+            // Returning to the first id is a new incarnation: it neither revives nor loses that id's old state
+            rule.onNodeWithTag("id.previous").performClick()
+            try check(rule, id: "id.row", hasText: "A:fresh")
+        })
+        #endif
+    }
+
+    func testIdKeepsSavedStateAcrossRecreation() throws {
+        #if !SKIP
+        throw XCTSkip("Saved state restoration is a Compose behavior")
+        #else
+        let tester = StateRestorationTester(composeRule)
+        tester.setContent {
+            IdRecreationTestView().Compose()
+        }
+        composeRule.onNodeWithTag("id.recreation.list").performTouchInput { swipeUp() }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Row 0").assertDoesNotExist()
+
+        // The struct id is not Bundle-safe and is lost on recreation; the list's scroll position is not
+        tester.emulateSavedInstanceStateRestore()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Row 0").assertDoesNotExist()
+        #endif
+    }
+
+    struct IdRecreationKey: Hashable {
+        let name: String
+    }
+
+    struct IdRecreationTestView: View {
+        var body: some View {
+            List(0..<40, id: \.self) { index in
+                Text(verbatim: "Row \(index)")
+            }
+            .frame(height: 200)
+            .accessibilityIdentifier("id.recreation.list")
+            .id(IdRecreationKey(name: "a"))
+        }
+    }
+
+    struct IdResetTestView: View {
+        @State var id = "A"
+
+        var body: some View {
+            ScrollViewReader { proxy in
+                VStack {
+                    Button("Next") { id = "B" }
+                        .accessibilityIdentifier("id.next")
+                    Button("Previous") { id = "A" }
+                        .accessibilityIdentifier("id.previous")
+                    Button("Bottom") { proxy.scrollTo(39) }
+                        .accessibilityIdentifier("id.bottom")
+                    Button("Top") { proxy.scrollTo(0) }
+                        .accessibilityIdentifier("id.top")
+                    List {
+                        // In a ForEach, so the .id is evaluated inside the lazy item and saved with it
+                        ForEach(0..<40) { index in
+                            if index == 0 {
+                                IdResetRow(name: id)
+                                    .id(id)
+                            } else {
+                                Text(verbatim: "Row \(index)")
+                            }
+                        }
+                    }
+                    .frame(height: 200)
+                }
+            }
+        }
+    }
+
+    final class IdResetBox {
+        let label: String
+
+        init(label: String) {
+            self.label = label
+        }
+    }
+
+    struct IdResetRow: View {
+        let name: String
+        // A class, so it is saved through the ComposeStateSaver rather than in the Bundle
+        @State var box = IdResetBox(label: "fresh")
+
+        var body: some View {
+            Text(verbatim: "\(name):\(box.label)")
+                .onTapGesture { box = IdResetBox(label: "edited") }
+                .accessibilityIdentifier("id.row")
+        }
+    }
+
 //    func testObservability() throws {
 //        try testUI(view: {
 //            ObservablesOuterView()
