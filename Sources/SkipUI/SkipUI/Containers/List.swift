@@ -1610,8 +1610,10 @@ final class ListItemModifier: RenderModifier {
         var separator: Visibility? = nil
         renderable.forEachModifier {
             if let listItemModifier = $0 as? ListItemModifier {
-                background = background ?? listItemModifier.background
-                separator = separator ?? listItemModifier.separator
+                // forEachModifier walks outermost -> innermost, so overwriting on
+                // each non-nil visit makes the innermost value win, as SwiftUI does.
+                background = listItemModifier.background ?? background
+                separator = listItemModifier.separator ?? separator
             }
             return nil
         }
