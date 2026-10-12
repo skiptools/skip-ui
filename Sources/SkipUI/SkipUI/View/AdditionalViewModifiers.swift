@@ -1501,18 +1501,19 @@ extension View {
     public func task(id value: Any, bridgedAction: @escaping (CompletionHandler) -> Void) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: SideEffectModifier { _ in
-            let actionState = rememberUpdatedState(bridgedAction)
             DisposableEffect(value) {
                 let task = Task {
-                    kotlinx.coroutines.suspendCancellableCoroutine { continuation in
-                        let completionHandler = CompletionHandler({
-                            do { continuation.resume(Unit, nil) } catch {}
-                        })
-                        continuation.invokeOnCancellation { _ in
-                            completionHandler.onCancel?()
-                        }
-                        actionState.value(completionHandler)
-                    }
+                    let completion = kotlinx.coroutines.Job()
+                    let completionHandler = CompletionHandler({ completion.complete() })
+                    // This id's action, not the latest: the task may start after the id changed again.
+                    bridgedAction(completionHandler)
+                    // `Task.cancel()` never cancels the coroutine: it only runs `withTaskCancellationHandler` handlers,
+                    // and this one runs at once if the task is already cancelled.
+                    await withTaskCancellationHandler(operation: {
+                        await completion.join()
+                    }, onCancel: {
+                        completionHandler.onCancel?()
+                    })
                 }
                 onDispose {
                     task.cancel()

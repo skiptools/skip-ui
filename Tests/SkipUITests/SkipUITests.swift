@@ -164,6 +164,11 @@ import androidx.compose.ui.unit.sp
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+
 import kotlin.test.assertFailsWith
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -517,6 +522,109 @@ final class SkipUITests: SkipUITestCase {
                     }
             }
         }
+    }
+
+    func testBridgedTaskCancelledWhenIdChanges() throws {
+        #if !SKIP
+        throw XCTSkip("Bridged task cancellation is a Kotlin behavior")
+        #else
+        let probe = BridgedTaskProbe()
+        let id = mutableStateOf(0)
+        try testUI(view: {
+            Text("Task").task(id: id.value, bridgedAction: { probe.run($0) })
+        }, eval: { rule in
+            XCTAssertTrue(probe.installed[0].tryAcquire(5, TimeUnit.SECONDS))
+            id.value = 1
+            rule.waitForIdle()
+            XCTAssertTrue(probe.cancelled[0].tryAcquire(5, TimeUnit.SECONDS), "The task for the previous id was not cancelled")
+            XCTAssertTrue(probe.installed[1].tryAcquire(5, TimeUnit.SECONDS))
+            XCTAssertFalse(probe.cancelled[1].tryAcquire(200, TimeUnit.MILLISECONDS), "The task for the new id was cancelled")
+            XCTAssertFalse(probe.cancelled[0].tryAcquire(), "onCancel ran more than once")
+        })
+        #endif
+    }
+
+    func testBridgedTaskCancelledWhenViewLeaves() throws {
+        #if !SKIP
+        throw XCTSkip("Bridged task cancellation is a Kotlin behavior")
+        #else
+        let probe = BridgedTaskProbe()
+        let isShown = mutableStateOf(true)
+        try testUI(view: {
+            if isShown.value {
+                Text("Task").task(id: 0, bridgedAction: { probe.run($0) })
+            }
+        }, eval: { rule in
+            XCTAssertTrue(probe.installed[0].tryAcquire(5, TimeUnit.SECONDS))
+            isShown.value = false
+            rule.waitForIdle()
+            XCTAssertTrue(probe.cancelled[0].tryAcquire(5, TimeUnit.SECONDS), "The task of the removed view was not cancelled")
+            XCTAssertFalse(probe.cancelled[0].tryAcquire(200, TimeUnit.MILLISECONDS), "onCancel ran more than once")
+        })
+        #endif
+    }
+
+    func testBridgedTaskCancelledBeforeItsActionInstallsOnCancel() throws {
+        #if !SKIP
+        throw XCTSkip("Bridged task cancellation is a Kotlin behavior")
+        #else
+        let probe = BridgedTaskProbe(holdsBeforeInstalling: true)
+        let isShown = mutableStateOf(true)
+        try testUI(view: {
+            if isShown.value {
+                Text("Task").task(id: 0, bridgedAction: { probe.run($0) })
+            }
+        }, eval: { rule in
+            XCTAssertTrue(probe.entered.tryAcquire(5, TimeUnit.SECONDS))
+            isShown.value = false
+            rule.waitForIdle()
+            probe.gate.release()
+            XCTAssertTrue(probe.cancelled[0].tryAcquire(5, TimeUnit.SECONDS), "The task cancelled before its action installed onCancel was not cancelled")
+            XCTAssertTrue(probe.wasHeldUntilReleased.get(), "The action stopped waiting before the view was removed")
+            XCTAssertFalse(probe.cancelled[0].tryAcquire(200, TimeUnit.MILLISECONDS), "onCancel ran more than once")
+        })
+        #endif
+    }
+
+    #if SKIP
+    /// Records each run of a bridged task's action. It runs off the main thread, so waits are bounded semaphores.
+    final class BridgedTaskProbe {
+        let holdsBeforeInstalling: Bool
+        let entered = Semaphore(0)
+        let gate = Semaphore(0)
+        let installed = [Semaphore(0), Semaphore(0)]
+        let cancelled = [Semaphore(0), Semaphore(0)]
+        let runs = AtomicInteger(0)
+        let wasHeldUntilReleased = AtomicBoolean(false)
+
+        init(holdsBeforeInstalling: Bool = false) {
+            self.holdsBeforeInstalling = holdsBeforeInstalling
+        }
+
+        func run(_ handler: CompletionHandler) {
+            let run = runs.getAndIncrement()
+            entered.release()
+            if holdsBeforeInstalling {
+                wasHeldUntilReleased.set(gate.tryAcquire(5, TimeUnit.SECONDS))
+            }
+            handler.onCancel = { self.cancelled[run].release() }
+            installed[run].release()
+        }
+    }
+    #endif
+
+    // `List`/`ScrollView` run a bridged refresh action in a Compose coroutine scope, whose cancellation, unlike
+    // SkipLib's `Task.cancel()`, is a real coroutine cancellation.
+    func testBridgedRefreshActionCancelledWithItsCoroutine() throws {
+        #if !SKIP
+        throw XCTSkip("Coroutine cancellation is a Kotlin behavior")
+        #else
+        // Cancel only once the action has installed its `onCancel`.
+        // SKIP INSERT: val installed = kotlinx.coroutines.CompletableDeferred<Unit>()
+        // SKIP INSERT: val cancelled = kotlinx.coroutines.CompletableDeferred<Unit>()
+        // SKIP INSERT: val action = RefreshAction(bridgedAction = { handler -> handler.onCancel = { cancelled.complete(Unit) }; installed.complete(Unit) })
+        // SKIP INSERT: kotlinx.coroutines.runBlocking { val job = launch { action.action() }; installed.await(); job.cancel(); kotlinx.coroutines.withTimeout(5000) { cancelled.await() } }
+        #endif
     }
 
     func testMenuAccessibilityIdentifier() throws {
