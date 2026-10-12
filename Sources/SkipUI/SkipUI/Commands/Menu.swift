@@ -146,6 +146,12 @@ public final class Menu : View, Renderable {
             EnvironmentValues.shared.setValues {
                 placement.remove(ViewPlacement.toolbar) // Menus popovers are displayed outside the toolbar context
                 $0.set_placement(placement)
+                // The popup's rows are not the label's content: a row that fills the popup must not
+                // turn the label's container into one that fills, which pushes a toolbar's title out.
+                $0.set_flexibleWidth(nil)
+                $0.set_flexibleHeight(nil)
+                $0.set_flexibleWidthModifier(nil)
+                $0.set_flexibleHeightModifier(nil)
                 return ComposeResult.ok
             } in: {
                 let renderables = (nestedMenu.value?.content ?? content).Evaluate(context: context, options: 0)
