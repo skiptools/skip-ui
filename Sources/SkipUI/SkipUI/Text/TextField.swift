@@ -14,6 +14,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -44,6 +45,13 @@ public struct TextField : View, Renderable {
     let prompt: Text?
     let isSecure: Bool
     let axis: Axis
+    /// Whether `text` is a value rendered by a format (`TextField(value:format:)`). Such a binding
+    /// reads back the formatted value rather than what was typed ("7." reads "7", an emptied
+    /// field reads the last value), so while the field has focus it keeps the typed text and
+    /// follows the binding only when the value changes from outside the field. When focus leaves
+    /// the field, including on submit, it shows the binding's formatted value and, as SwiftUI
+    /// does, writes that text back, so a format that drops precision leaves the value it shows.
+    let formatsValue: Bool
 
     public init(text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil, isSecure: Bool = false, axis: Axis = Axis.horizontal, @ViewBuilder label: () -> any View) {
         self.text = text
@@ -52,16 +60,23 @@ public struct TextField : View, Renderable {
         self.prompt = prompt
         self.isSecure = isSecure
         self.axis = axis
+        self.formatsValue = false
     }
 
     // SKIP @bridge
     public init(getText: @escaping () -> String, setText: @escaping (String) -> Void, getSelection: @escaping () -> TextSelection?, setSelection: @escaping (TextSelection?) -> Void, prompt: Text?, isSecure: Bool, bridgedAxis: Int, bridgedLabel: any View) {
+        self.init(getText: getText, setText: setText, getSelection: getSelection, setSelection: setSelection, prompt: prompt, isSecure: isSecure, formatsValue: false, bridgedAxis: bridgedAxis, bridgedLabel: bridgedLabel)
+    }
+
+    // SKIP @bridge
+    public init(getText: @escaping () -> String, setText: @escaping (String) -> Void, getSelection: @escaping () -> TextSelection?, setSelection: @escaping (TextSelection?) -> Void, prompt: Text?, isSecure: Bool, formatsValue: Bool, bridgedAxis: Int, bridgedLabel: any View) {
         self.text = Binding(get: getText, set: setText)
         self.selection = Binding(get: getSelection, set: setSelection)
         self.label = ComposeBuilder.from { bridgedLabel }
         self.prompt = prompt
         self.isSecure = isSecure
         self.axis = Axis(rawValue: bridgedAxis) ?? Axis.horizontal
+        self.formatsValue = formatsValue
     }
 
     public init(_ title: String, text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil, axis: Axis = Axis.horizontal) {
@@ -92,13 +107,26 @@ public struct TextField : View, Renderable {
         let currentSelection = selection?.wrappedValue?.asComposeTextRange()
         let defaultTextFieldValue = TextFieldValue(text: currentText, selection: TextRange(currentText.count))
         let textFieldValue = remember { mutableStateOf(defaultTextFieldValue) }
+        // For a field that formats a value (see `formatsValue`): whether it has focus, and the
+        // binding's text as read back after the field's own last edit.
+        let isEditing = remember { mutableStateOf(false) }
+        let editedBindingText = remember { mutableStateOf<String?>(nil) }
         var currentTextFieldValue = textFieldValue.value
         
         // If the text has been updated externally, use the default value for the current text,
         // which also places the cursor at the end. This mimics SwiftUI behavior for external modifications,
         // such as when applying formatting to the user input.
-        if currentTextFieldValue.text != currentText {
+        let keepsTypedText = formatsValue && isEditing.value && editedBindingText.value == currentText
+        let isExternalChange = currentTextFieldValue.text != currentText && !keepsTypedText
+        if isExternalChange {
             currentTextFieldValue = defaultTextFieldValue
+            if formatsValue {
+                SideEffect {
+                    // The field now shows the binding, so no earlier edit can keep its text.
+                    textFieldValue.value = defaultTextFieldValue
+                    editedBindingText.value = nil
+                }
+            }
         }
         
         // If the selection has been updated externally, update just the selection value.
@@ -125,6 +153,17 @@ public struct TextField : View, Renderable {
                 listItemTextInputFocused.value = $0.hasFocus
             }
         }
+        if formatsValue {
+            // Submitting clears focus too (see `KeyboardActions` and the Enter handler below).
+            baseModifier = baseModifier.onFocusChanged {
+                if isEditing.value && !$0.hasFocus {
+                    // "1.2" with no fraction digits reads "1", and the value becomes 1.
+                    let shownText = text.wrappedValue
+                    text.wrappedValue = shownText
+                }
+                isEditing.value = $0.hasFocus
+            }
+        }
         if !isVertical {
             baseModifier = baseModifier.onPreviewKeyEvent { keyEvent in
                 if keyEvent.type == KeyEventType.KeyDown &&
@@ -144,6 +183,9 @@ public struct TextField : View, Renderable {
         let minLines = isVertical && EnvironmentValues.shared._lineLimitReservesSpace == true ? (lineLimit ?? 1) : 1
         var options = Material3TextFieldOptions(value: currentTextFieldValue, onValueChange: { value in
             text.wrappedValue = value.text
+            if formatsValue {
+                editedBindingText.value = text.wrappedValue
+            }
             selection?.wrappedValue = TextSelection(range: value.selection.start..<value.selection.end)
             textFieldValue.value = value
         }, placeholder: {
