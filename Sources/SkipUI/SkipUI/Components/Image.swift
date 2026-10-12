@@ -542,6 +542,7 @@ public struct Image : View, Renderable, Equatable {
         case "heart": return "Icons.Outlined.FavoriteBorder" //􀊴
         case "heart.fill": return "Icons.Outlined.Favorite" //􀊵
         case "exclamationmark.bubble": return "Icons.Outlined.Feedback" //􀌬
+        case "rectangle.grid.2x2": return "Icons.Outlined.GridView" //􀇷
         case "house": return "Icons.Outlined.Home" //􀎞
         case "info.circle": return "Icons.Outlined.Info" //􀅴
         case "chevron.down": return "Icons.Outlined.KeyboardArrowDown" //􀆈
@@ -569,6 +570,7 @@ public struct Image : View, Renderable, Equatable {
         // #148 Icons.Outlined.Star is not actually outlined!
         // case "star": return "Icons.Outlined.Star" //􀋃
         case "hand.thumbsup": return "Icons.Outlined.ThumbUp" //􀉿
+        case "slider.horizontal.3": return "Icons.Outlined.Tune" //􀌆
         case "exclamationmark.triangle": return "Icons.Outlined.Warning" //􀇿
 
         case "person.crop.square.fill": return "Icons.Filled.AccountBox" //􀉺
@@ -635,6 +637,7 @@ public struct Image : View, Renderable, Equatable {
         case "Icons.Outlined.FavoriteBorder": return Icons.Outlined.FavoriteBorder
         case "Icons.Outlined.Favorite": return Icons.Outlined.Favorite
         case "Icons.Outlined.Feedback": return Icons.Outlined.Feedback
+        case "Icons.Outlined.GridView": return Icons.Outlined.GridView
         case "Icons.Outlined.Home": return Icons.Outlined.Home
         case "Icons.Outlined.Info": return Icons.Outlined.Info
         case "Icons.Outlined.KeyboardArrowDown": return Icons.Outlined.KeyboardArrowDown
@@ -663,6 +666,7 @@ public struct Image : View, Renderable, Equatable {
         case "Icons.Outlined.Sms": return Icons.Outlined.Sms
         case "Icons.Outlined.Star": return Icons.Outlined.Star
         case "Icons.Outlined.ThumbUp": return Icons.Outlined.ThumbUp
+        case "Icons.Outlined.Tune": return Icons.Outlined.Tune
         case "Icons.Outlined.Warning": return Icons.Outlined.Warning
 
         case "Icons.Filled.AccountBox": return Icons.Filled.AccountBox
