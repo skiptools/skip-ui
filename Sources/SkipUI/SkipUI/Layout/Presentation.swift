@@ -518,8 +518,12 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     // Use native Material3-style dialog for all cases. N buttons and text fields supported.
     let cancelBtn = actionRenderables.firstOrNull { ($0.strip() as? Button)?.role == .cancel }
     // Confirm: first destructive, else first non-cancel (primary). Others go to neutralButtons.
-    let confirmRenderable = optionRenderables.firstOrNull { ($0.strip() as? Button)?.role == .destructive }
+    let primaryRenderable = optionRenderables.firstOrNull { ($0.strip() as? Button)?.role == .destructive }
         ?? optionRenderables.firstOrNull { ($0.strip() as? Button)?.role != .cancel }
+    // A lone cancel button is the dialog's only button: drawn once as confirm, keeping its action,
+    // rather than as dismiss beside a synthesized OK.
+    let confirmRenderable = primaryRenderable ?? cancelBtn
+    let dismissRenderable = primaryRenderable != nil ? cancelBtn : nil
     let neutralRenderables = optionRenderables.filter { r in
         (r.strip() as? Button)?.role != .cancel && r !== confirmRenderable
     }
@@ -531,7 +535,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         else if let nav = stripped as? NavigationLink { confirmAction = nav.navigationAction() }
     }
     var dismissAction: (() -> Void)?
-    if let c = cancelBtn {
+    if let c = dismissRenderable {
         let stripped = c.strip()
         if let button = stripped as? Button { dismissAction = button.action }
         else if let link = stripped as? Link { link.ComposeAction(); dismissAction = link.content.action }
@@ -574,8 +578,8 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
                 }
             }
         },
-        dismissButton: cancelBtn != nil ? {
-            if let c = cancelBtn {
+        dismissButton: dismissRenderable != nil ? {
+            if let c = dismissRenderable {
                 androidx.compose.material3.TextButton(onClick: { isPresented.set(false); dismissAction?() }) {
                     let stripped = c.strip()
                     let button = stripped as? Button
