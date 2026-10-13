@@ -324,6 +324,13 @@ public struct Animation : Hashable {
         return recentWithAnimationAnimation != nil
     }
 
+    /// Capture this on the `scrollTo` call, before a coroutine hops to another frame.
+    static var scrollToIsAnimated: Bool {
+        let transaction = StateTracking.currentTransaction as? Transaction
+        let active = transaction?.animation != nil && transaction?.disablesAnimations != true
+        return ScrollToMotion.shouldAnimate(activeAnimatedTransaction: active, recentWithAnimationMarker: isInWithAnimation)
+    }
+
     /// Internal implementation of global `withAnimation` SwiftUI function. Pushes a
     /// `Transaction` carrying `animation` onto the per-thread `StateTracking` stack for the
     /// body's duration so that observable writes get the per-slot transaction stamp that

@@ -238,8 +238,9 @@ public final class List : View, Renderable {
         })
         let scrollToID = ScrollToIDAction(key: reorderableState.listState) { id in
             if let itemIndex = itemCollector.value.index(for: id) {
+                let animated = Animation.scrollToIsAnimated
                 coroutineScope.launch {
-                    if Animation.isInWithAnimation {
+                    if animated {
                         reorderableState.listState.animateScrollToItem(itemIndex)
                     } else {
                         reorderableState.listState.scrollToItem(itemIndex)
