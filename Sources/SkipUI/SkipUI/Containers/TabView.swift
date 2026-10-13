@@ -175,9 +175,16 @@ public struct TabView : View, Renderable {
 
         // Recomposition must not restart scrolling; a changed selection cancels the old job.
         LaunchedEffect(selectedPage) {
+            // A selection reported by the pager must not snap an ongoing swipe.
+            if hasSynchronizedSelection.value && selected.value == synchronizedSelection.value {
+                return
+            }
             isSyncingToSelection.value = true
             defer { isSyncingToSelection.value = false }
             if selectedPage >= 0 {
+                // Record the request before scrolling so a newer request can cancel it,
+                // including a quick return to the previously selected page.
+                synchronizedSelection.value = selected.value
                 if selectedPage != pagerState.currentPage || pagerState.currentPageOffsetFraction != Float(0.0) {
                     if hasSynchronizedSelection.value, let animation {
                         pagerState.animateScrollToPage(selectedPage, animationSpec: animation.asAnimationSpec() as! AnimationSpec<Float>)
@@ -186,19 +193,18 @@ public struct TabView : View, Renderable {
                         pagerState.scrollToPage(selectedPage)
                     }
                 }
-                synchronizedSelection.value = selected.value
                 hasSynchronizedSelection.value = true
             }
         }
     }
 
     @Composable private func syncSelectionToPagerState(_ pagerState: PagerState, tags: kotlin.collections.List<Any?>, isSyncingToSelection: MutableState<Bool>, synchronizedSelection: MutableState<Any?>) {
-        let page = pagerState.settledPage
-        LaunchedEffect(page, pagerState.isScrollInProgress, isSyncingToSelection.value) {
-            // A newer selection may be waiting for its scroll effect, or this effect
-            // may hold an old settled page. Neither may overwrite the latest request.
-            guard !isSyncingToSelection.value, !pagerState.isScrollInProgress,
-                page == pagerState.settledPage, page >= 0 && page < tags.size,
+        let page = pagerState.currentPage
+        LaunchedEffect(page, isSyncingToSelection.value) {
+            // Report swipe progress, but never overwrite a newer selection request
+            // or publish a page captured before the pager moved again.
+            guard !isSyncingToSelection.value,
+                page == pagerState.currentPage, page >= 0 && page < tags.size,
                 let targetTag = tags[page], let selection,
                 selection.wrappedValue == synchronizedSelection.value,
                 selection.wrappedValue != targetTag else {
