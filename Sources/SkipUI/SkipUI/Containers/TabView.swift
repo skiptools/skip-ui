@@ -3,6 +3,8 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
+import SkipModel
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -49,6 +51,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
@@ -129,13 +132,17 @@ public struct TabView : View, Renderable {
         let tabRenderables = EvaluateContent(context: contentContext)
         let tags = tabRenderables.map { tabTagValue(for: $0) }
         let coroutineScope = rememberCoroutineScope()
-        let isSyncingToSelection = remember { mutableStateOf(false) }
-        let pagerState = rememberPagerState(pageCount: { tabRenderables.size })
+        let isSyncingToSelection = remember { mutableStateOf(true) }
+        let synchronizedSelection = remember { mutableStateOf<Any?>(nil) }
+        let selectedTag = selection?.wrappedValue
+        let initialPage = selectedTag == nil ? 0 : max(0, tags.indexOfFirst { $0 == selectedTag })
+        let pagerState = rememberPagerState(initialPage: initialPage, pageCount: { tabRenderables.size })
         let isScrollDisabled = EnvironmentValues.shared._scrollDisabled
         ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
             Box(modifier: modifier) {
-                syncPagerStateToSelection(pagerState, tags: tags, isSyncingToSelection: isSyncingToSelection, coroutineScope: coroutineScope)
-                RenderPageViewPager(pagerState: pagerState, tabRenderables: tabRenderables, tags: tags, isSyncingToSelection: isSyncingToSelection, isScrollDisabled: isScrollDisabled, context: contentContext)
+                syncPagerStateToSelection(pagerState, tags: tags, isSyncingToSelection: isSyncingToSelection, synchronizedSelection: synchronizedSelection)
+                syncSelectionToPagerState(pagerState, tags: tags, isSyncingToSelection: isSyncingToSelection, synchronizedSelection: synchronizedSelection)
+                RenderPageViewPager(pagerState: pagerState, tabRenderables: tabRenderables, isScrollDisabled: isScrollDisabled, context: contentContext)
                 if indexDisplayMode == .always || (indexDisplayMode == .automatic && tabRenderables.size > 1) {
                     let modifier = Modifier
                         .wrapContentHeight()
@@ -148,61 +155,58 @@ public struct TabView : View, Renderable {
         }
     }
 
-    @Composable private func RenderPageViewPager(pagerState: PagerState, tabRenderables: kotlin.collections.List<Renderable>, tags: kotlin.collections.List<Any?>, isSyncingToSelection: MutableState<Bool>, isScrollDisabled: Bool, context: ComposeContext) {
+    @Composable private func RenderPageViewPager(pagerState: PagerState, tabRenderables: kotlin.collections.List<Renderable>, isScrollDisabled: Bool, context: ComposeContext) {
         HorizontalPager(state: pagerState, modifier: Modifier.fillMaxSize(), userScrollEnabled: !isScrollDisabled) { page in
             if page >= 0 && page < tabRenderables.size {
                 Box(modifier: Modifier.fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
                     tabRenderables[page].Render(context: context)
                 }
-                // We don't get a callback when the user scrolls the pager, so use the rendering callback to sync any
-                // user-initiated navigation to the selection binding
-                syncSelectionToPagerState(pagerState, tags: tags, isSyncingToSelection: isSyncingToSelection)
             }
         }
     }
 
-    @Composable private func syncPagerStateToSelection(_ pagerState: PagerState, tags: kotlin.collections.List<Any?>, isSyncingToSelection: MutableState<Bool>, coroutineScope: CoroutineScope) {
-        guard let selectedTag = selection?.wrappedValue else {
-            return
-        }
-        let selectedPageState = rememberUpdatedState(tags.indexOfFirst { $0 == selectedTag })
-        let selectedPage = selectedPageState.value
-        guard selectedPage != -1 && selectedPage != pagerState.targetPage else {
-            return
-        }
-        // Don't attempt to sync to the selection while the user is scrolling
-        guard !pagerState.isScrollInProgress || isSyncingToSelection.value else {
-            return
-        }
-        let isWithAnimationState = rememberUpdatedState(Animation.isInWithAnimation)
-        // Track that we're syncing to the selection so that we don't try to sync the other way while waiting for
-        // the coroutine to launch, or confuse the resulting scrolling with user scrolling
-        isSyncingToSelection.value = true
-        coroutineScope.launch {
-            let selectedPage = selectedPageState.value
-            if selectedPage != -1 {
-                if pagerState.isScrollInProgress || isWithAnimationState.value {
-                    pagerState.animateScrollToPage(selectedPage)
-                } else {
-                    pagerState.scrollToPage(selectedPage)
+    @Composable private func syncPagerStateToSelection(_ pagerState: PagerState, tags: kotlin.collections.List<Any?>, isSyncingToSelection: MutableState<Bool>, synchronizedSelection: MutableState<Any?>) {
+        // Use the selection's transaction, not an unrelated global animation.
+        let selected = StateTracking.captureRead { selection?.wrappedValue }
+        let selectedPage = selected.value == nil ? -1 : tags.indexOfFirst { $0 == selected.value }
+        let transaction = selected.transaction as? Transaction
+        let animation = transaction?.disablesAnimations == true ? nil : transaction?.animation
+        let hasSynchronizedSelection = remember { mutableStateOf(false) }
+
+        // Recomposition must not restart scrolling; a changed selection cancels the old job.
+        LaunchedEffect(selectedPage) {
+            isSyncingToSelection.value = true
+            defer { isSyncingToSelection.value = false }
+            if selectedPage >= 0 {
+                if selectedPage != pagerState.currentPage || pagerState.currentPageOffsetFraction != Float(0.0) {
+                    if hasSynchronizedSelection.value, let animation {
+                        pagerState.animateScrollToPage(selectedPage, animationSpec: animation.asAnimationSpec() as! AnimationSpec<Float>)
+                    } else {
+                        // Restoring the selection must never replay its old animation.
+                        pagerState.scrollToPage(selectedPage)
+                    }
                 }
-                isSyncingToSelection.value = false
+                synchronizedSelection.value = selected.value
+                hasSynchronizedSelection.value = true
             }
         }
     }
 
-    @Composable private func syncSelectionToPagerState(_ pagerState: PagerState, tags: kotlin.collections.List<Any?>, isSyncingToSelection: MutableState<Bool>) {
-        // Don't confuse our own programmatic scrolling with user scrolling
-        guard !isSyncingToSelection.value else {
-            return
+    @Composable private func syncSelectionToPagerState(_ pagerState: PagerState, tags: kotlin.collections.List<Any?>, isSyncingToSelection: MutableState<Bool>, synchronizedSelection: MutableState<Any?>) {
+        let page = pagerState.settledPage
+        LaunchedEffect(page, pagerState.isScrollInProgress, isSyncingToSelection.value) {
+            // A newer selection may be waiting for its scroll effect, or this effect
+            // may hold an old settled page. Neither may overwrite the latest request.
+            guard !isSyncingToSelection.value, !pagerState.isScrollInProgress,
+                page == pagerState.settledPage, page >= 0 && page < tags.size,
+                let targetTag = tags[page], let selection,
+                selection.wrappedValue == synchronizedSelection.value,
+                selection.wrappedValue != targetTag else {
+                return
+            }
+            synchronizedSelection.value = targetTag
+            selection.wrappedValue = targetTag
         }
-        guard pagerState.targetPage >= 0 && pagerState.targetPage < tags.size else {
-            return
-        }
-        guard let targetTag = tags[pagerState.targetPage], let selectedTag = selection?.wrappedValue, selectedTag != targetTag else {
-            return
-        }
-        selection?.wrappedValue = targetTag
     }
 
     // https://developer.android.com/develop/ui/compose/layouts/pager#add-page
