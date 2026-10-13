@@ -996,14 +996,16 @@ public final class List : View, Renderable {
                share the row's current revealed (stretched) width. The primary
                action (destructive if present, else the edge-most) absorbs all
                additional width during full-swipe takeover; other buttons
-               proportionally shrink to zero. The direction guards ensure only
-               one edge's reveal renders at any non-zero offset. */
+               proportionally shrink to zero. Only compose the revealed edge:
+               building hidden labels and symbols for every closed row stalls
+               scrolling. Until its first measurement, the edge uses the
+               count-based natural-width fallback above. */
             let leadingUseStretch = leadingButtons.size > 0 && revealedLeadingPx > leadingNaturalPx + Float(1)
             let trailingUseStretch = trailingButtons.size > 0 && revealedTrailingPx > trailingNaturalPx + Float(1)
             let leadingCount = Float(leadingButtons.size)
             let trailingCount = Float(trailingButtons.size)
 
-            if leadingButtons.size > 0 && curOffset >= Float(0) {
+            if leadingButtons.size > 0 && curOffset > Float(0) {
                 Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
                     if leadingUseStretch {
                         let rowWidthDp = with(density) { revealedLeadingPx.toDp() }
@@ -1046,7 +1048,7 @@ public final class List : View, Renderable {
                     }
                 }
             }
-            if trailingButtons.size > 0 && curOffset <= Float(0) {
+            if trailingButtons.size > 0 && curOffset < Float(0) {
                 Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
                     if trailingUseStretch {
                         let rowWidthDp = with(density) { revealedTrailingPx.toDp() }
