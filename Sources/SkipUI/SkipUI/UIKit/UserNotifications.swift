@@ -91,7 +91,13 @@ public final class UNUserNotificationCenter {
     }
 
     // SKIP @bridge
-    public var delegate: (any UNUserNotificationCenterDelegate)?
+    public var delegate: (any UNUserNotificationCenterDelegate)? {
+        didSet {
+            #if SKIP
+            deliverPendingResponse()
+            #endif
+        }
+    }
 
     @available(*, unavailable)
     public var supportsContentExtensions: Bool {
@@ -114,6 +120,7 @@ public final class UNUserNotificationCenter {
             .putString("title", request.content.title)
             .putString("body", request.content.body)
             .putInt("id", request.identifier.hashValue)
+            .putString(NotificationWorker.identifierKey, request.identifier)
         
         if let imageAttachment = request.content.attachments.first(where: { $0.type == "public.image" }) {
             dataBuilder.putString("image_url", imageAttachment.url.absoluteString)
@@ -240,6 +247,8 @@ public final class UNUserNotificationCenter {
         // Cancel all delivered notifications using the notification manager.
         let now = System.currentTimeMillis()
         for identifier in identifiers {
+            // A removed notification's tap is no longer a response.
+            editor.remove(UNUserNotificationCenter.responseTokenKey(identifier))
             let triggerTime = preferences.getLong("date_" + identifier, 0)
             if triggerTime < now {
                 notificationManager.cancel(identifier.hashValue)
@@ -311,8 +320,101 @@ public final class UNUserNotificationCenter {
                 return UNNotification(request: request, date: Date(timeIntervalSince1970: Double($0.timestamp) / 1000.0))
             }
     }
+
+    /// A tap that arrived before there was a delegate to receive it.
+    private var pendingResponse: UNNotificationResponse?
+
+    /// Delivers the tap on a notification this center posted, which opened the app's activity
+    /// with `intent`, to the delegate's `didReceive` as the default action, as iOS does. Without a
+    /// delegate yet, the tap waits for one. Any other intent is ignored. Returns whether the
+    /// intent was such a tap.
+    @discardableResult func receiveResponse(from intent: Intent) -> Bool {
+        guard let response = UNUserNotificationCenter.response(from: intent, context: ProcessInfo.processInfo.androidContext) else {
+            return false
+        }
+        pendingResponse = response
+        deliverPendingResponse()
+        return true
+    }
+
+    /// Reads the tap that launched `activity`, and the taps that reach it while it runs.
+    func receiveResponses(in activity: androidx.activity.ComponentActivity) {
+        if let intent = activity.intent {
+            receiveResponse(from: intent)
+        }
+        activity.addOnNewIntentListener(NotificationResponseListener())
+    }
+
+    private func deliverPendingResponse() {
+        guard let delegate, let response = pendingResponse else {
+            return
+        }
+        pendingResponse = nil
+        Task {
+            await delegate.userNotificationCenter(self, didReceive: response)
+        }
+    }
+
+    /// Issues the token that a tap on the notification with `identifier` must present, replacing
+    /// the token of any notification posted earlier with that identifier.
+    static func issueResponseToken(identifier: String, context: Context) -> String {
+        let token = java.util.UUID.randomUUID().toString()
+        context.getSharedPreferences("__skip_usernotifications", Context.MODE_PRIVATE).edit()
+            .putString(responseTokenKey(identifier), token)
+            .commit()
+        return token
+    }
+
+    static func responseTokenKey(_ identifier: String) -> String {
+        return "response_token_" + identifier
+    }
+
+    /// The default-action response to the tap that opened an activity with `intent`, or nil when
+    /// the intent does not present the token of a notification this center posted.
+    ///
+    /// The activity is exported, so any app can start it with any extras; the token, which only
+    /// the notification's own pending intent carries, proves the tap. It is spent here, so the
+    /// launch intent the system hands an activity again when it recreates it (after a process
+    /// death, or from Recents) yields no second response.
+    static func response(from intent: Intent, context: Context) -> UNNotificationResponse? {
+        do {
+            // Reading an extra unparcels the whole bundle, which throws on a malformed one.
+            guard let extras = intent.extras, let identifier = extras.getString(NotificationWorker.identifierKey), let token = extras.getString(NotificationWorker.tokenKey) else {
+                return nil
+            }
+            let preferences = context.getSharedPreferences("__skip_usernotifications", Context.MODE_PRIVATE)
+            guard token == preferences.getString(responseTokenKey(identifier), nil) else {
+                return nil
+            }
+            preferences.edit().remove(responseTokenKey(identifier)).commit()
+
+            var userInfo: [AnyHashable: Any] = [:]
+            for key in extras.keySet() where key != NotificationWorker.identifierKey && key != NotificationWorker.tokenKey && key != NotificationWorker.dateKey {
+                // NotificationWorker writes these types only.
+                if let value = extras.get(key), value is String || value is Bool || value is Int || value is Double {
+                    userInfo[key] = value
+                }
+            }
+            let content = UNMutableNotificationContent()
+            content.userInfo = userInfo
+            let request = UNNotificationRequest(identifier: identifier, content: content, trigger: nil)
+            let date = Date(timeIntervalSince1970: Double(extras.getLong(NotificationWorker.dateKey, 0)) / 1000.0)
+            return UNNotificationResponse(actionIdentifier: UNNotificationDefaultActionIdentifier, notification: UNNotification(request: request, date: date))
+        } catch {
+            logger.warning("ignoring an unreadable intent: \(error)")
+            return nil
+        }
+    }
     #endif
 }
+
+#if SKIP
+struct NotificationResponseListener : androidx.core.util.Consumer<Intent> {
+    override func accept(value: Intent) {
+        UNUserNotificationCenter.current().receiveResponse(from: value)
+    }
+}
+#endif
 
 // SKIP @bridge
 public protocol UNUserNotificationCenterDelegate {
@@ -829,6 +931,14 @@ public class UNNotificationSettings : NSObject {
 
 #if SKIP
 public class NotificationWorker : Worker {
+    /// The extra that carries a notification's request identifier on the intent its tap opens,
+    /// which also marks the intent as a tap.
+    static let identifierKey = "skip.ui.UNNotificationRequest.identifier"
+    /// The extra that carries the time the notification was posted, in milliseconds.
+    static let dateKey = "skip.ui.UNNotification.date"
+    /// The extra that carries the token proving the intent came from the notification.
+    static let tokenKey = "skip.ui.UNNotificationResponse.token"
+
     public init(context: Context, params: WorkerParameters) {
         super.init(context, params)
     }
@@ -859,6 +969,10 @@ public class NotificationWorker : Worker {
             } else {
                 bundle.putString(key, value.toString())
             }
+        }
+        bundle.putLong(NotificationWorker.dateKey, System.currentTimeMillis())
+        if let identifier = inputData.getString(NotificationWorker.identifierKey) {
+            bundle.putString(NotificationWorker.tokenKey, UNUserNotificationCenter.issueResponseToken(identifier: identifier, context: context))
         }
         intent?.putExtras(bundle)
         
