@@ -63,13 +63,7 @@ public final class AppStorage<Value>: StateTracker {
         // Create our Compose-trackable backing state and keep it in sync with the store. Note that we have to seed the store with a value
         // for the key in order for our listener to work
         let store = self.currentStore
-        let object = store.object(forKey: key)
-        let value: Value?
-        if let object, let deserializer {
-            value = deserializer(object)
-        } else {
-            value = object as? Value
-        }
+        let value = storedValue(from: store.object(forKey: key), store: store)
         if let value {
             _wrappedValue = value
         } else if let serializer {
@@ -82,20 +76,48 @@ public final class AppStorage<Value>: StateTracker {
         // Caution: The preference manager does not currently store a strong reference to the listener. You must store a strong reference to the listener, or it will be susceptible to garbage collection. We recommend you keep a reference to the listener in the instance data of an object that will exist as long as you need the listener.
         // https://developer.android.com/reference/android/content/SharedPreferences.html#registerOnSharedPreferenceChangeListener(android.content.SharedPreferences.OnSharedPreferenceChangeListener)
         self.listener = store.registerOnSharedPreferenceChangeListener(key: key) {
-            let object = store.object(forKey: key)
-            let value: Value?
-            if let object, let deserializer {
-                value = deserializer(object)
-            } else {
-                value = object as? Value
-            }
-            if let value {
+            if let value = storedValue(from: store.object(forKey: key), store: store) {
                 _wrappedValue = value
                 _wrappedValueState?.value = value
             }
         }
         #endif
     }
+
+    #if SKIP
+    /// Read the stored `object` as our `Value`, coercing between primitive types the way `UserDefaults` does on iOS.
+    ///
+    /// `object as? Value` is a no-op under Kotlin's type erasure: it neither coerces (so `@AppStorage` would not
+    /// round-trip a value stored under one primitive type and read as another, unlike SwiftUI on iOS) nor rejects a
+    /// mismatched type (so a `String` stored value would flow into a `Double`-typed property and crash later with a
+    /// `ClassCastException` — see https://github.com/skiptools/skip-ui/issues/317). Instead we dispatch on the concrete
+    /// runtime type of the current wrapped value and use the matching typed `UserDefaults` accessor, mirroring the
+    /// coercion that the bridged `AppStorageSupport` performs.
+    private func storedValue(from object: Any?, store: UserDefaults) -> Value? {
+        guard let object else {
+            return nil
+        }
+        if let deserializer {
+            return deserializer(object)
+        }
+        switch _wrappedValue {
+        case is Bool:
+            return ((object as? Bool) ?? store.bool(forKey: key)) as? Value
+        case is Int:
+            return ((object as? Int) ?? store.integer(forKey: key)) as? Value
+        case is Double:
+            return ((object as? Double) ?? store.double(forKey: key)) as? Value
+        case is String:
+            return ((object as? String) ?? store.string(forKey: key)) as? Value
+        case is URL:
+            return ((object as? URL) ?? store.url(forKey: key)) as? Value
+        case is Data:
+            return ((object as? Data) ?? store.data(forKey: key)) as? Value
+        default:
+            return object as? Value
+        }
+    }
+    #endif
 
     /// The current active store
     private var currentStore: UserDefaults {
