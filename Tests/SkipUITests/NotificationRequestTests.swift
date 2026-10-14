@@ -56,7 +56,7 @@ final class NotificationRequestTests: SkipUITestCase {
     }
     #endif
 
-    func testRequestReplacesOnlyItsOwnWork() throws {
+    func testRequestReplacesOnlyItsOwnWork() async throws {
         #if !SKIP
         throw XCTSkip("Notification requests are WorkManager work on Android")
         #else
@@ -70,16 +70,18 @@ final class NotificationRequestTests: SkipUITestCase {
         XCTAssertEqual(workManager.getWorkInfoById(unrelated.id).get()?.state, WorkInfo.State.ENQUEUED)
         // Unique work with REPLACE deletes the work it replaces.
         XCTAssertEqual(states(tag: UNUserNotificationCenter.workName("daily"), workManager), ["ENQUEUED"])
-        XCTAssertEqual(UNUserNotificationCenter.queuedNotificationIdentifiers(workManager), ["daily"])
+        let queued = await UNUserNotificationCenter.queuedNotificationIdentifiers(workManager)
+        XCTAssertEqual(queued, ["daily"])
 
         UNUserNotificationCenter.removePendingRequests(identifiers: ["daily"], context: context)
         XCTAssertEqual(workManager.getWorkInfoById(unrelated.id).get()?.state, WorkInfo.State.ENQUEUED)
-        XCTAssertTrue(UNUserNotificationCenter.queuedNotificationIdentifiers(workManager).isEmpty)
+        let queuedAfterRemoval = await UNUserNotificationCenter.queuedNotificationIdentifiers(workManager)
+        XCTAssertTrue(queuedAfterRemoval.isEmpty)
         XCTAssertEqual(savedDate("daily"), Int64(0))
         #endif
     }
 
-    func testRequestReplacesDuplicatesOfEarlierVersions() throws {
+    func testRequestReplacesDuplicatesOfEarlierVersions() async throws {
         #if !SKIP
         throw XCTSkip("Notification requests are WorkManager work on Android")
         #else
@@ -88,9 +90,12 @@ final class NotificationRequestTests: SkipUITestCase {
         for _ in 0..<2 {
             workManager.enqueue(OneTimeWorkRequestBuilder<NotificationWorker>().setInitialDelay(1, TimeUnit.DAYS).addTag("reminder").build()).result.get()
         }
-        XCTAssertEqual(UNUserNotificationCenter.queuedNotificationIdentifiers(workManager), ["reminder"])
+        let queued = await UNUserNotificationCenter.queuedNotificationIdentifiers(workManager)
+        XCTAssertEqual(queued, ["reminder"])
 
+        // What `add` does: enqueue the request, then sweep the earlier versions' work for its identifier.
         enqueue("reminder", inDays: 1)
+        await UNUserNotificationCenter.cancelWorkOfEarlierVersions(identifiers: ["reminder"], workManager: workManager)
 
         XCTAssertEqual(states(tag: "reminder", workManager), ["CANCELLED", "CANCELLED"])
         XCTAssertEqual(states(tag: UNUserNotificationCenter.workName("reminder"), workManager), ["ENQUEUED"])

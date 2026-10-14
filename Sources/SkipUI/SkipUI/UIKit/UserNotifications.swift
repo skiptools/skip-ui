@@ -30,6 +30,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import java.util.HashSet
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
+import kotlinx.coroutines.flow.first
 #endif
 
 // SKIP @bridge
@@ -139,6 +140,7 @@ public final class UNUserNotificationCenter {
         let nextDate = (request.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate() ??
                        (request.trigger as? UNTimeIntervalNotificationTrigger)?.nextTriggerDate()
         UNUserNotificationCenter.enqueueRequest(identifier: request.identifier, data: dataBuilder.build(), date: nextDate, context: activity)
+        await UNUserNotificationCenter.cancelWorkOfEarlierVersions(identifiers: [request.identifier], workManager: WorkManager.getInstance(activity))
         #endif
     }
 
@@ -148,7 +150,7 @@ public final class UNUserNotificationCenter {
         // The queued work is what will fire. A saved date can say otherwise: WorkManager can run a request
         // after its date.
         guard let activity = UIApplication.shared.androidActivity else { return [] }
-        return UNUserNotificationCenter.queuedNotificationIdentifiers(WorkManager.getInstance(activity)).map {
+        return await UNUserNotificationCenter.queuedNotificationIdentifiers(WorkManager.getInstance(activity)).map {
             UNNotificationRequest(identifier: $0, content: UNMutableNotificationContent(), trigger: nil)
         }
         #else
@@ -170,16 +172,9 @@ public final class UNUserNotificationCenter {
     public func removeAllPendingNotificationRequests() {
         #if SKIP
         guard let activity = UIApplication.shared.androidActivity else { return }
-        let workManager = WorkManager.getInstance(activity)
-        var identifiers = UNUserNotificationCenter.queuedNotificationIdentifiers(workManager)
-        for request in getPendingNotificationRequests() {
-            if let identifier = (request as? UNNotificationRequest)?.identifier, !identifiers.contains(identifier) {
-                identifiers.append(identifier)
-            }
-        }
-        UNUserNotificationCenter.removePendingRequests(identifiers: identifiers, context: activity)
-        // Only NotificationWorker's work carries its class name as a tag.
-        workManager.cancelAllWorkByTag(UNUserNotificationCenter.notificationWorkTag)
+        // Every notification's work carries this tag, whichever SkipUI version enqueued it, and nothing else does.
+        WorkManager.getInstance(activity).cancelAllWorkByTag(UNUserNotificationCenter.notificationWorkTag)
+        UNUserNotificationCenter.forgetRequests(identifiers: getAllNotificationRequests().map { $0.id }, context: activity)
         #else
         fatalError()
         #endif
@@ -258,21 +253,85 @@ public final class UNUserNotificationCenter {
     }
 
     /// Enqueues the notification work for `identifier`, replacing the identifier's earlier request as iOS
-    /// does, and saves when it is due: `date`, or now for a request with no trigger.
+    /// does, and saves when it is due: `date`, or now for a request with no trigger. Returns as soon as the
+    /// work is handed to WorkManager, which queues it on its own executor.
     static func enqueueRequest(identifier: String, data: Data, date: Date?, context: Context) {
-        let workManager = WorkManager.getInstance(context)
-        // Unique work replaces the work enqueued under its name. Earlier SkipUI versions enqueued one request per
-        // call, tagged with the bare identifier; cancelling the identifier's notification work clears them too.
-        cancelNotificationWork(identifiers: [identifier], workManager: workManager)
         let delayMillis = date != nil ? max(0, date!.currentTimeMillis - System.currentTimeMillis()) : 0
         let workRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
             .setInitialDelay(delayMillis, TimeUnit.MILLISECONDS)
             .setInputData(data)
             .addTag(workName(identifier))
             .build()
-        workManager.enqueueUniqueWork(workName(identifier), ExistingWorkPolicy.REPLACE, workRequest)
+        // Unique work replaces the work enqueued under its name.
+        WorkManager.getInstance(context).enqueueUniqueWork(workName(identifier), ExistingWorkPolicy.REPLACE, workRequest)
+        saveRequest(identifier: identifier, date: date, context: context)
+    }
 
-        // Save the identifier and its date, so the request can be found and removed later.
+    /// Cancels the work of the requests with `identifiers`, whatever their saved dates: work can still be
+    /// queued after its date. Returns as soon as the cancellations are handed to WorkManager; the work of
+    /// earlier SkipUI versions is swept afterwards, off the caller's thread.
+    static func removePendingRequests(identifiers: [String], context: Context) {
+        let workManager = WorkManager.getInstance(context)
+        for identifier in identifiers {
+            workManager.cancelUniqueWork(workName(identifier))
+        }
+        forgetRequests(identifiers: identifiers, context: context)
+        // Only an earlier version's work carries a bare identifier tag, so a request added after this call
+        // is safe from the sweep.
+        Task {
+            await cancelWorkOfEarlierVersions(identifiers: identifiers, workManager: workManager)
+        }
+    }
+
+    /// The identifiers of the notifications whose work has not run yet.
+    static func queuedNotificationIdentifiers(_ workManager: WorkManager) async -> [String] {
+        var identifiers: [String] = []
+        for work in await notificationWork(taggedWith: notificationWorkTag, workManager) {
+            if (work.info.state == WorkInfo.State.ENQUEUED || work.info.state == WorkInfo.State.BLOCKED) && !identifiers.contains(work.identifier) {
+                identifiers.append(work.identifier)
+            }
+        }
+        return identifiers
+    }
+
+    /// Cancels the work that earlier SkipUI versions enqueued for `identifiers`: one request per call, tagged
+    /// with the bare identifier. Only NotificationWorker's work is cancelled, so the app's own work is never
+    /// touched, even when it shares a tag with a notification identifier.
+    static func cancelWorkOfEarlierVersions(identifiers: [String], workManager: WorkManager) async {
+        for identifier in identifiers {
+            for work in await notificationWork(taggedWith: identifier, workManager) {
+                if !work.info.state.isFinished {
+                    workManager.cancelWorkById(work.info.id)
+                }
+            }
+        }
+    }
+
+    /// The notification work carrying `tag`, each with its request identifier: the work name tag, or the bare
+    /// identifier that earlier SkipUI versions tagged it with. Only NotificationWorker's work counts. The read
+    /// suspends until WorkManager answers; nothing waits on a thread.
+    private static func notificationWork(taggedWith tag: String, _ workManager: WorkManager) async -> [(identifier: String, info: WorkInfo)] {
+        var work: [(identifier: String, info: WorkInfo)] = []
+        let workInfos = await workManager.getWorkInfosByTagFlow(tag).first()
+        let iterator = workInfos.iterator()
+        while iterator.hasNext() {
+            let info = iterator.next() as! WorkInfo
+            guard info.tags.contains(notificationWorkTag) else { continue }
+            let tags = info.tags.iterator()
+            while tags.hasNext() {
+                let tag = tags.next() as! String
+                if tag.hasPrefix(workNamePrefix) {
+                    work.append((identifier: String(tag.dropFirst(workNamePrefix.count)), info: info))
+                } else if tag != notificationWorkTag {
+                    work.append((identifier: tag, info: info))
+                }
+            }
+        }
+        return work
+    }
+
+    /// Saves the identifier and its date, so the request can be found and removed later.
+    private static func saveRequest(identifier: String, date: Date?, context: Context) {
         let preferences = context.getSharedPreferences("__skip_usernotifications", Context.MODE_PRIVATE)
         let ids = HashSet<String>(preferences.getStringSet("ids", HashSet<String>()) ?? HashSet<String>())
         ids.add(identifier)
@@ -282,11 +341,9 @@ public final class UNUserNotificationCenter {
             .apply()
     }
 
-    /// Cancels the work of the requests with `identifiers`, whatever their saved dates: work can still be
-    /// queued after its date. Only a request that has not reached its date leaves the saved list, which also
+    /// Drops the requests with `identifiers` that have not reached their date from the saved list, which also
     /// lists delivered notifications.
-    static func removePendingRequests(identifiers: [String], context: Context) {
-        cancelNotificationWork(identifiers: identifiers, workManager: WorkManager.getInstance(context))
+    static func forgetRequests(identifiers: [String], context: Context) {
         let preferences = context.getSharedPreferences("__skip_usernotifications", Context.MODE_PRIVATE)
         let editor = preferences.edit()
         let ids = HashSet<String>(preferences.getStringSet("ids", HashSet<String>()) ?? HashSet<String>())
@@ -299,47 +356,6 @@ public final class UNUserNotificationCenter {
         }
         editor.putStringSet("ids", ids)
         editor.apply()
-    }
-
-    /// The identifiers of the notifications whose work has not run yet.
-    static func queuedNotificationIdentifiers(_ workManager: WorkManager) -> [String] {
-        var identifiers: [String] = []
-        for work in notificationWork(workManager) {
-            if (work.info.state == WorkInfo.State.ENQUEUED || work.info.state == WorkInfo.State.BLOCKED) && !identifiers.contains(work.identifier) {
-                identifiers.append(work.identifier)
-            }
-        }
-        return identifiers
-    }
-
-    private static func cancelNotificationWork(identifiers: [String], workManager: WorkManager) {
-        for work in notificationWork(workManager) {
-            if identifiers.contains(work.identifier) && !work.info.state.isFinished {
-                workManager.cancelWorkById(work.info.id)
-            }
-        }
-    }
-
-    /// Every notification's work, with its request identifier: the work name tag, or the bare identifier that
-    /// earlier SkipUI versions tagged it with. Only NotificationWorker's work counts, so the app's other work
-    /// is never touched, even when it shares a tag with a notification identifier.
-    private static func notificationWork(_ workManager: WorkManager) -> [(identifier: String, info: WorkInfo)] {
-        var work: [(identifier: String, info: WorkInfo)] = []
-        let workInfos = workManager.getWorkInfosByTag(notificationWorkTag).get()
-        let iterator = workInfos.iterator()
-        while iterator.hasNext() {
-            let info = iterator.next() as! WorkInfo
-            let tags = info.tags.iterator()
-            while tags.hasNext() {
-                let tag = tags.next() as! String
-                if tag.hasPrefix(workNamePrefix) {
-                    work.append((identifier: String(tag.dropFirst(workNamePrefix.count)), info: info))
-                } else if tag != notificationWorkTag {
-                    work.append((identifier: tag, info: info))
-                }
-            }
-        }
-        return work
     }
 
     private func getAllNotificationRequests() -> [(id: String, timestamp: Long)] {
