@@ -121,10 +121,11 @@ class GeometryReaderTests {
     }
 
     @Test fun fixedProxyUsedByGeometryChangeKeepsSnapshotBehavior() {
-        val proxy = GeometryProxy(Rect(10f, 20f, 110f, 220f), Density(2f), area())
+        val proxy = GeometryProxy(IntSize(100, 200), Rect(10f, 20f, 110f, 120f), Density(2f), area())
         assertEquals(50.0, proxy.size.width, 0.0)
         assertEquals(100.0, proxy.size.height, 0.0)
         assertEquals(5.0, proxy.frame(GlobalCoordinateSpace()).origin.x, 0.0)
+        assertEquals(50.0, proxy.frame(GlobalCoordinateSpace()).size.height, 0.0)
         assertEquals(10.0, proxy.safeAreaInsets.bottom, 0.0)
     }
 
