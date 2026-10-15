@@ -51,7 +51,6 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
@@ -1745,11 +1744,8 @@ final class TagModifier: RenderModifier {
     }
 
     @Composable override func Render(content: Renderable, context: ComposeContext) -> Void {
-        var context = context
-        if let value, let registerScrollTarget = EnvironmentValues.shared._registerScrollTarget {
-            context.modifier = context.modifier.onPlaced { registerScrollTarget(value, $0) }
-        }
         if let stateSaver {
+            var context = context
             context.stateSaver = stateSaver
             androidx.compose.runtime.key(value ?? Self.defaultIdValue) {
                 super.Render(content: content, context: context)
