@@ -2160,15 +2160,13 @@ Support levels:
        </td>
     </tr>
     <tr>
-      <td>🟠</td>
+      <td>🟢</td>
       <td>
           <details>
               <summary><code>.scrollPosition</code></summary>
               <ul>
-                <li>Only <code>scrollPosition(id: Binding&lt;(some Hashable)?>)</code> is supported</li>
-                <li>Only works with lazy containers: <code>LazyHStack</code>, <code>LazyVStack</code>, <code>LazyHGrid</code>, <code>LazyVGrid</code>, and <code>List</code></li>
-                <li>The <code>anchor</code> parameter is not supported</li>
-                <li><code>scrollPosition(_ position: Binding&lt;ScrollPosition>, anchor: UnitPoint? = nil)</code> is not supported</li>
+                <li><code>scrollPosition(_ position: Binding&lt;ScrollPosition>, anchor: UnitPoint? = nil)</code> and <code>scrollPosition(id: Binding&lt;(some Hashable)?>, anchor: UnitPoint? = nil)</code> are supported</li>
+                <li>Offsets in lazy containers assume unmeasured items share the visible items' average size</li>
                 <li>See <a href="#scrolling">Scrolling</a></li>
               </ul>
           </details>
@@ -3391,6 +3389,28 @@ struct CustomNavigationAnimationSpecModifier : ContentModifier {
 ```
 #### Modals
 
+Fixed `.height(...)` presentation detents describe usable content height; the bottom system-bar
+inset is added separately, and oversized heights are capped at the large-sheet boundary. For
+content-sized sheets, measure the natural content height and provide a single height detent.
+Android currently selects only one entry from a set of detents rather than supporting resizing
+between multiple detents.
+
+Android supports the **Color-only** form of `.presentationBackground(_:)`, including clear and
+partially opaque colors. Apply it directly to the root view returned by the `.sheet` or
+`.fullScreenCover` content closure:
+
+```swift
+SomeContentView()
+    .sheet(isPresented: $isSheetPresented) {
+        SheetContentView()
+            .presentationBackground(Color.clear)
+    }
+```
+
+`Color.clear` reveals the presenting view wherever the sheet content is transparent. Other shape
+styles, such as materials and gradients, and custom background views remain unsupported. The
+default background is unchanged when the modifier is absent.
+
 Skip supports standard modal presentations. Android apps typically allow users to dismiss modals with the Android back button. Skip allows you to selectively disable this behavior with the Android-only `backDismissDisabled(_ isDisabled: Bool = true)` SwiftUI modifier. If you use this modifier, you **must** put it on the top-level view embedded in your `.sheet` or `.fullScreenCover`, as in the following example:
 
 ```swift
@@ -3453,9 +3473,11 @@ With these updates in place, your app should extend below the system bars. If yo
 `ScrollView` generally works just as on iOS, but is subject to several limitations on its content. While you must be aware of these limitations, they should not prove too difficult to work with in practice:
 
 - The `UnitRect` parameter to `ScrollView` and `ScrollViewProxy` is ignored.
-- `ScrollViewProxy` works only for `List` and lazy containers: `LazyHStack`, `LazyVStack`, `LazyHGrid`, and `LazyVGrid`.
-- `.scrollPosition(id:)` works only for lazy containers (`List`, `LazyHStack`, `LazyVStack`, `LazyHGrid`, `LazyVGrid`). The `anchor` parameter is not supported.
-- `.scrollPosition(_ position: Binding<ScrollPosition>, anchor: UnitPoint? = nil)` is not supported.
+- `ScrollViewProxy`, `ScrollPosition`, and `.scrollPosition(id:)` scroll to views identified by `.id` or `ForEach` in a `ScrollView`'s content, and to the items of `List` and lazy containers: `LazyHStack`, `LazyVStack`, `LazyHGrid`, and `LazyVGrid`. As on iOS, a `nil` anchor scrolls by the least amount that shows the whole view.
+- As on iOS, the user's scrolling writes the ID of the first view whose middle is past the anchor (the top or leading edge by default) to the scroll position, and leaves `isPositionedByUser` false.
+- `.onScrollPhaseChange` reports `idle` once laid out, `interacting` while the user drags, `decelerating` as the content flings after the drag, and `animating` while the app scrolls with animation, as iOS does. Scrolling without animation reports no phases. The velocity is in points per millisecond, and is zero except as a fling starts.
+- Content offsets and sizes in `ScrollPosition` and `ScrollGeometry` exclude the safe area insets iOS adds, and in lazy containers assume unmeasured items share the visible items' average size.
+- The scroll view writes the scroll position and calls `onScrollGeometryChange` as it scrolls. Keep that state out of the body that contains the scroll view, for example in an `@Observable` model read only by the views that show it, inside a container such as `HStack` rather than as a lone `Text`. Otherwise every update re-renders the scroll view's visible rows.
 - If you place a lazy container in a `ScrollView`, it must be the **only** content of that `ScrollView`.
 - The content of any `ScrollView` with the `.scrollTargetBehavior` modifier applied must be a single lazy container with the `.scrollTargetLayout` modifier applied, as in the following example:
 

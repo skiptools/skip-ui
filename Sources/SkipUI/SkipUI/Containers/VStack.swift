@@ -53,6 +53,15 @@ public struct VStack : View, Renderable {
         let renderables = content.Evaluate(context: context, options: 0).filter { !$0.isSwiftUIEmptyView }
         let layoutImplementationVersion = EnvironmentValues.shared._layoutImplementationVersion
 
+        // Declare Text's flexible width before the first layout, unless a modifier
+        // can override its sizing (e.g. frame or fixedSize).
+        let hasWidthFlexibleText = renderables.any { renderable in
+            renderable.strip() is Text && renderable.forEachModifier { modifier in
+                modifier is EnvironmentModifier || modifier is TagModifier ? nil : true
+            } == nil
+        }
+        let initialContentFlexibleWidthMax: Float? = layoutImplementationVersion > 0 && hasWidthFlexibleText ? Float.flexibleUnknownNonExpanding : nil
+
         var hasSpacers = false
         if layoutImplementationVersion > 0 {
             // Assign positional default spacing to any Spacer between non-Spacers
@@ -92,7 +101,7 @@ public struct VStack : View, Renderable {
         if ids.size < renderables.size {
             rememberedNewIds.clear()
             let contentContext = context.content()
-            ComposeContainer(axis: .vertical, modifier: context.modifier) { modifier in
+            ComposeFlexibleContainer(axis: .vertical, modifier: context.modifier, initialContentFlexibleWidthMax: initialContentFlexibleWidthMax) { modifier in
                 if layoutImplementationVersion == 0 {
                     // Maintain previous layout behavior for users who opt in
                     Column(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
@@ -143,7 +152,7 @@ public struct VStack : View, Renderable {
                 }
             }
         } else {
-            ComposeContainer(axis: .vertical, modifier: context.modifier) { modifier in
+            ComposeFlexibleContainer(axis: .vertical, modifier: context.modifier, initialContentFlexibleWidthMax: initialContentFlexibleWidthMax) { modifier in
                 let arguments = AnimatedContentArguments(renderables: renderables, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, isBridged: isBridged)
                 RenderAnimatedContent(context: context, modifier: modifier, arguments: arguments, columnAlignment: columnAlignment, columnArrangement: columnArrangement, adaptiveSpacing: adaptiveSpacing, layoutImplementationVersion: layoutImplementationVersion)
             }

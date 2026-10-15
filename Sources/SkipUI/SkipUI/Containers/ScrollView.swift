@@ -23,6 +23,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 #elseif canImport(CoreGraphics)
@@ -60,7 +63,10 @@ public struct ScrollView : View, Renderable {
         let isScrollDisabled = EnvironmentValues.shared._scrollDisabled
         let wantsVerticalScroll = axes.contains(.vertical) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.vertical)
         let wantsHorizontalScroll = axes.contains(.horizontal) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.horizontal)
-        var scrollModifier: Modifier = Modifier
+        let scrollsContent = wantsVerticalScroll || wantsHorizontalScroll
+        let density = LocalDensity.current.density
+        let driver = remember(scrollState, wantsVerticalScroll) { ScrollViewDriver(state: scrollState, isVertical: wantsVerticalScroll, density: density) }
+        var scrollModifier: Modifier = Modifier.onSizeChanged { driver.viewportSize.value = $0 }
         var effectiveScrollAxes: Axis.Set = []
         if wantsVerticalScroll {
             scrollModifier = scrollModifier.verticalScroll(scrollState, enabled: !isScrollDisabled)
@@ -77,6 +83,10 @@ public struct ScrollView : View, Renderable {
         if wantsHorizontalScroll {
             scrollModifier = scrollModifier.horizontalScroll(scrollState, enabled: !isScrollDisabled)
             effectiveScrollAxes.insert(Axis.Set.horizontal)
+        }
+        if scrollsContent {
+            scrollModifier = scrollModifier.onPlaced { driver.content = $0 }.onSizeChanged { driver.contentSize.value = $0 }
+            ScrollDriverEffects(driver, context: context)
         }
 
         let contentContext = context.content()
@@ -132,6 +142,10 @@ public struct ScrollView : View, Renderable {
                         }
                         EnvironmentValues.shared.setValues {
                             $0.set_scrollViewAxes(axes)
+                            if scrollsContent {
+                                $0.clearScrollContainerValues()
+                                $0.set_registerScrollTarget { driver.targets[$0] = $1 }
+                            }
                             return ComposeResult.ok
                         } in: {
                             PreferenceValues.shared.collectPreferences([builtinScrollAxisSetCollector]) {
@@ -156,13 +170,12 @@ public struct ScrollView : View, Renderable {
 // SKIP @bridge
 public struct ScrollViewProxy {
     #if SKIP
-    let scrollToID: (Any) -> Void
+    let scrollToID: (Any, UnitPoint?) -> Void
     #endif
 
     public func scrollTo(_ id: Any, anchor: UnitPoint? = nil) {
         #if SKIP
-        // Warning: anchor is currently ignored
-        scrollToID(id)
+        scrollToID(id, anchor)
         #endif
     }
 
@@ -224,7 +237,7 @@ struct ScrollToTopAction : Equatable {
 }
 
 struct ScrollToIDPreferenceKey: PreferenceKey {
-    static let defaultValue = ScrollToIDAction(key: nil, action: { _ in })
+    static let defaultValue = ScrollToIDAction(key: nil, action: { _, _ in })
 
     static func reduce(value: inout ScrollToIDAction, nextValue: () -> ScrollToIDAction) {
         value = nextValue()
@@ -235,7 +248,7 @@ struct ScrollToIDAction : Equatable {
     // Key the action on the listState/gridState/etc that performs the scrolling, so that on
     // recompose when the remembered state might change, the preference action is updated
     let key: Any?
-    let action: (Any) -> Void
+    let action: (Any, UnitPoint?) -> Void
 
     static func ==(lhs: ScrollToIDAction, rhs: ScrollToIDAction) -> Bool {
         return lhs.key == rhs.key
@@ -249,25 +262,7 @@ struct BuiltinScrollAxisSetPreferenceKey: PreferenceKey {
         value.formUnion(nextValue())
     }
 }
-
-/// Holds the current scroll position ID for visible items in a scroll view.
-struct ScrollPositionState {
-    let id: AnyHashable?
-}
-
-struct ScrollPositionPreferenceKey: PreferenceKey {
-    static let defaultValue = ScrollPositionState(id: nil)
-
-    static func reduce(value: inout ScrollPositionState, nextValue: () -> ScrollPositionState) {
-        value = nextValue()
-    }
-}
 #endif
-
-public struct ScrollPosition {
-    @available(*, unavailable)
-    public init() {}
-}
 
 public enum ScrollBounceBehavior {
     case automatic
@@ -493,30 +488,6 @@ extension View {
     public func scrollIndicatorsFlash<V>(trigger value: V) -> any View where V : Equatable {
         #if SKIP
         return ModifiedContent(content: self, modifier: ScrollIndicatorsFlashModifier(trigger: value as Any))
-        #else
-        return self
-        #endif
-    }
-
-    public func scrollPosition(id: Binding<(some Hashable)?>, anchor: UnitPoint? = nil) -> some View {
-        #if SKIP
-        guard anchor == nil else {
-            fatalError("scrollPosition(id:anchor:) is only supported on Android with nil anchor")
-        }
-        return onPreferenceChange(ScrollPositionPreferenceKey.self) { newValue in
-            id.wrappedValue = newValue.id
-        }
-        #else
-        return self
-        #endif
-    }
-
-    // SKIP @bridge
-    public func scrollPosition(getId: @escaping () -> AnyHashable?, setId: @escaping (AnyHashable?) -> Void) -> any View {
-        #if SKIP
-        return onPreferenceChange(ScrollPositionPreferenceKey.self) { newValue in
-            setId(newValue.id)
-        }
         #else
         return self
         #endif

@@ -270,18 +270,9 @@ public final class List : View, Renderable {
                 reorderableState.listState.animateScrollToItem(0)
             }
         })
-        let scrollToID = ScrollToIDAction(key: reorderableState.listState) { id in
-            if let itemIndex = itemCollector.value.index(for: id) {
-                coroutineScope.launch {
-                    if Animation.isInWithAnimation {
-                        reorderableState.listState.animateScrollToItem(itemIndex)
-                    } else {
-                        reorderableState.listState.scrollToItem(itemIndex)
-                    }
-                }
-            }
-        }
-        PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
+        let density = LocalDensity.current.density
+        let driver = remember(reorderableState.listState) { LazyScrollDriver(list: reorderableState.listState, items: itemCollector, density: density) }
+        ScrollDriverEffects(driver, context: context)
         let isSystemBackground = styling.isGroupedBackground && styling.backgroundVisibility != Visibility.hidden
         // We contribute top bar preferences even without knowing we're safe area-adjacent for multiple reasons:
         // - When there is a search bar we may not be adjacent to the top safe area, but we should act like it
@@ -345,22 +336,17 @@ public final class List : View, Renderable {
                 }
             }
         }
-        if let onScrollGeometryChange = EnvironmentValues.shared._onScrollGeometryChange {
-            let listState = reorderableState.listState
-            let density = LocalDensity.current
-            let updatedAction = rememberUpdatedState(onScrollGeometryChange)
-            LaunchedEffect(true) {
-                snapshotFlow { Self.scrollGeometry(of: listState, density: density.density) }.collect { geometry in
-                    updatedAction.value(geometry)
-                }
-            }
-        }
         // scrollBounceBehavior(.basedOnSize) removes the overscroll stretch when rows fit
         let isOverscrollDisabled = EnvironmentValues.shared._scrollBounceBehavior == ScrollBounceBehavior.basedOnSize && !reorderableState.listState.canScrollForward && !reorderableState.listState.canScrollBackward
         Box(modifier: Modifier.fillMaxSize()) {
         // SKIP INSERT: val providedOverscrollFactory = LocalOverscrollFactory provides (if (isOverscrollDisabled) null else LocalOverscrollFactory.current)
         CompositionLocalProvider(providedOverscrollFactory) {
         let edgeEffectModifier = EnvironmentValues.shared._scrollEdgeEffect?.modifier(isScrolledPastTop: reorderableState.listState.canScrollBackward, isScrolledPastBottom: reorderableState.listState.canScrollForward) ?? Modifier
+        // Scroll views in rows must not also act on the list's scroll position, geometry, or phase
+        EnvironmentValues.shared.setValues {
+            $0.clearScrollContainerValues()
+            return ComposeResult.ok
+        } in: {
         LazyColumn(state: reorderableState.listState, modifier: modifier.then(edgeEffectModifier), contentPadding: contentPadding, verticalArrangement: listVerticalArrangement) {
             // Intentionally invalidate the LazyColumn after a section bottom has seen one frame at its unanimated baseline
             let _ = sectionBottomPlacementInvalidation.value
@@ -726,6 +712,7 @@ public final class List : View, Renderable {
             }
         }
         }
+        }
         let indicatorVisibility = EnvironmentValues.shared._scrollIndicatorVisibility
         if indicatorVisibility != ScrollIndicatorVisibility.hidden && indicatorVisibility != ScrollIndicatorVisibility.never {
             RenderScrollIndicator(listState: reorderableState.listState, flashTrigger: EnvironmentValues.shared._scrollIndicatorsFlashTrigger, isAlwaysVisible: indicatorVisibility == ScrollIndicatorVisibility.visible, modifier: Modifier.align(androidx.compose.ui.Alignment.CenterEnd))
@@ -734,24 +721,6 @@ public final class List : View, Renderable {
             RenderSectionIndex(entries: sectionIndexEntries.value, listState: reorderableState.listState, context: context, modifier: Modifier.align(androidx.compose.ui.Alignment.CenterEnd))
         }
         }
-    }
-
-    /// The scroll geometry of a lazy list, in points.
-    ///
-    /// Compose measures only visible rows, so offset and content size assume off-screen rows share the visible rows' average height.
-    static func scrollGeometry(of listState: LazyListState, density: Float) -> ScrollGeometry {
-        let layoutInfo = listState.layoutInfo
-        var visibleHeight = 0
-        for item in layoutInfo.visibleItemsInfo {
-            visibleHeight += item.size
-        }
-        let visibleCount = layoutInfo.visibleItemsInfo.size
-        let averageHeight = visibleCount > 0 ? Double(visibleHeight) / Double(visibleCount) : 0.0
-        let scale = Double(density)
-        let offsetY = (Double(listState.firstVisibleItemIndex) * averageHeight + Double(listState.firstVisibleItemScrollOffset)) / scale
-        let contentHeight = Double(layoutInfo.totalItemsCount) * averageHeight / scale
-        let containerSize = CGSize(width: Double(layoutInfo.viewportSize.width) / scale, height: Double(layoutInfo.viewportSize.height) / scale)
-        return ScrollGeometry(contentOffset: CGPoint(x: 0.0, y: offsetY), contentSize: CGSize(width: containerSize.width, height: contentHeight), contentInsets: EdgeInsets(), containerSize: containerSize)
     }
 
     /// Render an iOS-style scroll indicator that shows while the list scrolls or flashes, then fades out.
@@ -1332,14 +1301,16 @@ public final class List : View, Renderable {
                share the row's current revealed (stretched) width. The primary
                action (destructive if present, else the edge-most) absorbs all
                additional width during full-swipe takeover; other buttons
-               proportionally shrink to zero. The direction guards ensure only
-               one edge's reveal renders at any non-zero offset. */
+               proportionally shrink to zero. Only compose the revealed edge:
+               building hidden labels and symbols for every closed row stalls
+               scrolling. Until its first measurement, the edge uses the
+               count-based natural-width fallback above. */
             let leadingUseStretch = leadingButtons.size > 0 && revealedLeadingPx > leadingNaturalPx + Float(1)
             let trailingUseStretch = trailingButtons.size > 0 && revealedTrailingPx > trailingNaturalPx + Float(1)
             let leadingCount = Float(leadingButtons.size)
             let trailingCount = Float(trailingButtons.size)
 
-            if leadingButtons.size > 0 && curOffset >= Float(0) {
+            if leadingButtons.size > 0 && curOffset > Float(0) {
                 Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
                     if leadingUseStretch {
                         let rowWidthDp = with(density) { revealedLeadingPx.toDp() }
@@ -1382,7 +1353,7 @@ public final class List : View, Renderable {
                     }
                 }
             }
-            if trailingButtons.size > 0 && curOffset <= Float(0) {
+            if trailingButtons.size > 0 && curOffset < Float(0) {
                 Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
                     if trailingUseStretch {
                         let rowWidthDp = with(density) { revealedTrailingPx.toDp() }
