@@ -236,9 +236,18 @@ public final class List : View, Renderable {
                 reorderableState.listState.animateScrollToItem(0)
             }
         })
-        let density = LocalDensity.current.density
-        let driver = remember(reorderableState.listState) { LazyScrollDriver(list: reorderableState.listState, items: itemCollector, density: density) }
-        ScrollDriverEffects(driver, context: context)
+        let scrollToID = ScrollToIDAction(key: reorderableState.listState) { id in
+            if let itemIndex = itemCollector.value.index(for: id) {
+                coroutineScope.launch {
+                    if Animation.isInWithAnimation {
+                        reorderableState.listState.animateScrollToItem(itemIndex)
+                    } else {
+                        reorderableState.listState.scrollToItem(itemIndex)
+                    }
+                }
+            }
+        }
+        PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
         let isSystemBackground = styling.style != ListStyle.plain && styling.backgroundVisibility != Visibility.hidden
         // We contribute top bar preferences even without knowing we're safe area-adjacent for multiple reasons:
         // - When there is a search bar we may not be adjacent to the top safe area, but we should act like it
@@ -285,292 +294,286 @@ public final class List : View, Renderable {
         }
         let listRowSpacing = EnvironmentValues.shared._listRowSpacing
         let listVerticalArrangement = listRowSpacing != nil ? Arrangement.spacedBy(listRowSpacing!.dp) : Arrangement.Top
-        // Scroll views in rows must not also act on the list's scroll position, geometry, or phase
-        EnvironmentValues.shared.setValues {
-            $0.clearScrollContainerValues()
-            return ComposeResult.ok
-        } in: {
-            LazyColumn(state: reorderableState.listState, modifier: modifier, contentPadding: contentPadding, verticalArrangement: listVerticalArrangement) {
-                // Intentionally invalidate the LazyColumn after a section bottom has seen one frame at its unanimated baseline
-                let _ = sectionBottomPlacementInvalidation.value
+        LazyColumn(state: reorderableState.listState, modifier: modifier, contentPadding: contentPadding, verticalArrangement: listVerticalArrangement) {
+            // Intentionally invalidate the LazyColumn after a section bottom has seen one frame at its unanimated baseline
+            let _ = sectionBottomPlacementInvalidation.value
 
-                // Read move trigger here so that a move will recompose list content
-                let _ = moveTrigger.value
-                let shouldAnimateItems: @Composable (Bool) -> Bool = { suppressTextInputAnimation in
-                    // Focused text inputs can conflict with LazyColumn placement animation and visibly lag behind scrolling.
-                    let animate = !forceUnanimatedItems.value
-                        && !suppressTextInputAnimation
-                        && EnvironmentValues.shared._searchableState?.isSearching.value != true
-                    return animate
+            // Read move trigger here so that a move will recompose list content
+            let _ = moveTrigger.value
+            let shouldAnimateItems: @Composable (Bool) -> Bool = { suppressTextInputAnimation in
+                // Focused text inputs can conflict with LazyColumn placement animation and visibly lag behind scrolling.
+                let animate = !forceUnanimatedItems.value
+                    && !suppressTextInputAnimation
+                    && EnvironmentValues.shared._searchableState?.isSearching.value != true
+                return animate
+            }
+            let updateTextInputAnimationSuppression: @Composable (MutableState<Bool>, MutableState<Bool>) -> Void = { textInputFocused, suppressTextInputAnimation in
+                if reorderableState.listState.isScrollInProgress {
+                    if textInputFocused.value {
+                        suppressTextInputAnimation.value = true
+                    }
+                } else {
+                    suppressTextInputAnimation.value = false
                 }
-                let updateTextInputAnimationSuppression: @Composable (MutableState<Bool>, MutableState<Bool>) -> Void = { textInputFocused, suppressTextInputAnimation in
-                    if reorderableState.listState.isScrollInProgress {
-                        if textInputFocused.value {
-                            suppressTextInputAnimation.value = true
-                        }
-                    } else {
-                        suppressTextInputAnimation.value = false
-                    }
+            }
+
+            // Initialize the factory context with closures that use the LazyListScope to generate items
+            var itemKeyOccurrences = mutableMapOf<String, Int>()
+            var currentSectionBodyItemCounts: [String: Int] = [:]
+            var implicitPathComponents: [String] = []
+            var implicitSiblingOccurrences: [Int: Int] = [:]
+
+            // Build stable Compose keys for non-ForEach renderables. Explicit IDs/tags become path
+            // components, while untagged siblings get occurrence-based components so nested content
+            // does not accidentally reuse another item's placement animation state.
+            let itemKey: (Renderable, Int) -> String = { renderable, level in
+                let identity = TagModifier.on(content: renderable, role: .id)?.value
+                    ?? TagModifier.on(content: renderable, role: .tag)?.value
+                let siblingOccurrence = implicitSiblingOccurrences[level] ?? 0
+                implicitSiblingOccurrences[level] = siblingOccurrence + 1
+                implicitSiblingOccurrences.keys.filter { $0 > level }.forEach {
+                    implicitSiblingOccurrences.removeValue(forKey: $0)
                 }
-
-                // Initialize the factory context with closures that use the LazyListScope to generate items
-                var itemKeyOccurrences = mutableMapOf<String, Int>()
-                var currentSectionBodyItemCounts: [String: Int] = [:]
-                var implicitPathComponents: [String] = []
-                var implicitSiblingOccurrences: [Int: Int] = [:]
-
-                // Build stable Compose keys for non-ForEach renderables. Explicit IDs/tags become path
-                // components, while untagged siblings get occurrence-based components so nested content
-                // does not accidentally reuse another item's placement animation state.
-                let itemKey: (Renderable, Int) -> String = { renderable, level in
-                    let identity = TagModifier.on(content: renderable, role: .id)?.value
-                        ?? TagModifier.on(content: renderable, role: .tag)?.value
-                    let siblingOccurrence = implicitSiblingOccurrences[level] ?? 0
-                    implicitSiblingOccurrences[level] = siblingOccurrence + 1
-                    implicitSiblingOccurrences.keys.filter { $0 > level }.forEach {
-                        implicitSiblingOccurrences.removeValue(forKey: $0)
-                    }
-                    while implicitPathComponents.count > level {
-                        implicitPathComponents.removeLast()
-                    }
-
-                    let pathComponent: String
-                    if let identity {
-                        pathComponent = "explicit:\(composeBundleString(for: identity))"
-                    } else {
-                        pathComponent = "implicit:\(siblingOccurrence)"
-                    }
-                    implicitPathComponents.append(pathComponent)
-
-                    let baseKey: String
-                    if let identity {
-                        baseKey = "explicit-path:\(implicitPathComponents.joined(separator: "/"))"
-                    } else {
-                        baseKey = "implicit-path:\(implicitPathComponents.joined(separator: "/"))"
-                    }
-
-                    let occurrence = itemKeyOccurrences[baseKey] ?? 0
-                    itemKeyOccurrences[baseKey] = occurrence + 1
-                    return "\(baseKey)#\(occurrence)"
+                while implicitPathComponents.count > level {
+                    implicitPathComponents.removeLast()
                 }
 
-                var sectionIndex = -1
-                var startItemIndex = hasHeader ? 1 : 0 // Header inset
-                if isSearchable {
-                    startItemIndex += 1 // Search field
+                let pathComponent: String
+                if let identity {
+                    pathComponent = "explicit:\(composeBundleString(for: identity))"
+                } else {
+                    pathComponent = "implicit:\(siblingOccurrence)"
+                }
+                implicitPathComponents.append(pathComponent)
+
+                let baseKey: String
+                if let identity {
+                    baseKey = "explicit-path:\(implicitPathComponents.joined(separator: "/"))"
+                } else {
+                    baseKey = "implicit-path:\(implicitPathComponents.joined(separator: "/"))"
                 }
 
-                itemCollector.value.initialize(
-                    startItemIndex: startItemIndex,
-                    item: { renderable, level in
-                        item(key: itemKey(renderable, level)) {
-                            let textInputFocused = remember { mutableStateOf(false) }
-                            let suppressTextInputAnimation = remember { mutableStateOf(false) }
-                            updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                            let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
-                            EnvironmentValues.shared.setValues {
-                                $0.set_listItemTextInputFocused(textInputFocused)
-                                return ComposeResult.ok
-                            } in: {
-                                RenderItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling)
-                            }
-                        }
-                    },
-                    indexedItems: { range, identifier, offset, onDelete, onMove, level, factory in
-                        let count = range.endExclusive - range.start
-                        let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!(range.start + itemCollector.value.remapIndex($0, from: offset))) }
-                        items(count: count, key: key) { index in
-                            let keyValue = key?(index) // Key closure already remaps index
-                            let index = itemCollector.value.remapIndex(index, from: offset)
-                            let textInputFocused = remember { mutableStateOf(false) }
-                            let suppressTextInputAnimation = remember { mutableStateOf(false) }
-                            updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                            let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
-                            let renderable = factory(index + range.start, itemContext)
-                            EnvironmentValues.shared.setValues {
-                                $0.set_listItemTextInputFocused(textInputFocused)
-                                return ComposeResult.ok
-                            } in: {
-                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
-                            }
-                        }
-                    },
-                    objectItems: { objects, identifier, offset, onDelete, onMove, level, factory in
-                        let key: (Int) -> String = { composeBundleString(for: identifier(objects[itemCollector.value.remapIndex($0, from: offset)])) }
-                        items(count: objects.count, key: key) { index in
-                            let keyValue = key(index) // Key closure already remaps index
-                            let index = itemCollector.value.remapIndex(index, from: offset)
-                            let textInputFocused = remember { mutableStateOf(false) }
-                            let suppressTextInputAnimation = remember { mutableStateOf(false) }
-                            updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                            let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
-                            let renderable = factory(objects[index], itemContext)
-                            EnvironmentValues.shared.setValues {
-                                $0.set_listItemTextInputFocused(textInputFocused)
-                                return ComposeResult.ok
-                            } in: {
-                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
-                            }
-                        }
-                    },
-                    objectBindingItems: { objectsBinding, identifier, offset, editActions, onDelete, onMove, level, factory in
-                        let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[itemCollector.value.remapIndex($0, from: offset)])) }
-                        items(count: objectsBinding.wrappedValue.count, key: key) { index in
-                            let keyValue = key(index) // Key closure already remaps index
-                            let index = itemCollector.value.remapIndex(index, from: offset)
-                            let textInputFocused = remember { mutableStateOf(false) }
-                            let suppressTextInputAnimation = remember { mutableStateOf(false) }
-                            updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                            let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
-                            let renderable = factory(objectsBinding, index, itemContext)
-                            EnvironmentValues.shared.setValues {
-                                $0.set_listItemTextInputFocused(textInputFocused)
-                                return ComposeResult.ok
-                            } in: {
-                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
-                            }
-                        }
-                    },
-                    sectionHeader: { content, sectionIdentity in
-                        sectionIndex += 1
-                        let currentSectionIndex = sectionIndex
-                        let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: currentSectionIndex)
-                        let headerRenderables = content.size == 0 ? listOf(EmptyView()) : content
-                        let firstRenderable = (renderables.firstOrNull() as? LazySectionHeader)?.content.firstOrNull()
-                        let isTop = firstRenderable === headerRenderables.firstOrNull()
-                        var renderedCount = 0
-                        for renderableIndex in 0..<headerRenderables.size {
-                            let renderable = headerRenderables[renderableIndex]
-                            if styling.style == .plain {
-                                stickyHeader { _ in
-                                    RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
-                                }
-                            } else {
-                                if !isTop && renderableIndex == 0 {
-                                    // Keep the inter-section gap as its own lazy item so Compose can place it independently
-                                    // from the header content. Rendering it inside RenderSectionHeader makes the chrome jump.
-                                    item(key: "section-\(sectionKey)-top-gap") {
-                                        let itemModifier: Modifier
-                                        if itemCollector.value.hasActiveMove {
-                                            itemModifier = Modifier
-                                        } else {
-                                            itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
-                                        }
-                                        RenderFooter(styling: styling, modifier: itemModifier, safeAreaHeight: 0.dp, hasBottomSection: true)
-                                    }
-                                    renderedCount = renderedCount + 1
-                                }
+                let occurrence = itemKeyOccurrences[baseKey] ?? 0
+                itemKeyOccurrences[baseKey] = occurrence + 1
+                return "\(baseKey)#\(occurrence)"
+            }
 
-                                item(key: "section-\(sectionKey)-header-\(renderableIndex)") {
+            var sectionIndex = -1
+            var startItemIndex = hasHeader ? 1 : 0 // Header inset
+            if isSearchable {
+                startItemIndex += 1 // Search field
+            }
+
+            itemCollector.value.initialize(
+                startItemIndex: startItemIndex,
+                item: { renderable, level in
+                    item(key: itemKey(renderable, level)) {
+                        let textInputFocused = remember { mutableStateOf(false) }
+                        let suppressTextInputAnimation = remember { mutableStateOf(false) }
+                        updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
+                        let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
+                        EnvironmentValues.shared.setValues {
+                            $0.set_listItemTextInputFocused(textInputFocused)
+                            return ComposeResult.ok
+                        } in: {
+                            RenderItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling)
+                        }
+                    }
+                },
+                indexedItems: { range, identifier, offset, onDelete, onMove, level, factory in
+                    let count = range.endExclusive - range.start
+                    let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!(range.start + itemCollector.value.remapIndex($0, from: offset))) }
+                    items(count: count, key: key) { index in
+                        let keyValue = key?(index) // Key closure already remaps index
+                        let index = itemCollector.value.remapIndex(index, from: offset)
+                        let textInputFocused = remember { mutableStateOf(false) }
+                        let suppressTextInputAnimation = remember { mutableStateOf(false) }
+                        updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
+                        let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
+                        let renderable = factory(index + range.start, itemContext)
+                        EnvironmentValues.shared.setValues {
+                            $0.set_listItemTextInputFocused(textInputFocused)
+                            return ComposeResult.ok
+                        } in: {
+                            RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                        }
+                    }
+                },
+                objectItems: { objects, identifier, offset, onDelete, onMove, level, factory in
+                    let key: (Int) -> String = { composeBundleString(for: identifier(objects[itemCollector.value.remapIndex($0, from: offset)])) }
+                    items(count: objects.count, key: key) { index in
+                        let keyValue = key(index) // Key closure already remaps index
+                        let index = itemCollector.value.remapIndex(index, from: offset)
+                        let textInputFocused = remember { mutableStateOf(false) }
+                        let suppressTextInputAnimation = remember { mutableStateOf(false) }
+                        updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
+                        let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
+                        let renderable = factory(objects[index], itemContext)
+                        EnvironmentValues.shared.setValues {
+                            $0.set_listItemTextInputFocused(textInputFocused)
+                            return ComposeResult.ok
+                        } in: {
+                            RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                        }
+                    }
+                },
+                objectBindingItems: { objectsBinding, identifier, offset, editActions, onDelete, onMove, level, factory in
+                    let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[itemCollector.value.remapIndex($0, from: offset)])) }
+                    items(count: objectsBinding.wrappedValue.count, key: key) { index in
+                        let keyValue = key(index) // Key closure already remaps index
+                        let index = itemCollector.value.remapIndex(index, from: offset)
+                        let textInputFocused = remember { mutableStateOf(false) }
+                        let suppressTextInputAnimation = remember { mutableStateOf(false) }
+                        updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
+                        let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
+                        let renderable = factory(objectsBinding, index, itemContext)
+                        EnvironmentValues.shared.setValues {
+                            $0.set_listItemTextInputFocused(textInputFocused)
+                            return ComposeResult.ok
+                        } in: {
+                            RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                        }
+                    }
+                },
+                sectionHeader: { content, sectionIdentity in
+                    sectionIndex += 1
+                    let currentSectionIndex = sectionIndex
+                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: currentSectionIndex)
+                    let headerRenderables = content.size == 0 ? listOf(EmptyView()) : content
+                    let firstRenderable = (renderables.firstOrNull() as? LazySectionHeader)?.content.firstOrNull()
+                    let isTop = firstRenderable === headerRenderables.firstOrNull()
+                    var renderedCount = 0
+                    for renderableIndex in 0..<headerRenderables.size {
+                        let renderable = headerRenderables[renderableIndex]
+                        if styling.style == .plain {
+                            stickyHeader { _ in
+                                RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
+                            }
+                        } else {
+                            if !isTop && renderableIndex == 0 {
+                                // Keep the inter-section gap as its own lazy item so Compose can place it independently
+                                // from the header content. Rendering it inside RenderSectionHeader makes the chrome jump.
+                                item(key: "section-\(sectionKey)-top-gap") {
                                     let itemModifier: Modifier
                                     if itemCollector.value.hasActiveMove {
                                         itemModifier = Modifier
                                     } else {
                                         itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
                                     }
-                                    RenderSectionHeader(content: renderable, context: itemContext, modifier: itemModifier, styling: styling, isTop: isTop)
+                                    RenderFooter(styling: styling, modifier: itemModifier, safeAreaHeight: 0.dp, hasBottomSection: true)
                                 }
+                                renderedCount = renderedCount + 1
                             }
-                            renderedCount = renderedCount + 1
-                        }
-                        return renderedCount
-                    },
-                    sectionFooter: { content, sectionIdentity, sectionItemCount in
-                        let currentSectionIndex = sectionIndex
-                        let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: currentSectionIndex)
-                        let footerRenderables = content.size == 0 ? listOf(EmptyView()) : content
-                        let currentSectionItemCount = sectionItemCount ?? 0
-                        currentSectionBodyItemCounts[sectionKey] = currentSectionItemCount
 
-                        let shouldAnimateFooterPlacement: Bool
-                        if let previousSectionItemCount = sectionChromeAnimationState.sectionBodyItemCounts[sectionKey], sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] == true {
-                            let countDelta = currentSectionItemCount > previousSectionItemCount ? currentSectionItemCount - previousSectionItemCount : previousSectionItemCount - currentSectionItemCount
-                            shouldAnimateFooterPlacement = countDelta <= 1
-                        } else {
-                            shouldAnimateFooterPlacement = false
-                        }
-
-                        if !shouldAnimateFooterPlacement {
-                            // First/bulk layouts establish their footer baseline without placement animation. The next
-                            // frame enables normal placement animation for small changes such as DisclosureGroup toggles.
-                            sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] = false
-                            if sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] != true {
-                                sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] = true
-                                coroutineScope.launch {
-                                    // SKIP INSERT: withFrameNanos { _ -> }
-                                    sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] = true
-                                    sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] = false
-                                    sectionBottomPlacementInvalidation.value = sectionBottomPlacementInvalidation.value + 1
-                                }
-                            }
-                        }
-
-                        var renderedCount = 0
-                        for renderableIndex in 0..<footerRenderables.size {
-                            let renderable = footerRenderables[renderableIndex]
-                            item(key: "section-\(sectionKey)-footer-\(renderableIndex)") {
+                            item(key: "section-\(sectionKey)-header-\(renderableIndex)") {
                                 let itemModifier: Modifier
                                 if itemCollector.value.hasActiveMove {
                                     itemModifier = Modifier
-                                } else if shouldAnimateFooterPlacement && EnvironmentValues.shared._searchableState?.isSearching.value != true {
-                                    itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
                                 } else {
-                                    itemModifier = Modifier.animateItem(fadeInSpec: nil, placementSpec: nil, fadeOutSpec: nil)
+                                    itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
                                 }
-                                RenderSectionFooter(content: renderable, context: itemContext, modifier: itemModifier, styling: styling)
+                                RenderSectionHeader(content: renderable, context: itemContext, modifier: itemModifier, styling: styling, isTop: isTop)
                             }
-                            renderedCount = renderedCount + 1
                         }
-                        return renderedCount
+                        renderedCount = renderedCount + 1
                     }
-                )
+                    return renderedCount
+                },
+                sectionFooter: { content, sectionIdentity, sectionItemCount in
+                    let currentSectionIndex = sectionIndex
+                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: currentSectionIndex)
+                    let footerRenderables = content.size == 0 ? listOf(EmptyView()) : content
+                    let currentSectionItemCount = sectionItemCount ?? 0
+                    currentSectionBodyItemCounts[sectionKey] = currentSectionItemCount
 
-                if isSearchable {
-                    item {
-                        RenderSearchField(state: searchableState!, context: context, styling: styling, safeAreaHeight: arguments.headerSafeAreaHeight)
-                    }
-                }
-                if hasHeader {
-                    let hasTopSection = renderables.firstOrNull() is LazySectionHeader
-                    item {
-                        RenderHeader(styling: styling, safeAreaHeight: isSearchable ? 0.dp : arguments.headerSafeAreaHeight, hasTopSection: hasTopSection)
-                    }
-                }
-                for renderable in renderables {
-                    if let factory = renderable as? LazyItemFactory, factory.shouldProduceLazyItems() {
-                        factory.produceLazyItems(collector: itemCollector.value, modifiers: listOf(), level: 0)
+                    let shouldAnimateFooterPlacement: Bool
+                    if let previousSectionItemCount = sectionChromeAnimationState.sectionBodyItemCounts[sectionKey], sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] == true {
+                        let countDelta = currentSectionItemCount > previousSectionItemCount ? currentSectionItemCount - previousSectionItemCount : previousSectionItemCount - currentSectionItemCount
+                        shouldAnimateFooterPlacement = countDelta <= 1
                     } else {
-                        itemCollector.value.item(renderable, 0)
+                        shouldAnimateFooterPlacement = false
                     }
-                }
 
-                sectionChromeAnimationState.sectionBodyItemCounts = currentSectionBodyItemCounts
-
-                let currentListItemCount = itemCollector.value.count
-                let previousListItemCount = sectionChromeAnimationState.listItemCount
-                let shouldAnimateListFooterPlacement: Bool
-                if let previousListItemCount {
-                    let countDelta = currentListItemCount > previousListItemCount ? currentListItemCount - previousListItemCount : previousListItemCount - currentListItemCount
-                    shouldAnimateListFooterPlacement = countDelta <= 1
-                } else {
-                    shouldAnimateListFooterPlacement = false
-                }
-
-                sectionChromeAnimationState.listItemCount = currentListItemCount
-
-                let hasBottomSection = itemCollector.value.endsWithSectionFooter
-                if hasFooter {
-                    item(key: "list-footer") {
-                        let itemModifier: Modifier
-                        if itemCollector.value.hasActiveMove {
-                            itemModifier = Modifier
-                        } else if shouldAnimateListFooterPlacement && EnvironmentValues.shared._searchableState?.isSearching.value != true {
-                            itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
-                        } else {
-                            itemModifier = Modifier.animateItem(fadeInSpec: nil, placementSpec: nil, fadeOutSpec: nil)
+                    if !shouldAnimateFooterPlacement {
+                        // First/bulk layouts establish their footer baseline without placement animation. The next
+                        // frame enables normal placement animation for small changes such as DisclosureGroup toggles.
+                        sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] = false
+                        if sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] != true {
+                            sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] = true
+                            coroutineScope.launch {
+                                // SKIP INSERT: withFrameNanos { _ -> }
+                                sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] = true
+                                sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] = false
+                                sectionBottomPlacementInvalidation.value = sectionBottomPlacementInvalidation.value + 1
+                            }
                         }
-                        RenderFooter(styling: styling, modifier: itemModifier, safeAreaHeight: arguments.footerSafeAreaHeight, hasBottomSection: hasBottomSection)
                     }
+
+                    var renderedCount = 0
+                    for renderableIndex in 0..<footerRenderables.size {
+                        let renderable = footerRenderables[renderableIndex]
+                        item(key: "section-\(sectionKey)-footer-\(renderableIndex)") {
+                            let itemModifier: Modifier
+                            if itemCollector.value.hasActiveMove {
+                                itemModifier = Modifier
+                            } else if shouldAnimateFooterPlacement && EnvironmentValues.shared._searchableState?.isSearching.value != true {
+                                itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
+                            } else {
+                                itemModifier = Modifier.animateItem(fadeInSpec: nil, placementSpec: nil, fadeOutSpec: nil)
+                            }
+                            RenderSectionFooter(content: renderable, context: itemContext, modifier: itemModifier, styling: styling)
+                        }
+                        renderedCount = renderedCount + 1
+                    }
+                    return renderedCount
+                }
+            )
+
+            if isSearchable {
+                item {
+                    RenderSearchField(state: searchableState!, context: context, styling: styling, safeAreaHeight: arguments.headerSafeAreaHeight)
+                }
+            }
+            if hasHeader {
+                let hasTopSection = renderables.firstOrNull() is LazySectionHeader
+                item {
+                    RenderHeader(styling: styling, safeAreaHeight: isSearchable ? 0.dp : arguments.headerSafeAreaHeight, hasTopSection: hasTopSection)
+                }
+            }
+            for renderable in renderables {
+                if let factory = renderable as? LazyItemFactory, factory.shouldProduceLazyItems() {
+                    factory.produceLazyItems(collector: itemCollector.value, modifiers: listOf(), level: 0)
+                } else {
+                    itemCollector.value.item(renderable, 0)
+                }
+            }
+
+            sectionChromeAnimationState.sectionBodyItemCounts = currentSectionBodyItemCounts
+
+            let currentListItemCount = itemCollector.value.count
+            let previousListItemCount = sectionChromeAnimationState.listItemCount
+            let shouldAnimateListFooterPlacement: Bool
+            if let previousListItemCount {
+                let countDelta = currentListItemCount > previousListItemCount ? currentListItemCount - previousListItemCount : previousListItemCount - currentListItemCount
+                shouldAnimateListFooterPlacement = countDelta <= 1
+            } else {
+                shouldAnimateListFooterPlacement = false
+            }
+
+            sectionChromeAnimationState.listItemCount = currentListItemCount
+
+            let hasBottomSection = itemCollector.value.endsWithSectionFooter
+            if hasFooter {
+                item(key: "list-footer") {
+                    let itemModifier: Modifier
+                    if itemCollector.value.hasActiveMove {
+                        itemModifier = Modifier
+                    } else if shouldAnimateListFooterPlacement && EnvironmentValues.shared._searchableState?.isSearching.value != true {
+                        itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
+                    } else {
+                        itemModifier = Modifier.animateItem(fadeInSpec: nil, placementSpec: nil, fadeOutSpec: nil)
+                    }
+                    RenderFooter(styling: styling, modifier: itemModifier, safeAreaHeight: arguments.footerSafeAreaHeight, hasBottomSection: hasBottomSection)
                 }
             }
         }
