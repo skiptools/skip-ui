@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.InternalComposeApi
@@ -108,12 +109,9 @@ public final class EnvironmentValues {
         }.toTypedArray()
         lastSetValues.clear()
 
-        // Note: this is an adaptation of the standard `CompositionLocalProvider(*provided)` function modified to return a value.
-        // This uses internal API
-        currentComposer.startProviders(provided)
-        let ret = content()
-        currentComposer.endProviders()
-        return ret
+        // Returning evaluation shares its caller's restart scope. Track which values it
+        // provides so bridged reads can avoid subscribing that scope to its own writes.
+        return WithReturningEnvironmentValues(provided, content: content)
     }
 
     // On set we populate our `lastSetValues` map, which our `setValues` function reads from and then clears after
@@ -131,7 +129,7 @@ public final class EnvironmentValues {
             return builtinValue
         }
         let compositionLocal = bridgedCompositionLocal(key: key)
-        let value = compositionLocal.current
+        let value = ReadBridgedEnvironmentValue(compositionLocal)
         return value == Unit ? nil : value as! EnvironmentSupport
     }
 
@@ -749,6 +747,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_isSearching", value: newValue, defaultValue: { nil }) }
     }
 
+    var _listItemTextInputFocused: MutableState<Bool>? {
+        get { builtinValue(key: "_listItemTextInputFocused", defaultValue: { nil }) as! MutableState<Bool>? }
+        set { setBuiltinValue(key: "_listItemTextInputFocused", value: newValue, defaultValue: { nil }) }
+    }
+
     var _keyboardOptions: KeyboardOptions? {
         get { builtinValue(key: "_keyboardOptions", defaultValue: { nil }) as! KeyboardOptions? }
         set { setBuiltinValue(key: "_keyboardOptions", value: newValue, defaultValue: { nil }) }
@@ -823,6 +826,27 @@ extension EnvironmentValues {
     var _listSectionFooterStyle: ListStyle? {
         get { builtinValue(key: "_listSectionFooterStyle", defaultValue: { nil }) as! ListStyle? }
         set { setBuiltinValue(key: "_listSectionFooterStyle", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _onScrollGeometryChange: ((ScrollGeometry) -> Void)? {
+        get { builtinValue(key: "_onScrollGeometryChange", defaultValue: { nil }) as! ((ScrollGeometry) -> Void)? }
+        set { setBuiltinValue(key: "_onScrollGeometryChange", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _onScrollPhaseChange: ((ScrollPhase, ScrollPhase, ScrollPhaseChangeContext) -> Void)? {
+        get { builtinValue(key: "_onScrollPhaseChange", defaultValue: { nil }) as! ((ScrollPhase, ScrollPhase, ScrollPhaseChangeContext) -> Void)? }
+        set { setBuiltinValue(key: "_onScrollPhaseChange", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _scrollPosition: Binding<ScrollPosition>? {
+        get { builtinValue(key: "_scrollPosition", defaultValue: { nil }) as! Binding<ScrollPosition>? }
+        set { setBuiltinValue(key: "_scrollPosition", value: newValue, defaultValue: { nil }) }
+    }
+
+    /// Records a laid out view with an ID as a target of the enclosing `ScrollView`'s programmatic scrolling.
+    var _registerScrollTarget: ((Any, LayoutCoordinates) -> Void)? {
+        get { builtinValue(key: "_registerScrollTarget", defaultValue: { nil }) as! ((Any, LayoutCoordinates) -> Void)? }
+        set { setBuiltinValue(key: "_registerScrollTarget", value: newValue, defaultValue: { nil }) }
     }
 
     var _listStyle: ListStyle? {

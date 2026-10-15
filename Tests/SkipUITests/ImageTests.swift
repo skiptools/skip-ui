@@ -154,6 +154,41 @@ final class ImageTests: XCSnapshotTestCase {
         """)
     }
 
+    // Symbol templates with Baseline/Capline guides keep their designed size relative to the font, like on Darwin,
+    // instead of stretching the ink to the font size.
+    func testSymbolTemplateSizedByCapHeight() throws {
+        #if !SKIP
+        throw XCTSkip("Symbol templates are only parsed on Android")
+        #else
+        let svg = """
+        <svg xmlns="http://www.w3.org/2000/svg"><g id="Guides">
+        <line id="Baseline-S" x1="263" x2="3036" y1="696" y2="696"/><line id="Capline-S" x1="263" x2="3036" y1="625.541" y2="625.541"/>
+        <line id="Baseline-M" x1="263" x2="3036" y1="1126" y2="1126"/><line id="Capline-M" x1="263" x2="3036" y1="1055.54" y2="1055.54"/>
+        </g></svg>
+        """
+        let document = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(java.io.ByteArrayInputStream(svg.toByteArray()))
+        let capHeights = symbolCapHeights(document)
+        XCTAssertEqual(Double(capHeights["S"] ?? Float(0.0)), 70.459, accuracy: 0.01)
+        XCTAssertEqual(Double(capHeights["M"] ?? Float(0.0)), 70.46, accuracy: 0.01)
+        XCTAssertNil(capHeights["L"])
+
+        // xmark at the medium scale has 77.4 units of ink in a 100-unit em, so it renders at 0.774 em as on Darwin
+        let medium = symbolViewport(width: Float(77.43), height: Float(77.42), capHeight: capHeights["M"], scale: "M")
+        XCTAssertEqual(Double(Float(77.43) / medium.span * medium.sizeRatio), 0.774, accuracy: 0.002)
+        // a small variant is shown at the medium scale, 1.276 times larger
+        let small = symbolViewport(width: Float(50.0), height: Float(50.0), capHeight: capHeights["S"], scale: "S")
+        XCTAssertEqual(Double(Float(50.0) / small.span * small.sizeRatio), 0.638, accuracy: 0.002)
+        // ink wider than an em widens the viewport and the rendered size instead of being clipped
+        let wide = symbolViewport(width: Float(124.0), height: Float(114.0), capHeight: capHeights["M"], scale: "M")
+        XCTAssertEqual(Double(wide.span), 124.0, accuracy: 0.01)
+        XCTAssertEqual(Double(wide.sizeRatio), 1.24, accuracy: 0.002)
+        // without guides the ink fills the font size, as before
+        let unguided = symbolViewport(width: Float(124.0), height: Float(62.0), capHeight: nil, scale: "S")
+        XCTAssertEqual(Double(unguided.span), 124.0, accuracy: 0.01)
+        XCTAssertEqual(Double(unguided.sizeRatio), 1.0, accuracy: 0.0001)
+        #endif
+    }
+
     func testRenderPNGImageData() throws {
         func save(_ base64EncodedImage: String) throws -> URL {
             let uri = URL(fileURLWithPath: NSTemporaryDirectory() + "/testRenderImageData-\(UUID().uuidString).png")

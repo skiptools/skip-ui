@@ -1,6 +1,7 @@
 // Copyright 2023–2026 Skip
 // SPDX-License-Identifier: MPL-2.0
 #if SKIP
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -19,12 +22,15 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.abs
 
 extension Modifier {
     /// Fill available width similar to `.frame(maxWidth: .infinity)`.
@@ -154,10 +160,33 @@ extension Modifier {
         let focusManager = rememberUpdatedState(LocalFocusManager.current)
         let imeInsets = WindowInsets.ime
         let density = LocalDensity.current
+        let isUserScrollActive = remember { mutableStateOf(false) }
         let nestedScrollConnection = remember {
-            KeyboardDismissingNestedScrollConnection(keyboardController: keyboardController, focusManager: focusManager, imeInsets: imeInsets, density: density)
+            KeyboardDismissingNestedScrollConnection(keyboardController: keyboardController, focusManager: focusManager, imeInsets: imeInsets, density: density, isUserScrollActive: isUserScrollActive)
         }
-        return self.nestedScroll(nestedScrollConnection)
+        return self.pointerInput(mode) {
+            let slop = viewConfiguration.touchSlop
+            awaitEachGesture {
+                isUserScrollActive.value = false
+                let downEvent = awaitPointerEvent(pass: PointerEventPass.Initial)
+                guard let start = downEvent.changes.firstOrNull({ $0.pressed })?.position else {
+                    return
+                }
+                var pressed = true
+                while pressed {
+                    let event = awaitPointerEvent(pass: PointerEventPass.Initial)
+                    if let change = event.changes.firstOrNull() {
+                        pressed = change.pressed
+                        if abs(change.position.x - start.x) > slop || abs(change.position.y - start.y) > slop {
+                            isUserScrollActive.value = true
+                        }
+                    } else {
+                        pressed = false
+                    }
+                }
+                isUserScrollActive.value = false
+            }
+        }.nestedScroll(nestedScrollConnection)
     }
 }
 
