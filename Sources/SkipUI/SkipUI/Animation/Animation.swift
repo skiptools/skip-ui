@@ -27,9 +27,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.platform.AndroidUiDispatcher
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 #endif
@@ -230,7 +230,8 @@ public struct Animation : Hashable {
         recentWithAnimationAnimation = animation
         recentWithAnimationGeneration += 1
         let generation = recentWithAnimationGeneration
-        GlobalScope.async(Dispatchers.Main) {
+        // AndroidUiDispatcher.Main has the frame clock that withFrameNanos needs, which Dispatchers.Main lacks
+        GlobalScope.async(AndroidUiDispatcher.Main) {
             // SKIP INSERT: withFrameNanos { _ -> }
             if recentWithAnimationGeneration == generation {
                 recentWithAnimationAnimation = nil
