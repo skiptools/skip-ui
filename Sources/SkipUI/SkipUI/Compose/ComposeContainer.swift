@@ -52,9 +52,9 @@ private func composeFlexibleMergedMax(_ current: Float?, _ proposed: Float?) -> 
 /// flexible layout so that if the container content uses them, the container itself can recompose with the appropriate
 /// expansion to match its content. Note that this generally only affects final layout when an expanding child is in a
 /// container that is itself in a container, and it has to share space with other members of the parent container.
-@Composable public func ComposeFlexibleContainer(axis: Axis? = nil, eraseAxis: Bool = false, scrollAxes: Axis.Set = [], modifier: Modifier = Modifier, fixedWidth: Bool = false, flexibleWidthIdeal: Float? = nil, flexibleWidthMin: Float? = nil, flexibleWidthMax: Float? = nil, fixedHeight: Bool = false, flexibleHeightIdeal: Float? = nil, flexibleHeightMin: Float? = nil, flexibleHeightMax: Float? = nil, then: Modifier = Modifier, content: @Composable (Modifier) -> Void) {
+@Composable public func ComposeFlexibleContainer(axis: Axis? = nil, eraseAxis: Bool = false, scrollAxes: Axis.Set = [], modifier: Modifier = Modifier, fixedWidth: Bool = false, flexibleWidthIdeal: Float? = nil, flexibleWidthMin: Float? = nil, flexibleWidthMax: Float? = nil, fixedHeight: Bool = false, flexibleHeightIdeal: Float? = nil, flexibleHeightMin: Float? = nil, flexibleHeightMax: Float? = nil, then: Modifier = Modifier, initialContentFlexibleWidthMax: Float? = nil, content: @Composable (Modifier) -> Void) {
     // Use remembered flexible values to recompose on change
-    let contentFlexibleWidthMax = remember { mutableStateOf(flexibleWidthMax) }
+    let contentFlexibleWidthMax = remember { mutableStateOf(flexibleWidthMax ?? initialContentFlexibleWidthMax) }
     let contentFlexibleHeightMax = remember { mutableStateOf(flexibleHeightMax) }
 
     // Create the correct modifier for the current values and content

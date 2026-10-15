@@ -4,6 +4,7 @@
 #if SKIP
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntSize
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
@@ -13,15 +14,41 @@ import struct CoreGraphics.CGSize
 // SKIP @bridge
 public struct GeometryProxy {
     #if SKIP
-    let globalFramePx: Rect
+    private let fixedGlobalFramePx: Rect
+    private let fixedSizePx: IntSize
     let density: Density
-    let safeArea: SafeArea?
+    private let safeArea: SafeArea?
+    private let geometry: GeometryReaderState?
+
+    /// Fixed snapshots are still used by onGeometryChange's transform/action contract.
+    init(sizePx: IntSize, globalFramePx: Rect, density: Density, safeArea: SafeArea?) {
+        self.fixedSizePx = sizePx
+        self.fixedGlobalFramePx = globalFramePx
+        self.density = density
+        self.safeArea = safeArea
+        self.geometry = nil
+    }
+
+    /// Reader proxies defer snapshot observation to the properties their content accesses.
+    init(geometry: GeometryReaderState, density: Density) {
+        self.fixedSizePx = IntSize.Zero
+        self.fixedGlobalFramePx = Rect.Zero
+        self.density = density
+        self.safeArea = nil
+        self.geometry = geometry
+    }
+
+    private var globalFramePx: Rect {
+        geometry?.globalFramePx ?? fixedGlobalFramePx
+    }
     #endif
 
     public var size: CGSize {
         #if SKIP
+        // Root bounds can be clipped by a scroll viewport; size describes the full layout.
+        let size = geometry?.sizePx ?? fixedSizePx
         return with(density) {
-            CGSize(width: Double(globalFramePx.width.toDp().value), height: Double(globalFramePx.height.toDp().value))
+            CGSize(width: Double(size.width.toDp().value), height: Double(size.height.toDp().value))
         }
         #else
         return .zero
@@ -47,6 +74,12 @@ public struct GeometryProxy {
 
     public var safeAreaInsets: EdgeInsets {
         #if SKIP
+        if let geometry {
+            let insets = geometry.insetsPx
+            return with(density) {
+                EdgeInsets(top: Double(insets.top.toDp().value), leading: Double(insets.left.toDp().value), bottom: Double(insets.bottom.toDp().value), trailing: Double(insets.right.toDp().value))
+            }
+        }
         guard let safeArea = safeArea else {
             return EdgeInsets()
         }
