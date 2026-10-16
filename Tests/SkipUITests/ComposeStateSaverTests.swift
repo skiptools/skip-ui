@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import java.lang.ref.WeakReference
 
 final class ComposeStateSaverTests: XCTestCase {
-    private let scope = SaverScope { _ in true }
+    private let scope: SaverScope = SaverScope { _ in true }
 
     func testSavedKeysKeepValuesAliveAndSupportRepeatedRestoration() {
         // Arrange
