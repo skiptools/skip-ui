@@ -12,11 +12,106 @@ import androidx.compose.ui.unit.LayoutDirection
 // SKIP INSERT: @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 final class WindowKeyboardInsetsTests: XCTestCase {
 
+    func testNewReaderAfterFocusLossSharesRetainedWindowInsets() {
+        // Arrange
+        let window = java.lang.Object()
+        var isFocused = true
+        let source = MutableWindowInsets(WindowInsets(bottom: 400))
+        let existingReader = WindowKeyboardInsets(
+            source: source,
+            state: WindowKeyboardInsetsState.forWindow(window),
+            isWindowFocused: { isFocused },
+            isKeyboardVisible: { true }
+        )
+        let density = Density(density: Float(1.0))
+        _ = existingReader.getBottom(density)
+
+        // Act
+        isFocused = false
+        let newReader = WindowKeyboardInsets(
+            source: source,
+            state: WindowKeyboardInsetsState.forWindow(window),
+            isWindowFocused: { isFocused },
+            isKeyboardVisible: { true }
+        )
+        let retained = existingReader.getBottom(density)
+        let newlyComposed = newReader.getBottom(density)
+
+        // Assert
+        XCTAssertEqual(retained, 400)
+        XCTAssertEqual(newlyComposed, retained)
+    }
+
+    func testSharedReadersFollowKeyboardDismissalAfterFocusLoss() {
+        // Arrange
+        let window = java.lang.Object()
+        var isFocused = true
+        let source = MutableWindowInsets(WindowInsets(bottom: 400))
+        let existingReader = WindowKeyboardInsets(
+            source: source,
+            state: WindowKeyboardInsetsState.forWindow(window),
+            isWindowFocused: { isFocused },
+            isKeyboardVisible: { false }
+        )
+        let density = Density(density: Float(1.0))
+        _ = existingReader.getBottom(density)
+        isFocused = false
+        let newReader = WindowKeyboardInsets(
+            source: source,
+            state: WindowKeyboardInsetsState.forWindow(window),
+            isWindowFocused: { isFocused },
+            isKeyboardVisible: { false }
+        )
+
+        // Act
+        source.insets = WindowInsets(bottom: 200)
+        let newIntermediate = newReader.getBottom(density)
+        let existingIntermediate = existingReader.getBottom(density)
+        source.insets = WindowInsets(bottom: 0)
+        let existingCollapsed = existingReader.getBottom(density)
+        let newCollapsed = newReader.getBottom(density)
+
+        // Assert
+        XCTAssertEqual(newIntermediate, 200)
+        XCTAssertEqual(existingIntermediate, newIntermediate)
+        XCTAssertEqual(existingCollapsed, 0)
+        XCTAssertEqual(newCollapsed, existingCollapsed)
+    }
+
+    func testSeparateWindowsDoNotShareRetainedInsets() {
+        // Arrange
+        let firstWindow = java.lang.Object()
+        let secondWindow = java.lang.Object()
+        let source = MutableWindowInsets(WindowInsets(bottom: 400))
+        let focusedReader = WindowKeyboardInsets(
+            source: source,
+            state: WindowKeyboardInsetsState.forWindow(firstWindow),
+            isWindowFocused: { true },
+            isKeyboardVisible: { true }
+        )
+        let unfocusedReader = WindowKeyboardInsets(
+            source: source,
+            state: WindowKeyboardInsetsState.forWindow(secondWindow),
+            isWindowFocused: { false },
+            isKeyboardVisible: { true }
+        )
+        let density = Density(density: Float(1.0))
+
+        // Act
+        let focused = focusedReader.getBottom(density)
+        let unfocused = unfocusedReader.getBottom(density)
+
+        // Assert
+        XCTAssertEqual(focused, 400)
+        XCTAssertEqual(unfocused, 0)
+    }
+
     func testUnfocusedWindowIgnoresAnotherWindowsKeyboard() {
         // Arrange
         let source = MutableWindowInsets(WindowInsets(left: 10, top: 20, right: 30, bottom: 400))
         let insets = WindowKeyboardInsets(
             source: source,
+            state: WindowKeyboardInsetsState(),
             isWindowFocused: { false },
             isKeyboardVisible: { true }
         )
@@ -40,6 +135,7 @@ final class WindowKeyboardInsetsTests: XCTestCase {
         let source = MutableWindowInsets(WindowInsets(bottom: 400))
         let insets = WindowKeyboardInsets(
             source: source,
+            state: WindowKeyboardInsetsState(),
             isWindowFocused: { true },
             isKeyboardVisible: { true }
         )
@@ -64,6 +160,7 @@ final class WindowKeyboardInsetsTests: XCTestCase {
         let source = MutableWindowInsets(WindowInsets(left: 10, top: 20, right: 30, bottom: 400))
         let insets = WindowKeyboardInsets(
             source: source,
+            state: WindowKeyboardInsetsState(),
             isWindowFocused: { isFocused },
             isKeyboardVisible: { true }
         )
@@ -97,6 +194,7 @@ final class WindowKeyboardInsetsTests: XCTestCase {
         let source = MutableWindowInsets(WindowInsets(bottom: 400))
         let insets = WindowKeyboardInsets(
             source: source,
+            state: WindowKeyboardInsetsState(),
             isWindowFocused: { isFocused },
             isKeyboardVisible: { false }
         )

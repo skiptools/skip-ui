@@ -56,6 +56,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -95,6 +97,15 @@ private let AlertDialogMaxWidth: Dp = 560.dp
 
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     let isPresentedValue = isPresented.get()
+    let presentingFocusManager = LocalFocusManager.current
+    let presentingKeyboardController = LocalSoftwareKeyboardController.current
+    if isPresentedValue {
+        LaunchedEffect(true) {
+            // Release the presenting field while the new window opens, without delaying presentation.
+            presentingFocusManager.clearFocus()
+            presentingKeyboardController?.hide()
+        }
+    }
     if isPresentedValue || sheetState.isVisible {
         // Don't fully evaluate content until we set up the presented environment. For now we just want
         // to get at the modifiers to look for `BackDismissDisabled`
