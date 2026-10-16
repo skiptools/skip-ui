@@ -130,6 +130,8 @@ public final class LazyItemCollector {
     private(set) var sectionFooter: (kotlin.collections.List<Renderable>, Any?) -> Int = { _, _ in 0 }
     private var currentSectionItemCount: Int? = nil
     private var startItemIndex = 0
+    private var collectedItemCount = 0
+    private var containsBindingItems = false
 
     /// Track emitted body items for the current section, excluding section header/footer chrome.
     private func incrementCurrentSectionItemCount(by count: Int) {
@@ -153,60 +155,68 @@ public final class LazyItemCollector {
     ) {
         self.startItemIndex = startItemIndex
 
-        content.removeAll()
+        content.clear()
+        collectedItemCount = 0
+        containsBindingItems = false
         currentSectionItemCount = nil
 
         self.item = { renderable, level in
             // If this is an item after a section, add a header before it
-            if case .sectionFooter = content.last {
+            if case .sectionFooter = lastContent {
                 _ = self.sectionHeader(listOf(), nil)
             }
             item(renderable, level)
             let id = TagModifier.on(content: renderable, role: .id)?.value
-            content.append(.items(0, 1, { _ in id }, nil))
+            content.add(Content.items(0, 1, { _ in id }, nil))
+            collectedItemCount += 1
             incrementCurrentSectionItemCount(by: 1)
         }
         self.indexedItems = { range, identifier, onDelete, onMove, level, factory in
-            if case .sectionFooter = content.last {
+            if case .sectionFooter = lastContent {
                 _ = self.sectionHeader(listOf(), nil)
             }
             indexedItems(range, identifier, count, onDelete, onMove, level, factory)
             let itemCount = range.endExclusive - range.start
-            content.append(.items(range.start, itemCount, identifier, onMove))
+            content.add(Content.items(range.start, itemCount, identifier, onMove))
+            collectedItemCount += itemCount
             incrementCurrentSectionItemCount(by: itemCount)
         }
         self.objectItems = { objects, identifier, onDelete, onMove, level, factory in
-            if case .sectionFooter = content.last {
+            if case .sectionFooter = lastContent {
                 _ = self.sectionHeader(listOf(), nil)
             }
             objectItems(objects, identifier, count, onDelete, onMove, level, factory)
-            content.append(.objectItems(objects, identifier, onMove))
+            content.add(Content.objectItems(objects, identifier, onMove))
+            collectedItemCount += objects.count
             incrementCurrentSectionItemCount(by: objects.count)
         }
         self.objectBindingItems = { binding, identifier, editActions, onDelete, onMove, level, factory in
-            if case .sectionFooter = content.last {
+            if case .sectionFooter = lastContent {
                 _ = self.sectionHeader(listOf(), nil)
             }
             objectBindingItems(binding, identifier, count, editActions, onDelete, onMove, level, factory)
-            content.append(.objectBindingItems(binding, identifier, onMove))
+            content.add(Content.objectBindingItems(binding, identifier, onMove))
+            containsBindingItems = true
             incrementCurrentSectionItemCount(by: binding.wrappedValue.count)
         }
         self.sectionHeader = { renderables, sectionIdentity in
             // If this is a header after an item, add a section footer before it
-            switch content.last {
+            switch lastContent {
             case .sectionFooter, nil:
                 break
             default:
                 _ = self.sectionFooter(listOf(), nil)
             }
             let renderedCount = max(1, sectionHeader(renderables, sectionIdentity))
-            content.append(.sectionHeader(renderedCount))
+            content.add(Content.sectionHeader(renderedCount))
+            collectedItemCount += renderedCount
             currentSectionItemCount = 0
             return renderedCount
         }
         self.sectionFooter = { renderables, sectionIdentity in
             let renderedCount = max(1, sectionFooter(renderables, sectionIdentity, currentSectionItemCount))
-            content.append(.sectionFooter(renderedCount))
+            content.add(Content.sectionFooter(renderedCount))
+            collectedItemCount += renderedCount
             currentSectionItemCount = nil
             return renderedCount
         }
@@ -223,10 +233,16 @@ public final class LazyItemCollector {
         return nil
     }
 
-    /// The current number of content items.
+    /// The current number of content items, including section chrome.
+    ///
+    /// Value-backed ranges are counted as they are collected, so creating many sections remains linear.
+    /// Binding-backed ranges retain live counting because their collections can change independently.
     var count: Int {
+        guard containsBindingItems else { return collectedItemCount }
+
         var itemCount = 0
-        for content in self.content {
+        for element in self.content {
+            let content: Content = element
             switch content {
             case .items(_, let count, _, _): itemCount += count
             case .objectItems(let objects, _, _): itemCount += objects.count
@@ -240,7 +256,7 @@ public final class LazyItemCollector {
 
     /// If the current collected content ends with a section footer.
     var endsWithSectionFooter: Bool {
-        if case .sectionFooter = content.last {
+        if case .sectionFooter = lastContent {
             return true
         }
         return false
@@ -249,7 +265,8 @@ public final class LazyItemCollector {
     /// Return the list index for the given item ID, or nil.
     func index(for id: Any) -> Int? {
         var index = startItemIndex
-        for content in self.content {
+        for element in self.content {
+            let content: Content = element
             switch content {
             case .items(let start, let count, let idMap, _):
                 for i in start..<(start + count) {
@@ -290,7 +307,8 @@ public final class LazyItemCollector {
     /// Return the item ID for the given list index, or nil.
     func id(for index: Int) -> AnyHashable? {
         var currentIndex = startItemIndex
-        for content in self.content {
+        for element in self.content {
+            let content: Content = element
             switch content {
             case .items(let start, let count, let idMap, _):
                 if index >= currentIndex && index < currentIndex + count {
@@ -389,7 +407,8 @@ public final class LazyItemCollector {
 
     private func performMove(fromIndex: Int, toIndex: Int) {
         var itemIndex = startItemIndex
-        for content in self.content {
+        for element in self.content {
+            let content: Content = element
             switch content {
             case .items(_, let count, _, let onMove):
                 if performMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: count, onMove: onMove) {
@@ -439,7 +458,8 @@ public final class LazyItemCollector {
             return true
         }
         var itemIndex = startItemIndex
-        for content in self.content {
+        for element in self.content {
+            let content: Content = element
             switch content {
             case .items(_, let count, _, _):
                 if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: count) {
@@ -482,7 +502,15 @@ public final class LazyItemCollector {
         case sectionHeader(Int)
         case sectionFooter(Int)
     }
-    private var content: [Content] = []
+
+    // This collector owns its storage exclusively. A Swift value array would copy the growing
+    // buffer on each property mutation after a read, making section construction quadratic.
+    private let content: kotlin.collections.MutableList<Content> = mutableListOf()
+
+    /// The most recently collected range or section chrome.
+    private var lastContent: Content? {
+        return content.lastOrNull()
+    }
 }
 
 #endif
