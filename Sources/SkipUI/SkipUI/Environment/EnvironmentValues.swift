@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.InternalComposeApi
@@ -820,6 +821,27 @@ extension EnvironmentValues {
     var _listSectionFooterStyle: ListStyle? {
         get { builtinValue(key: "_listSectionFooterStyle", defaultValue: { nil }) as! ListStyle? }
         set { setBuiltinValue(key: "_listSectionFooterStyle", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _onScrollGeometryChange: ((ScrollGeometry) -> Void)? {
+        get { builtinValue(key: "_onScrollGeometryChange", defaultValue: { nil }) as! ((ScrollGeometry) -> Void)? }
+        set { setBuiltinValue(key: "_onScrollGeometryChange", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _onScrollPhaseChange: ((ScrollPhase, ScrollPhase, ScrollPhaseChangeContext) -> Void)? {
+        get { builtinValue(key: "_onScrollPhaseChange", defaultValue: { nil }) as! ((ScrollPhase, ScrollPhase, ScrollPhaseChangeContext) -> Void)? }
+        set { setBuiltinValue(key: "_onScrollPhaseChange", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _scrollPosition: Binding<ScrollPosition>? {
+        get { builtinValue(key: "_scrollPosition", defaultValue: { nil }) as! Binding<ScrollPosition>? }
+        set { setBuiltinValue(key: "_scrollPosition", value: newValue, defaultValue: { nil }) }
+    }
+
+    /// Records a laid out view with an ID as a target of the enclosing `ScrollView`'s programmatic scrolling.
+    var _registerScrollTarget: ((Any, LayoutCoordinates) -> Void)? {
+        get { builtinValue(key: "_registerScrollTarget", defaultValue: { nil }) as! ((Any, LayoutCoordinates) -> Void)? }
+        set { setBuiltinValue(key: "_registerScrollTarget", value: newValue, defaultValue: { nil }) }
     }
 
     var _listStyle: ListStyle? {
