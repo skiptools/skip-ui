@@ -710,10 +710,13 @@ final class GestureModifier: RenderModifier {
         let layoutCoordinates = remember { mutableStateOf<LayoutCoordinates?>(nil) }
         ret = ret.onGloballyPositioned { layoutCoordinates.value = $0 }
 
-        let tapGestures = rememberUpdatedState(allGestures.filter { $0.isTapGesture })
-        let doubleTapGestures = rememberUpdatedState(allGestures.filter { $0.isDoubleTapGesture })
-        let longPressGestures = rememberUpdatedState(allGestures.filter { $0.isLongPressGesture })
-        if tapGestures.value.size > 0 || doubleTapGestures.value.size > 0 || longPressGestures.value.size > 0 {
+        let tapList = allGestures.filter { $0.isTapGesture }
+        let doubleTapList = allGestures.filter { $0.isDoubleTapGesture }
+        let longPressList = allGestures.filter { $0.isLongPressGesture }
+        let tapGestures = rememberUpdatedState(tapList)
+        let doubleTapGestures = rememberUpdatedState(doubleTapList)
+        let longPressGestures = rememberUpdatedState(longPressList)
+        if tapList.size > 0 || doubleTapList.size > 0 || longPressList.size > 0 {
             ret = ret.pointerInput(true) {
                 let onDoubleTap: ((Offset) -> Void)?
                 if doubleTapGestures.value.size > 0 {
@@ -751,12 +754,13 @@ final class GestureModifier: RenderModifier {
             }
         }
 
-        let dragGestures = rememberUpdatedState(normalGestures.filter { $0.isDragGesture })
-        if dragGestures.value.size > 0 {
+        let dragList = normalGestures.filter { $0.isDragGesture }
+        let dragGestures = rememberUpdatedState(dragList)
+        if dragList.size > 0 {
             let dragOffsetX = remember { mutableStateOf(Float(0.0)) }
             let dragOffsetY = remember { mutableStateOf(Float(0.0)) }
             let dragPositionPx = remember { mutableStateOf(Offset(x: Float(0.0), y: Float(0.0))) }
-            let noMinimumDistance = dragGestures.value.any { $0.minimumDistance <= 0.0 }
+            let noMinimumDistance = dragList.any { $0.minimumDistance <= 0.0 }
             let scrollAxes = EnvironmentValues.shared._scrollAxes
             ret = ret.pointerInput(scrollAxes) {
                 let onDrag: (PointerInputChange, Offset) -> Void = { change, offsetPx in
@@ -797,12 +801,13 @@ final class GestureModifier: RenderModifier {
             }
         }
 
-        let simultaneousDragGestures = rememberUpdatedState(simultaneousGestures.filter { $0.isDragGesture })
-        if simultaneousDragGestures.value.size > 0 {
+        let simultaneousDragList = simultaneousGestures.filter { $0.isDragGesture }
+        let simultaneousDragGestures = rememberUpdatedState(simultaneousDragList)
+        if simultaneousDragList.size > 0 {
             let dragOffsetX = remember { mutableStateOf(Float(0.0)) }
             let dragOffsetY = remember { mutableStateOf(Float(0.0)) }
             let dragPositionPx = remember { mutableStateOf(Offset(x: Float(0.0), y: Float(0.0))) }
-            let noMinimumDistance = simultaneousDragGestures.value.any { $0.minimumDistance <= 0.0 }
+            let noMinimumDistance = simultaneousDragList.any { $0.minimumDistance <= 0.0 }
             ret = ret.pointerInput(true) {
                 let onDrag: (PointerInputChange, Offset) -> Void = { change, offsetPx in
                     let offsetX = with(density) { offsetPx.x.toDp() }
@@ -842,9 +847,11 @@ final class GestureModifier: RenderModifier {
             }
         }
 
-        let magnifyGestures = rememberUpdatedState(allGestures.filter { $0.isMagnifyGesture })
-        let rotateGestures = rememberUpdatedState(allGestures.filter { $0.isRotateGesture })
-        if magnifyGestures.value.size > 0 || rotateGestures.value.size > 0 {
+        let magnifyList = allGestures.filter { $0.isMagnifyGesture }
+        let rotateList = allGestures.filter { $0.isRotateGesture }
+        let magnifyGestures = rememberUpdatedState(magnifyList)
+        let rotateGestures = rememberUpdatedState(rotateList)
+        if magnifyList.size > 0 || rotateList.size > 0 {
             let magnification = remember { mutableStateOf(Float(1.0)) }
             let rotation = remember { mutableStateOf(Float(0.0)) }
             let panOffsetX = remember { mutableStateOf(Float(0.0)) }
