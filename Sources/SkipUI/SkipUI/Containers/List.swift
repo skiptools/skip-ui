@@ -270,7 +270,6 @@ public final class List : View, Renderable {
         // Section chrome has separate placement rules from rows: row inserts/deletes should animate, while
         // initial/bulk section loads need their rounded bottom chrome to appear at the settled position.
         let sectionChromeAnimationState = remember { SectionChromeAnimationState() }
-        let sectionBottomPlacementInvalidation = remember { mutableStateOf(0) }
         if Animation.current(isAnimating: false) == nil {
             forceUnanimatedItems.value = true
             LaunchedEffect(System.currentTimeMillis()) {
@@ -295,31 +294,25 @@ public final class List : View, Renderable {
         let listRowSpacing = EnvironmentValues.shared._listRowSpacing
         let listVerticalArrangement = listRowSpacing != nil ? Arrangement.spacedBy(listRowSpacing!.dp) : Arrangement.Top
         LazyColumn(state: reorderableState.listState, modifier: modifier, contentPadding: contentPadding, verticalArrangement: listVerticalArrangement) {
-            // Intentionally invalidate the LazyColumn after a section bottom has seen one frame at its unanimated baseline
-            let _ = sectionBottomPlacementInvalidation.value
-
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
-            let shouldAnimateItems: @Composable (Bool) -> Bool = { suppressTextInputAnimation in
-                // Focused text inputs can conflict with LazyColumn placement animation and visibly lag behind scrolling.
-                let animate = !forceUnanimatedItems.value
-                    && !suppressTextInputAnimation
-                    && EnvironmentValues.shared._searchableState?.isSearching.value != true
-                return animate
-            }
             let updateTextInputAnimationSuppression: @Composable (MutableState<Bool>, MutableState<Bool>) -> Void = { textInputFocused, suppressTextInputAnimation in
-                if reorderableState.listState.isScrollInProgress {
-                    if textInputFocused.value {
-                        suppressTextInputAnimation.value = true
+                // Ordinary rows do not need to observe scrolling. Keep tracking an active suppression
+                // after focus is lost until the current scroll finishes.
+                if textInputFocused.value || suppressTextInputAnimation.value {
+                    if reorderableState.listState.isScrollInProgress {
+                        if textInputFocused.value {
+                            suppressTextInputAnimation.value = true
+                        }
+                    } else {
+                        suppressTextInputAnimation.value = false
                     }
-                } else {
-                    suppressTextInputAnimation.value = false
                 }
             }
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
             var itemKeyOccurrences = mutableMapOf<String, Int>()
-            var currentSectionBodyItemCounts: [String: Int] = [:]
+            let currentSectionBodyItemCounts: kotlin.collections.MutableMap<String, Int> = mutableMapOf()
             var implicitPathComponents: [String] = []
             var implicitSiblingOccurrences: [Int: Int] = [:]
 
@@ -371,12 +364,17 @@ public final class List : View, Renderable {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
                         updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                        let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
-                        EnvironmentValues.shared.setValues {
-                            $0.set_listItemTextInputFocused(textInputFocused)
-                            return ComposeResult.ok
-                        } in: {
-                            RenderItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling)
+                        Self.RenderItemAnimation(
+                            forceUnanimatedItems: forceUnanimatedItems,
+                            suppressAnimation: suppressTextInputAnimation,
+                            animatedModifier: Modifier.animateItem()
+                        ) { itemModifier in
+                            EnvironmentValues.shared.setValues {
+                                $0.set_listItemTextInputFocused(textInputFocused)
+                                return ComposeResult.ok
+                            } in: {
+                                RenderItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling)
+                            }
                         }
                     }
                 },
@@ -389,13 +387,18 @@ public final class List : View, Renderable {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
                         updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                        let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
                         let renderable = factory(index + range.start, itemContext)
-                        EnvironmentValues.shared.setValues {
-                            $0.set_listItemTextInputFocused(textInputFocused)
-                            return ComposeResult.ok
-                        } in: {
-                            RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                        Self.RenderItemAnimation(
+                            forceUnanimatedItems: forceUnanimatedItems,
+                            suppressAnimation: suppressTextInputAnimation,
+                            animatedModifier: Modifier.animateItem()
+                        ) { itemModifier in
+                            EnvironmentValues.shared.setValues {
+                                $0.set_listItemTextInputFocused(textInputFocused)
+                                return ComposeResult.ok
+                            } in: {
+                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                            }
                         }
                     }
                 },
@@ -407,13 +410,18 @@ public final class List : View, Renderable {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
                         updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                        let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
                         let renderable = factory(objects[index], itemContext)
-                        EnvironmentValues.shared.setValues {
-                            $0.set_listItemTextInputFocused(textInputFocused)
-                            return ComposeResult.ok
-                        } in: {
-                            RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                        Self.RenderItemAnimation(
+                            forceUnanimatedItems: forceUnanimatedItems,
+                            suppressAnimation: suppressTextInputAnimation,
+                            animatedModifier: Modifier.animateItem()
+                        ) { itemModifier in
+                            EnvironmentValues.shared.setValues {
+                                $0.set_listItemTextInputFocused(textInputFocused)
+                                return ComposeResult.ok
+                            } in: {
+                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                            }
                         }
                     }
                 },
@@ -425,13 +433,18 @@ public final class List : View, Renderable {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
                         updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                        let itemModifier: Modifier = shouldAnimateItems(suppressTextInputAnimation.value) ? Modifier.animateItem() : Modifier
                         let renderable = factory(objectsBinding, index, itemContext)
-                        EnvironmentValues.shared.setValues {
-                            $0.set_listItemTextInputFocused(textInputFocused)
-                            return ComposeResult.ok
-                        } in: {
-                            RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                        Self.RenderItemAnimation(
+                            forceUnanimatedItems: forceUnanimatedItems,
+                            suppressAnimation: suppressTextInputAnimation,
+                            animatedModifier: Modifier.animateItem()
+                        ) { itemModifier in
+                            EnvironmentValues.shared.setValues {
+                                $0.set_listItemTextInputFocused(textInputFocused)
+                                return ComposeResult.ok
+                            } in: {
+                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                            }
                         }
                     }
                 },
@@ -486,28 +499,11 @@ public final class List : View, Renderable {
                     let currentSectionItemCount = sectionItemCount ?? 0
                     currentSectionBodyItemCounts[sectionKey] = currentSectionItemCount
 
-                    let shouldAnimateFooterPlacement: Bool
-                    if let previousSectionItemCount = sectionChromeAnimationState.sectionBodyItemCounts[sectionKey], sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] == true {
-                        let countDelta = currentSectionItemCount > previousSectionItemCount ? currentSectionItemCount - previousSectionItemCount : previousSectionItemCount - currentSectionItemCount
-                        shouldAnimateFooterPlacement = countDelta <= 1
-                    } else {
-                        shouldAnimateFooterPlacement = false
-                    }
-
-                    if !shouldAnimateFooterPlacement {
-                        // First/bulk layouts establish their footer baseline without placement animation. The next
-                        // frame enables normal placement animation for small changes such as DisclosureGroup toggles.
-                        sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] = false
-                        if sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] != true {
-                            sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] = true
-                            coroutineScope.launch {
-                                // SKIP INSERT: withFrameNanos { _ -> }
-                                sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] = true
-                                sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] = false
-                                sectionBottomPlacementInvalidation.value = sectionBottomPlacementInvalidation.value + 1
-                            }
-                        }
-                    }
+                    let placementReady = sectionChromeAnimationState.prepare(
+                        sectionKey: sectionKey,
+                        previousCount: sectionChromeAnimationState.sectionBodyItemCounts[sectionKey],
+                        currentCount: currentSectionItemCount
+                    )
 
                     var renderedCount = 0
                     for renderableIndex in 0..<footerRenderables.size {
@@ -516,7 +512,7 @@ public final class List : View, Renderable {
                             let itemModifier: Modifier
                             if itemCollector.value.hasActiveMove {
                                 itemModifier = Modifier
-                            } else if shouldAnimateFooterPlacement && EnvironmentValues.shared._searchableState?.isSearching.value != true {
+                            } else if placementReady.value && EnvironmentValues.shared._searchableState?.isSearching.value != true {
                                 itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
                             } else {
                                 itemModifier = Modifier.animateItem(fadeInSpec: nil, placementSpec: nil, fadeOutSpec: nil)
@@ -548,7 +544,15 @@ public final class List : View, Renderable {
                 }
             }
 
+            sectionChromeAnimationState.retainSections(currentSectionBodyItemCounts.keys)
             sectionChromeAnimationState.sectionBodyItemCounts = currentSectionBodyItemCounts
+
+            if sectionChromeAnimationState.beginFrame() {
+                coroutineScope.launch {
+                    // SKIP INSERT: withFrameNanos { _ -> }
+                    sectionChromeAnimationState.completeFrame()
+                }
+            }
 
             let currentListItemCount = itemCollector.value.count
             let previousListItemCount = sectionChromeAnimationState.listItemCount
@@ -579,6 +583,25 @@ public final class List : View, Renderable {
         }
     }
 
+    /// Isolates placement-state changes from the construction of a row's content.
+    ///
+    /// - Parameters:
+    ///   - forceUnanimatedItems: Whether the current update suppresses placement animations.
+    ///   - suppressAnimation: Whether the row's focused text input suppresses animations.
+    ///   - animatedModifier: The lazy item scope's animated placement modifier.
+    ///   - content: Renders the existing row with the chosen modifier.
+    @Composable static func RenderItemAnimation(
+        forceUnanimatedItems: MutableState<Bool>,
+        suppressAnimation: MutableState<Bool>,
+        animatedModifier: Modifier,
+        content: @Composable (Modifier) -> Void
+    ) {
+        let animate = !forceUnanimatedItems.value
+            && !suppressAnimation.value
+            && EnvironmentValues.shared._searchableState?.isSearching.value != true
+        content(animate ? animatedModifier : Modifier)
+    }
+
     /// Build a stable key for section chrome animation state.
     private static func sectionKey(for sectionIdentity: Any?, fallbackIndex: Int) -> String {
         guard let sectionIdentity else {
@@ -592,11 +615,48 @@ public final class List : View, Renderable {
     }
 
     /// Tracks section chrome placement separately from row animation state.
-    private final class SectionChromeAnimationState {
-        var sectionBodyItemCounts: [String: Int] = [:]
-        var sectionBottomPlacementReady: [String: Bool] = [:]
-        var sectionBottomPlacementPending: [String: Bool] = [:]
+    final class SectionChromeAnimationState {
+        var sectionBodyItemCounts: kotlin.collections.Map<String, Int> = mapOf()
         var listItemCount: Int? = nil
+        private let sectionBottomPlacementReady: kotlin.collections.MutableMap<String, androidx.compose.runtime.MutableState<Bool>> = mutableMapOf()
+        private let sectionBottomPlacementPending: kotlin.collections.MutableSet<String> = mutableSetOf()
+        private var isFrameScheduled = false
+
+        /// Prepares placement state for an initial, small, or bulk section update.
+        func prepare(sectionKey: String, previousCount: Int?, currentCount: Int) -> androidx.compose.runtime.MutableState<Bool> {
+            let state = sectionBottomPlacementReady.getOrPut(sectionKey) { androidx.compose.runtime.mutableStateOf(false) }
+            let isSmallChange = previousCount != nil && abs(currentCount - previousCount!) <= 1
+            if !isSmallChange {
+                state.value = false
+                sectionBottomPlacementPending.add(sectionKey)
+            }
+
+            return state
+        }
+
+        /// Releases placement state for sections removed from the current list.
+        func retainSections(_ sectionKeys: kotlin.collections.Set<String>) {
+            sectionBottomPlacementReady.keys.retainAll(sectionKeys)
+            sectionBottomPlacementPending.retainAll(sectionKeys)
+        }
+
+        /// Reserves one frame callback for all pending sections.
+        func beginFrame() -> Bool {
+            guard !isFrameScheduled && !sectionBottomPlacementPending.isEmpty() else { return false }
+
+            isFrameScheduled = true
+            return true
+        }
+
+        /// Enables placement after all pending footers have established their baseline.
+        func completeFrame() {
+            for key in sectionBottomPlacementPending {
+                sectionBottomPlacementReady[key]?.value = true
+            }
+
+            sectionBottomPlacementPending.clear()
+            isFrameScheduled = false
+        }
     }
 
     private static let horizontalInset = 16.0

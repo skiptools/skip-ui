@@ -1279,6 +1279,7 @@ public struct NavigationBarItem : Hashable {
     }
 }
 
+// SKIP NOWARN
 extension View {
     // SKIP @bridge
     public func navigationBarBackButtonHidden(_ hidesBackButton: Bool = true) -> any View {

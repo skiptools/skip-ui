@@ -140,6 +140,8 @@ public final class UNUserNotificationCenter {
         let nextDate = (request.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate() ??
                        (request.trigger as? UNTimeIntervalNotificationTrigger)?.nextTriggerDate()
         UNUserNotificationCenter.enqueueRequest(identifier: request.identifier, data: dataBuilder.build(), date: nextDate, context: activity)
+
+        // SKIP NOWARN
         await UNUserNotificationCenter.cancelWorkOfEarlierVersions(identifiers: [request.identifier], workManager: WorkManager.getInstance(activity))
         #endif
     }
@@ -147,9 +149,10 @@ public final class UNUserNotificationCenter {
     // SKIP @bridge
     public func pendingNotificationRequests() async -> [Any /* UNNotificationRequest */] {
         #if SKIP
-        // The queued work is what will fire. A saved date can say otherwise: WorkManager can run a request
-        // after its date.
+        // The queued work is what will fire. A saved date can say otherwise: WorkManager can run a request after its date.
         guard let activity = UIApplication.shared.androidActivity else { return [] }
+
+        // SKIP NOWARN
         return await UNUserNotificationCenter.queuedNotificationIdentifiers(WorkManager.getInstance(activity)).map {
             UNNotificationRequest(identifier: $0, content: UNMutableNotificationContent(), trigger: nil)
         }
@@ -243,8 +246,7 @@ public final class UNUserNotificationCenter {
 
     #if SKIP
     /// The tag WorkManager gives every notification's work: its worker's class name.
-    private static let notificationWorkTag = NotificationWorker.self.java.name
-
+    private static let notificationWorkTag: String = NotificationWorker.self.java.name
     private static let workNamePrefix = "__skip_usernotifications."
 
     /// The unique work name of the request with `identifier`, which is also its work's tag.
@@ -312,6 +314,7 @@ public final class UNUserNotificationCenter {
     /// suspends until WorkManager answers; nothing waits on a thread.
     private static func notificationWork(taggedWith tag: String, _ workManager: WorkManager) async -> [(identifier: String, info: WorkInfo)] {
         var work: [(identifier: String, info: WorkInfo)] = []
+        // SKIP NOWARN
         let workInfos = await workManager.getWorkInfosByTagFlow(tag).first()
         let iterator = workInfos.iterator()
         while iterator.hasNext() {
