@@ -41,9 +41,46 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
         self.stringInterpolation = interp
     }
 
-    /// Returns the pattern string to use for looking up localized values in the `.xcstrings` file
+    /// Returns the pattern string to use for looking up localized values in the `.xcstrings` file.
+    ///
+    /// Literal percent signs are stored doubled so a later `String.format` treats them as text.
+    /// Catalog keys and Markdown use `localizedPattern`, where those doubled percents are one character again.
     public var patternFormat: String {
         stringInterpolation.pattern
+    }
+
+    /// The key and display string, with a literal percent restored from the `%%` format escape.
+    ///
+    /// `Text("Perfect! 100% **bold**")` looks up and renders `100%`, not `100%%`.
+    /// Format specifiers such as `%@` are left intact. An authored `100%%` is stored
+    /// as `100%%%%` and comes back as `100%%` — one unescape, not two.
+    public var localizedPattern: String {
+        return stringInterpolation.pattern.replacingOccurrences(of: "%%", with: "%")
+    }
+
+    /// The string drawn when this key has no interpolations.
+    ///
+    /// `localizedInfo` stores the catalog literal and its `kotlinFormatString`.
+    /// The format form rewrites `%@` to `%s` and `%lld` to `%d`. Nothing on this
+    /// path is passed to `String.format`, so that rewrite would be drawn as text.
+    /// An authored `100%%` is already one unescape in `literal`; do not collapse it again.
+    public func noInterpolationDisplay(literal: String, kotlinFormat: String) -> String {
+        // kotlinFormat is the String.format form. Callers pass it so a test can
+        // show that "Use %@" is kept and "Use %s" is not drawn.
+        return literal
+    }
+
+    /// Markdown source when this key has no interpolations.
+    ///
+    /// `MarkdownNode` stores the Kotlin format form inside each span. When that
+    /// form differs from the literal, parsing it would draw `Use %s` for `Use %@`.
+    /// Return nil so the caller draws `literal` as plain text. When the two match,
+    /// as with a lone `%`, the literal is safe to parse.
+    public func noInterpolationMarkdownSource(literal: String, kotlinFormat: String) -> String? {
+        if literal != kotlinFormat {
+            return nil
+        }
+        return literal
     }
 
     #if SKIP
