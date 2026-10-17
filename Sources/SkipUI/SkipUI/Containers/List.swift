@@ -845,11 +845,14 @@ public final class List : View, Renderable {
 
             itemContent = {
                 SwipeToDismissBox(state: dismissState, enableDismissFromEndToStart: true, enableDismissFromStartToEnd: false, modifier: $0, backgroundContent: {
-                    /* Red background unconditional (destructive cue); icon only
-                       if the trash vector resolves — force-unwrapping inside a LazyColumn item would crash measurement. */
-                    Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.Red).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
-                        if let trashVector = Image.composeImageVector(named: "trash") {
-                            Icon(imageVector: trashVector, contentDescription: "Delete", modifier = Modifier.padding(end: 24.dp), tint: androidx.compose.ui.graphics.Color.White)
+                    /* Red background composed only while the row is dragged: under a translucent row it
+                       would show a trash button at rest that a tap cannot reach. Icon only if the trash
+                       vector resolves — force-unwrapping inside a LazyColumn item would crash measurement. */
+                    if dismissState.dismissDirection != SwipeToDismissBoxValue.Settled {
+                        Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.Red).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
+                            if let trashVector = Image.composeImageVector(named: "trash") {
+                                Icon(imageVector: trashVector, contentDescription: "Delete", modifier = Modifier.padding(end: 24.dp), tint: androidx.compose.ui.graphics.Color.White)
+                            }
                         }
                     }
                 }, content: {
