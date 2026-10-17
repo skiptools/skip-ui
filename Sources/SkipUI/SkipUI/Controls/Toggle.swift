@@ -11,6 +11,7 @@ import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
 #endif
 
 // SKIP @bridge
@@ -77,7 +78,9 @@ public struct Toggle : View, Renderable {
         } else {
             let contentContext = context.content()
             ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
-                Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                // Merge the label text into the switch node so TalkBack announces both.
+                let rowModifier = modifier.semantics(mergeDescendants: true) { }
+                Row(modifier: rowModifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                     Box(modifier: Modifier.weight(Float(1.0))) {
                         label.Compose(context: contentContext)
                     }
