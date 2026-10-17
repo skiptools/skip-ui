@@ -685,7 +685,8 @@ struct _Text: View, Renderable, Equatable {
             if isRedacted {
                 builder.pushStyle(SpanStyle(background: linkColor))
             } else {
-                builder.pushStyle(SpanStyle(color: linkColor))
+                // Keep links identifiable without relying on color alone.
+                builder.pushStyle(SpanStyle(color: linkColor, textDecoration: TextDecoration.Underline))
             }
             builder.pushUrlAnnotation(UrlAnnotation(markdown.formattedString(interpolations) ?? ""))
             appendChildren()
