@@ -16,6 +16,7 @@ import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -95,7 +96,11 @@ public struct ScrollView : View, Renderable {
                 PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: scrollState, for: [ToolbarPlacement.bottomBar]))
                 PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: scrollState))
             }
-            IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier, logTag: "ScrollView") { _, safeAreaEdges in
+            // As on iOS, a scroll view that scrolls its content vertically extends beneath system bars and floating app
+            // bars, and insets its content instead. A lazy container scrolling for it extends itself
+            var scrollUnderEdges: Edge.Set = wantsVerticalScroll && !wantsHorizontalScroll ? [.top, .bottom] : []
+            scrollUnderEdges.formIntersection(EnvironmentValues.shared._safeArea?.scrollUnderEdges ?? [])
+            IgnoresSafeAreaLayout(expandInto: scrollUnderEdges, checkEdges: [.bottom], modifier: modifier, logTag: "ScrollView") { safeAreaExpansion, safeAreaEdges in
                 var containerModifier: Modifier = Modifier
                 if wantsVerticalScroll {
                     containerModifier = containerModifier.fillMaxHeight()
@@ -122,14 +127,19 @@ public struct ScrollView : View, Renderable {
                 }
                 containerModifier = containerModifier.scrollDismissesKeyboardMode(EnvironmentValues.shared.scrollDismissesKeyboardMode)
 
+                // Reserve the space beneath the bars inside the scrolling content
+                let insetTop = with(LocalDensity.current) { safeAreaExpansion.top.toDp() }
+                let insetBottom = with(LocalDensity.current) { safeAreaExpansion.bottom.toDp() }
+                SideEffect {
+                    driver.contentInsets.value = EdgeInsets(top: Double(insetTop.value), leading: 0.0, bottom: Double(insetBottom.value), trailing: 0.0)
+                }
+
                 Box(modifier: containerModifier) {
                     // Apply content margins as padding to the scrolling content only when this ScrollView is managing scroll
                     // (when a lazy container is the child, it manages its own scroll and will apply margins itself)
-                    let finalScrollModifier: Modifier
+                    var finalScrollModifier = scrollModifier.padding(top: insetTop, bottom: insetBottom)
                     if (wantsVerticalScroll || wantsHorizontalScroll), let contentMargins = EnvironmentValues.shared._contentMargins?.asComposePaddingValues(for: .automatic) {
-                        finalScrollModifier = scrollModifier.padding(contentMargins)
-                    } else {
-                        finalScrollModifier = scrollModifier
+                        finalScrollModifier = finalScrollModifier.padding(contentMargins)
                     }
 
                     Column(modifier: finalScrollModifier) {
@@ -154,7 +164,7 @@ public struct ScrollView : View, Renderable {
                         }
                     }
                     if let refreshState {
-                        PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter))
+                        PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter).padding(top: insetTop))
                     }
                 }
             }

@@ -68,6 +68,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -188,10 +189,10 @@ public final class List : View, Renderable {
         let styling = ListStyling(kind: ListStyleKind.of(style), backgroundVisibility: backgroundVisibility, sectionSpacing: EnvironmentValues.shared._listSectionSpacing)
         let itemContext = context.content()
 
-        // When we layout, extend into safe areas that are due to system bars, not into any app chrome
+        // As on iOS, extend beneath system bars and floating app bars, and inset the rows with a header and footer instead
         let safeArea = EnvironmentValues.shared._safeArea
         var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
-        ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
+        ignoresSafeAreaEdges.formIntersection(safeArea?.scrollUnderEdges ?? [])
         ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(styling: styling, isItem: false))) { modifier in
             IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: [.bottom], modifier: modifier, logTag: "List") { safeAreaExpansion, safeAreaEdges in
                 var containerModifier: Modifier
@@ -221,7 +222,7 @@ public final class List : View, Renderable {
                     let footerSafeAreaHeight = with(density) { safeAreaExpansion.bottom.toDp() }
                     RenderList(context: itemContext, styling: styling, arguments: ListArguments(headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight, safeAreaEdges: safeAreaEdges))
                     if let refreshState {
-                        PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter))
+                        PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter).padding(top: headerSafeAreaHeight))
                     }
                 }
             }
@@ -275,8 +276,12 @@ public final class List : View, Renderable {
             }
         })
         let density = LocalDensity.current.density
-        let driver = remember(reorderableState.listState) { LazyScrollDriver(list: reorderableState.listState, items: itemCollector, density: density) }
+        let driver = remember(reorderableState.listState) { LazyScrollDriver(list: reorderableState.listState, items: itemCollector, density: density, isInsetInContent: true) }
         ScrollDriverEffects(driver, context: context)
+        // The header and footer reserve the space beneath any bars
+        SideEffect {
+            driver.contentInsets.value = EdgeInsets(top: Double(arguments.headerSafeAreaHeight.value), leading: 0.0, bottom: Double(arguments.footerSafeAreaHeight.value), trailing: 0.0)
+        }
         let isSystemBackground = styling.isGroupedBackground && styling.backgroundVisibility != Visibility.hidden
         // We contribute top bar preferences even without knowing we're safe area-adjacent for multiple reasons:
         // - When there is a search bar we may not be adjacent to the top safe area, but we should act like it

@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -72,7 +74,11 @@ public struct LazyVStack : View, Renderable {
                 PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: listState, for: [ToolbarPlacement.bottomBar]))
                 PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: listState))
             }
-            IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier, logTag: "LazyVStack") { _, _ in
+            // As on iOS, a vertically scrolling stack extends beneath system bars and floating app bars, and insets its
+            // content instead
+            var scrollUnderEdges: Edge.Set = isScrollEnabled ? [.top, .bottom] : []
+            scrollUnderEdges.formIntersection(EnvironmentValues.shared._safeArea?.scrollUnderEdges ?? [])
+            IgnoresSafeAreaLayout(expandInto: scrollUnderEdges, checkEdges: [.bottom], modifier: modifier, logTag: "LazyVStack") { safeAreaExpansion, _ in
                 // Integrate with our scroll-to-top and ScrollViewReader
                 PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: ScrollToTopAction(key: listState) {
                     coroutineScope.launch {
@@ -82,6 +88,12 @@ public struct LazyVStack : View, Renderable {
                 let density = LocalDensity.current.density
                 let driver = remember(listState) { LazyScrollDriver(list: listState, items: itemCollector, density: density) }
                 ScrollDriverEffects(driver, context: context)
+                // Reserve the space beneath the bars inside the content
+                let insetTop = Double(safeAreaExpansion.top) / Double(density)
+                let insetBottom = Double(safeAreaExpansion.bottom) / Double(density)
+                SideEffect {
+                    driver.contentInsets.value = EdgeInsets(top: insetTop, leading: 0.0, bottom: insetBottom, trailing: 0.0)
+                }
 
                 EnvironmentValues.shared.setValues {
                     $0.set_scrollTargetBehavior(nil)
@@ -93,6 +105,7 @@ public struct LazyVStack : View, Renderable {
                     if let contentMargins = EnvironmentValues.shared._contentMargins?.asComposePaddingValues(for: .automatic) {
                         contentPadding = contentPadding.adding(contentMargins)
                     }
+                    contentPadding = contentPadding.adding(PaddingValues(top: insetTop.dp, bottom: insetBottom.dp))
                     EnvironmentValues.shared.setValues {
                         $0.set_contentPadding(EdgeInsets())
                         return ComposeResult.ok
