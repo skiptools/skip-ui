@@ -1057,15 +1057,15 @@ public final class List : View, Renderable {
                building hidden labels and symbols for every closed row stalls
                scrolling. Until its first measurement, the edge uses the
                count-based natural-width fallback above. */
-            let leadingUseStretch = leadingButtons.size > 0 && revealedLeadingPx > leadingNaturalPx + Float(1)
-            let trailingUseStretch = trailingButtons.size > 0 && revealedTrailingPx > trailingNaturalPx + Float(1)
+            let leadingUseStretch = leadingButtons.size > 0 && (revealedLeadingPx > leadingNaturalPx + Float(1) || leadingFullSwipeAnim > Float(0))
+            let trailingUseStretch = trailingButtons.size > 0 && (revealedTrailingPx > trailingNaturalPx + Float(1) || trailingFullSwipeAnim > Float(0))
             let leadingCount = Float(leadingButtons.size)
             let trailingCount = Float(trailingButtons.size)
 
             if leadingButtons.size > 0 && curOffset > Float(0) {
                 Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
                     if leadingUseStretch {
-                        let rowWidthDp = with(density) { revealedLeadingPx.toDp() }
+                        let rowWidthDp = with(density) { max(revealedLeadingPx, leadingNaturalPx).toDp() }
                         Row(modifier: Modifier.fillMaxHeight().width(rowWidthDp)) {
                             for button in leadingButtons {
                                 let isPrimary = button === leadingFullSwipeTarget
@@ -1108,7 +1108,7 @@ public final class List : View, Renderable {
             if trailingButtons.size > 0 && curOffset < Float(0) {
                 Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
                     if trailingUseStretch {
-                        let rowWidthDp = with(density) { revealedTrailingPx.toDp() }
+                        let rowWidthDp = with(density) { max(revealedTrailingPx, trailingNaturalPx).toDp() }
                         Row(modifier: Modifier.fillMaxHeight().width(rowWidthDp)) {
                             for button in trailingButtons {
                                 let isPrimary = button === trailingFullSwipeTarget
