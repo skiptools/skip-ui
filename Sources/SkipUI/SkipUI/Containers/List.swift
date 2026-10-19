@@ -13,9 +13,10 @@ import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
-import androidx.compose.foundation.gestures.snapTo
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,6 +68,8 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Path.Companion.combine
 import androidx.compose.ui.graphics.PathOperation
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Density
@@ -960,6 +963,9 @@ public final class List : View, Renderable {
                 decayAnimationSpec: exponentialDecay<Float>()
             )
         }
+        let interactionSource = remember { MutableInteractionSource() }
+        let isDragging = interactionSource.collectIsDraggedAsState()
+        let haptic = LocalHapticFeedback.current
         let rowWidthPxState = remember { mutableFloatStateOf(Float(0)) }
         /* Natural (content-sized) buttons-row width per edge, captured via
            onSizeChanged when the reveal is in natural-layout mode. Defaults
@@ -987,36 +993,6 @@ public final class List : View, Renderable {
                 }
             } else if cur != SwipeAnchor.trailingFull && cur != SwipeAnchor.leadingFull {
                 activeSwipeKey.value = rowKey
-            }
-        }
-
-        /* When the row actually settles on a full-swipe anchor, fire the
-           primary action (and optional auto-delete for destructive), then
-           snap back to closed. */
-        LaunchedEffect(anchoredState.settledValue) {
-            let settled = anchoredState.settledValue
-            if settled == SwipeAnchor.trailingFull {
-                if let action = trailingFullSwipeTarget?.action {
-                    action()
-                }
-                if trailingFullSwipeTarget?.role == ButtonRole.destructive, let onDestructiveDelete {
-                    onDestructiveDelete()
-                }
-                anchoredState.snapTo(SwipeAnchor.closed)
-                if activeSwipeKey.value == rowKey {
-                    activeSwipeKey.value = nil
-                }
-            } else if settled == SwipeAnchor.leadingFull {
-                if let action = leadingFullSwipeTarget?.action {
-                    action()
-                }
-                if leadingFullSwipeTarget?.role == ButtonRole.destructive, let onDestructiveDelete {
-                    onDestructiveDelete()
-                }
-                anchoredState.snapTo(SwipeAnchor.closed)
-                if activeSwipeKey.value == rowKey {
-                    activeSwipeKey.value = nil
-                }
             }
         }
 
@@ -1049,6 +1025,27 @@ public final class List : View, Renderable {
                transition is animated to smooth out the moment of takeover. */
             let trailingFullSwipeActive = allowsTrailingFullSwipe && revealedTrailingPx > rowWidthPx * swipeFullSwipeFraction
             let leadingFullSwipeActive = allowsLeadingFullSwipe && revealedLeadingPx > rowWidthPx * swipeFullSwipeFraction
+            LaunchedEffect(trailingFullSwipeActive, leadingFullSwipeActive) {
+                if isDragging.value {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                }
+            }
+            LaunchedEffect(isDragging.value) {
+                if !isDragging.value && (trailingFullSwipeActive || leadingFullSwipeActive) {
+                    let button = trailingFullSwipeActive ? trailingFullSwipeTarget : leadingFullSwipeTarget
+                    if button?.role == ButtonRole.destructive && onDestructiveDelete != nil {
+                        anchoredState.animateTo(trailingFullSwipeActive ? SwipeAnchor.trailingFull : SwipeAnchor.leadingFull)
+                    }
+                    button?.action?()
+                    if button?.role == ButtonRole.destructive, let onDestructiveDelete {
+                        onDestructiveDelete()
+                    }
+                    anchoredState.animateTo(SwipeAnchor.closed)
+                    if activeSwipeKey.value == rowKey {
+                        activeSwipeKey.value = nil
+                    }
+                }
+            }
             let trailingFullSwipeAnim = animateFloatAsState(targetValue: trailingFullSwipeActive ? Float(1) : Float(0)).value
             let leadingFullSwipeAnim = animateFloatAsState(targetValue: leadingFullSwipeActive ? Float(1) : Float(0)).value
 
@@ -1194,7 +1191,7 @@ public final class List : View, Renderable {
                     let o = anchoredState.offset
                     IntOffset(o.isNaN() ? 0 : o.toInt(), 0)
                 }
-                .anchoredDraggable(state: anchoredState, orientation: Orientation.Horizontal)
+                .anchoredDraggable(state: anchoredState, orientation: Orientation.Horizontal, interactionSource: interactionSource)
             ) {
                 RenderItem(content: content, level: level, context: context, styling: styling)
                 /* Subtle scrim that intensifies with swipe progress so the row
