@@ -240,7 +240,18 @@ struct ScrollToIDPreferenceKey: PreferenceKey {
     static let defaultValue = ScrollToIDAction(key: nil, action: { _, _ in })
 
     static func reduce(value: inout ScrollToIDAction, nextValue: () -> ScrollToIDAction) {
-        value = nextValue()
+        // As on iOS, a reader scrolls whichever of its scroll views holds the ID, such as a list beneath a horizontal
+        // menu. Each scroll view ignores IDs it doesn't hold
+        let previous = value
+        let next = nextValue()
+        guard previous.key != nil else {
+            value = next
+            return
+        }
+        value = ScrollToIDAction(key: [previous.key, next.key], action: { id, anchor in
+            previous.action(id, anchor)
+            next.action(id, anchor)
+        })
     }
 }
 
