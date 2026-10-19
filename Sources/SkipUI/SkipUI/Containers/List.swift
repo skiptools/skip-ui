@@ -372,8 +372,7 @@ public final class List : View, Renderable {
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(itemIndex),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(itemIndex),
                             suppressAnimation: suppressTextInputAnimation,
-                            animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil)),
-                            unanimatedModifier: Modifier
+                            animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                         ) { itemModifier in
                             EnvironmentValues.shared.setValues {
                                 $0.set_listItemTextInputFocused(textInputFocused)
@@ -399,8 +398,7 @@ public final class List : View, Renderable {
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
-                            animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil)),
-                            unanimatedModifier: Modifier
+                            animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                         ) { itemModifier in
                             EnvironmentValues.shared.setValues {
                                 $0.set_listItemTextInputFocused(textInputFocused)
@@ -425,8 +423,7 @@ public final class List : View, Renderable {
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
-                            animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil)),
-                            unanimatedModifier: Modifier
+                            animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                         ) { itemModifier in
                             EnvironmentValues.shared.setValues {
                                 $0.set_listItemTextInputFocused(textInputFocused)
@@ -451,8 +448,7 @@ public final class List : View, Renderable {
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
-                            animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil)),
-                            unanimatedModifier: Modifier
+                            animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                         ) { itemModifier in
                             EnvironmentValues.shared.setValues {
                                 $0.set_listItemTextInputFocused(textInputFocused)
@@ -584,7 +580,6 @@ public final class List : View, Renderable {
     ///   - isLastInSection: Clips the final row's bottom corners together with its background.
     ///   - suppressAnimation: Whether the row's focused text input suppresses animations.
     ///   - animatedModifier: The lazy item scope's animated placement modifier.
-    ///   - unanimatedModifier: Applies an immediate update without placement animation.
     ///   - content: Renders the existing row with the chosen modifier.
     @Composable static func RenderItemAnimation(
         forceUnanimatedItems: MutableState<Bool>,
@@ -592,11 +587,10 @@ public final class List : View, Renderable {
         isLastInSection: Bool,
         suppressAnimation: MutableState<Bool>,
         animatedModifier: Modifier,
-        unanimatedModifier: Modifier,
         content: @Composable (Modifier) -> Void
     ) {
         let animate = !forceUnanimatedItems.value && !suppressAnimation.value
-        let modifier = animate ? animatedModifier : unanimatedModifier
+        let modifier = animate ? animatedModifier : Modifier
         let topRadius = isFirstInSection ? listSectionCornerRadius.dp : 0.dp
         let bottomRadius = isLastInSection ? listSectionCornerRadius.dp : 0.dp
         content(isFirstInSection || isLastInSection ? modifier.clip(RoundedCornerShape(topStart: topRadius, topEnd: topRadius, bottomStart: bottomRadius, bottomEnd: bottomRadius)) : modifier)
@@ -1318,7 +1312,7 @@ public final class List : View, Renderable {
             RenderItem(content: footerContent, level: 0, context: context, modifier: modifier, styling: styling, isItem: false)
         } else {
             let containerModifier = modifier.heightIn(min: listSectionCornerRadius.dp)
-                .zIndex(styling.style == .plain ? Float(0.5) : Float(-0.5))
+                .zIndex(Float(-0.5))
                 .then(context.modifier)
             let contentModifier = Modifier.fillMaxWidth().padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
             Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
