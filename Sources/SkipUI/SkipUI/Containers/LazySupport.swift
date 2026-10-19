@@ -126,6 +126,7 @@ extension ModifiedContent: LazyItemFactory {
 
 /// Collect lazy content added by `LazyItemFactory` instances.
 public final class LazyItemCollector {
+    private(set) var revision = 0
     private(set) var item: (Renderable, Int) -> Void = { _, _ in }
     private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Int, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _ in  }
     private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Any, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _ in }
@@ -159,6 +160,7 @@ public final class LazyItemCollector {
         sectionHeader: (kotlin.collections.List<Renderable>, Any?) -> Int,
         sectionFooter: (kotlin.collections.List<Renderable>, Any?, Int?) -> Int
     ) {
+        revision += 1
         self.startItemIndex = startItemIndex
 
         content.clear()

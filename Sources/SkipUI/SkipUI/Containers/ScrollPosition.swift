@@ -349,6 +349,8 @@ final class ScrollViewDriver: ScrollDriver {
     var content: LayoutCoordinates?
     let viewportSize = mutableStateOf(IntSize.Zero)
     let contentSize = mutableStateOf(IntSize.Zero)
+    /// The space the content reserves at its edges for the bars it scrolls beneath, in points, part of `contentSize`.
+    let contentInsets = mutableStateOf(EdgeInsets())
 
     init(state: ScrollState, isVertical: Bool, density: Float) {
         self.state = state
@@ -365,8 +367,14 @@ final class ScrollViewDriver: ScrollDriver {
     }
 
     var geometry: ScrollGeometry {
+        // As on iOS, the offset is -insets.top at the top, and the content size leaves out the insets
+        let insets = contentInsets.value
         let offset = Double(state.value) / Double(density)
-        return ScrollGeometry(contentOffset: isVertical ? CGPoint(x: 0.0, y: offset) : CGPoint(x: offset, y: 0.0), contentSize: points(contentSize.value), contentInsets: EdgeInsets(), containerSize: points(viewportSize.value))
+        var size = points(contentSize.value)
+        if isVertical {
+            size.height = max(0.0, size.height - insets.top - insets.bottom)
+        }
+        return ScrollGeometry(contentOffset: isVertical ? CGPoint(x: 0.0, y: offset - insets.top) : CGPoint(x: offset, y: 0.0), contentSize: size, contentInsets: insets, containerSize: points(viewportSize.value))
     }
 
     func id(at anchor: UnitPoint) -> AnyHashable? {
@@ -425,18 +433,31 @@ final class ScrollViewDriver: ScrollDriver {
 
 /// A lazy list or grid, whose items are identified by their `ForEach` IDs.
 ///
-/// Compose measures only the visible items, so offsets and sizes assume the others share their average size.
+/// Compose measures only the visible items. A list remembers the size of each item it has measured, and assumes the
+/// others share the visible items' average size, as a grid assumes for all its items.
 final class LazyScrollDriver: ScrollDriver {
     let list: LazyListState?
     let grid: LazyGridState?
     let items: MutableState<LazyItemCollector>
     let density: Float
+    /// The space the container reserves at its edges for the bars it scrolls beneath, in points.
+    let contentInsets = mutableStateOf(EdgeInsets())
+    /// Whether that space is part of the content, as a list's header and footer items are, rather than padding.
+    let isInsetInContent: Bool
+    /// Sparse Fenwick trees of measured list sizes and measured item counts, keyed by one-based index.
+    /// They let geometry use the visible stride for unmeasured items and exact corrections for measured ones.
+    private var measuredSizeTree: kotlin.collections.MutableMap<Int, Double> = mutableMapOf()
+    private var measuredCountTree: kotlin.collections.MutableMap<Int, Int> = mutableMapOf()
+    private var measuredSizes: kotlin.collections.MutableMap<Int, Int> = mutableMapOf()
+    private var itemSizesCount = 0
+    private var measuredItemsRevision = -1
 
-    init(list: LazyListState? = nil, grid: LazyGridState? = nil, items: MutableState<LazyItemCollector>, density: Float) {
+    init(list: LazyListState? = nil, grid: LazyGridState? = nil, items: MutableState<LazyItemCollector>, density: Float, isInsetInContent: Bool = false) {
         self.list = list
         self.grid = grid
         self.items = items
         self.density = density
+        self.isInsetInContent = isInsetInContent
     }
 
     var interactionSource: InteractionSource {
@@ -456,10 +477,91 @@ final class LazyScrollDriver: ScrollDriver {
         let firstOffset = list?.firstVisibleItemScrollOffset ?? grid!.firstVisibleItemScrollOffset
         let viewport = list?.layoutInfo.viewportSize ?? grid!.layoutInfo.viewportSize
         let scale = Double(density)
-        let offset = (Double(firstIndex) * stride + Double(firstOffset)) / scale
-        let length = max(0.0, Double(total) * stride - Double(spacing)) / scale
+        let extent: (offset: Double, length: Double)
+        if list != nil {
+            extent = measuredExtent(visible: visible, total: total, firstIndex: firstIndex, firstOffset: firstOffset, stride: stride)
+        } else {
+            extent = (offset: Double(firstIndex) * stride + Double(firstOffset), length: Double(total) * stride)
+        }
+        // As on iOS, the offset is -insets.top at the top, and the content size leaves out the insets
+        let insets = contentInsets.value
+        let offset = extent.offset / scale - insets.top
+        var length = max(0.0, extent.length - Double(spacing)) / scale
+        if isInsetInContent {
+            length = max(0.0, length - insets.top - insets.bottom)
+        }
         let container = CGSize(width: Double(viewport.width) / scale, height: Double(viewport.height) / scale)
-        return ScrollGeometry(contentOffset: isVertical ? CGPoint(x: 0.0, y: offset) : CGPoint(x: offset, y: 0.0), contentSize: isVertical ? CGSize(width: container.width, height: length) : CGSize(width: length, height: container.height), contentInsets: EdgeInsets(), containerSize: container)
+        return ScrollGeometry(contentOffset: isVertical ? CGPoint(x: 0.0, y: offset) : CGPoint(x: offset, y: 0.0), contentSize: isVertical ? CGSize(width: container.width, height: length) : CGSize(width: length, height: container.height), contentInsets: insets, containerSize: container)
+    }
+
+    /// The estimated offset and length in pixels, corrected by measured item sizes.
+    private func measuredExtent(visible: kotlin.collections.List<(index: Int, start: Int, end: Int)>, total: Int, firstIndex: Int, firstOffset: Int, stride: Double) -> (offset: Double, length: Double) {
+        // Indexes change meaning when the collected items are rebuilt, even when their count stays the same.
+        let itemsRevision = items.value.revision
+        if total != itemSizesCount || itemsRevision != measuredItemsRevision {
+            measuredSizeTree.clear()
+            measuredCountTree.clear()
+            measuredSizes.clear()
+            itemSizesCount = total
+            measuredItemsRevision = itemsRevision
+        }
+        let spacing = list!.layoutInfo.mainAxisItemSpacing
+        for item in visible {
+            let size = item.end - item.start + spacing
+            let previousSize = measuredSizes[item.index]
+            if previousSize == nil || previousSize! != size {
+                updateMeasuredSize(index: item.index, delta: Double(size - (previousSize ?? 0)), count: total)
+                if previousSize == nil {
+                    updateMeasuredCount(index: item.index, count: total)
+                }
+                measuredSizes[item.index] = size
+            }
+        }
+        let measuredBefore = measuredSizePrefix(endIndex: firstIndex)
+        let measuredCountBefore = measuredCountPrefix(endIndex: firstIndex)
+        let measuredTotal = measuredSizePrefix(endIndex: total)
+        let measuredCountTotal = measuredCountPrefix(endIndex: total)
+        let offset = Double(firstOffset) + Double(firstIndex) * stride + measuredBefore - Double(measuredCountBefore) * stride
+        let length = Double(total) * stride + measuredTotal - Double(measuredCountTotal) * stride
+        return (offset: offset, length: length)
+    }
+
+    /// Adds a value to a sparse Fenwick tree in O(log n).
+    private func updateMeasuredSize(index: Int, delta: Double, count: Int) {
+        var position = index + 1
+        while position <= count {
+            measuredSizeTree[position] = (measuredSizeTree[position] ?? 0.0) + delta
+            position += position & -position
+        }
+    }
+
+    private func updateMeasuredCount(index: Int, count: Int) {
+        var position = index + 1
+        while position <= count {
+            measuredCountTree[position] = (measuredCountTree[position] ?? 0) + 1
+            position += position & -position
+        }
+    }
+
+    /// Returns the sum of entries before `endIndex` in a sparse Fenwick tree in O(log n).
+    private func measuredSizePrefix(endIndex: Int) -> Double {
+        var position = endIndex
+        var sum = 0.0
+        while position > 0 {
+            sum += measuredSizeTree[position] ?? 0.0
+            position -= position & -position
+        }
+        return sum
+    }
+
+    private func measuredCountPrefix(endIndex: Int) -> Int {
+        var position = endIndex
+        var sum = 0
+        while position > 0 {
+            sum += measuredCountTree[position] ?? 0
+            position -= position & -position
+        }
+        return sum
     }
 
     func id(at anchor: UnitPoint) -> AnyHashable? {
@@ -486,9 +588,17 @@ final class LazyScrollDriver: ScrollDriver {
                 let fraction = anchor ?? (index > firstIndex ? 1.0 : 0.0)
                 scrollToItem(index, offset: -Int(Double(viewport - Int(stride(of: visibleItems))) * fraction), animated: animated)
             }
-            // Align with the item's measured size
+            // Align with the item's measured size, within the space the list's header and footer leave beneath any bars,
+            // as iOS aligns within the safe area
             if let item = visibleItems.firstOrNull({ $0.index == index }) {
-                let delta = alignedOffset(start: Float(item.start), length: Float(item.end - item.start), viewport: Float(viewport), current: Float(0.0), anchor: anchor)
+                let insets = contentInsets.value
+                let insetStart = isInsetInContent ? Float(insets.top) * density : Float(0.0)
+                let insetEnd = isInsetInContent ? Float(insets.bottom) * density : Float(0.0)
+                var padding = Float(0.0)
+                if let list {
+                    padding = Float(list.layoutInfo.beforeContentPadding + list.layoutInfo.afterContentPadding)
+                }
+                let delta = alignedOffset(start: Float(item.start) - insetStart, length: Float(item.end - item.start), viewport: Float(viewport) - padding - insetStart - insetEnd, current: Float(0.0), anchor: anchor)
                 let state: ScrollableState = list ?? grid!
                 if animated {
                     state.animateScrollBy(delta)
