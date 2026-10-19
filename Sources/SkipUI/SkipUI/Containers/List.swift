@@ -84,9 +84,6 @@ import org.burnoutcrew.reorderable.reorderable
 import struct CoreGraphics.CGFloat
 #endif
 
-/// Corner radius for list sections.
-let listSectionCornerRadius = 8.0
-
 #if SKIP
 /// Discrete rest positions for a row's swipe gesture. Used as the value
 /// type for the row's AnchoredDraggableState.
@@ -150,7 +147,7 @@ public final class List : View, Renderable {
     @Composable public override func Render(context: ComposeContext) {
         let style = EnvironmentValues.shared._listStyle ?? ListStyle.automatic
         let backgroundVisibility = EnvironmentValues.shared._scrollContentBackground ?? Visibility.visible
-        let styling = ListStyling(style: style, backgroundVisibility: backgroundVisibility)
+        let styling = ListStyling(style: style, backgroundVisibility: backgroundVisibility, cornerRadius: EnvironmentValues.shared._listSectionCornerRadius)
         let itemContext = context.content()
 
         // When we layout, extend into safe areas that are due to system bars, not into any app chrome
@@ -1337,7 +1334,7 @@ public final class List : View, Renderable {
                 }
             }
             if styling.style != ListStyle.plain {
-                RenderRoundedCorners(isTop: true, fill: backgroundColor)
+                RenderRoundedCorners(isTop: true, fill: backgroundColor, cornerRadius: styling.cornerRadius)
             }
         }
     }
@@ -1368,7 +1365,7 @@ public final class List : View, Renderable {
                         content.Render(context: context.content(modifier: contentModifier))
                     }
                 }
-                RenderRoundedCorners(isTop: false, fill: backgroundColor)
+                RenderRoundedCorners(isTop: false, fill: backgroundColor, cornerRadius: styling.cornerRadius)
             }
         }
     }
@@ -1387,7 +1384,7 @@ public final class List : View, Renderable {
             .background(backgroundColor)
         Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.BottomCenter) {
             if !hasTopSection && styling.style != .plain {
-                RenderRoundedCorners(isTop: true, fill: backgroundColor)
+                RenderRoundedCorners(isTop: true, fill: backgroundColor, cornerRadius: styling.cornerRadius)
             }
         }
     }
@@ -1409,12 +1406,12 @@ public final class List : View, Renderable {
             .background(backgroundColor)
         Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
             if !hasBottomSection && styling.style != .plain {
-                RenderRoundedCorners(isTop: false, fill: backgroundColor)
+                RenderRoundedCorners(isTop: false, fill: backgroundColor, cornerRadius: styling.cornerRadius)
             }
         }
     }
 
-    @Composable private func RenderRoundedCorners(isTop: Bool, fill: androidx.compose.ui.graphics.Color) {
+    @Composable private func RenderRoundedCorners(isTop: Bool, fill: androidx.compose.ui.graphics.Color, cornerRadius: CGFloat) {
         let shape = GenericShape { size, _ in
             let rect = Rect(left: Float(0.0), top: Float(0.0), right: size.width, bottom: size.height)
             let rectPath = androidx.compose.ui.graphics.Path()
@@ -1429,10 +1426,10 @@ public final class List : View, Renderable {
             roundedRectPath.addRoundRect(roundRect)
             addPath(combine(PathOperation.Difference, rectPath, roundedRectPath))
         }
-        let offset = isTop ? listSectionCornerRadius.dp : -listSectionCornerRadius.dp
+        let offset = isTop ? cornerRadius.dp : -cornerRadius.dp
         let modifier = Modifier
             .fillMaxWidth()
-            .height(listSectionCornerRadius.dp)
+            .height(cornerRadius.dp)
             .offset(y: offset)
             .clip(shape)
             .background(fill)
@@ -1510,9 +1507,10 @@ public func List<Data, ObjectType>(_ data: Binding<Data>, id: (ObjectType) -> An
 struct ListStyling: Equatable {
     let style: ListStyle
     let backgroundVisibility: Visibility
+    let cornerRadius: CGFloat
 
     func withStyle(_ style: ListStyle) -> ListStyling {
-        return ListStyling(style: style, backgroundVisibility: backgroundVisibility)
+        return ListStyling(style: style, backgroundVisibility: backgroundVisibility, cornerRadius: cornerRadius)
     }
 }
 
@@ -1601,6 +1599,14 @@ extension View {
     @available(*, unavailable)
     public func listSectionSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View {
         return self
+    }
+
+    public func listSectionCornerRadius(_ radius: CGFloat) -> some View {
+        #if SKIP
+        return environment(\._listSectionCornerRadius, max(0.0, radius), affectsEvaluate: false)
+        #else
+        return self
+        #endif
     }
 
     public func listStyle(_ style: ListStyle) -> some View {
