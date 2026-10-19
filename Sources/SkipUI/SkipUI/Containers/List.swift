@@ -795,8 +795,9 @@ public final class List : View, Renderable {
         let trailingSwipe = swipeConfigs.trailing
         let hasUserSwipe = leadingSwipe != nil || trailingSwipe != nil
         let isDeleteEnabled = (editActions.contains(.delete) || onDelete != nil) && editActionsModifier.isDeleteDisabled != true
-        let isMoveEnabled = (editActions.contains(.move) || onMove != nil) && editActionsModifier.isMoveDisabled != true
-        guard isDeleteEnabled || isMoveEnabled || hasUserSwipe else {
+        let hasMoveAction = editActions.contains(.move) || onMove != nil
+        let isMoveEnabled = hasMoveAction && editActionsModifier.isMoveDisabled != true
+        guard isDeleteEnabled || hasMoveAction || hasUserSwipe else {
             RenderItem(content: content, level: level, context: context, modifier: modifier, styling: styling)
             return
         }
@@ -862,8 +863,10 @@ public final class List : View, Renderable {
             }
         }
 
-        if isMoveEnabled {
-            RenderReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier, content: itemContent)
+        // Keep the row's composition mounted when moveDisabled changes with edit mode.
+        // Only the gesture changes; remembered child state (including image painters) survives.
+        if hasMoveAction {
+            RenderReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier, isMoveEnabled: isMoveEnabled, content: itemContent)
         } else {
             itemContent(modifier)
         }
@@ -1304,9 +1307,12 @@ public final class List : View, Renderable {
         }
     }
 
-    @Composable private func RenderReorderableItem(reorderableState: ReorderableLazyListState, key: String, modifier: Modifier, content: @Composable (Modifier) -> Void) {
+    @Composable private func RenderReorderableItem(reorderableState: ReorderableLazyListState, key: String, modifier: Modifier, isMoveEnabled: Bool, content: @Composable (Modifier) -> Void) {
         ReorderableItem(state: reorderableState, key: key, defaultDraggingModifier: modifier) { dragging in
-            var itemModifier = Modifier.detectReorderAfterLongPress(reorderableState)
+            var itemModifier: Modifier = Modifier
+            if isMoveEnabled {
+                itemModifier = itemModifier.detectReorderAfterLongPress(reorderableState)
+            }
             if dragging {
                 let elevation = animateDpAsState(8.dp)
                 itemModifier = itemModifier.shadow(elevation.value)
