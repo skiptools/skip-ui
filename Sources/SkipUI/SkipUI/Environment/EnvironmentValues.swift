@@ -862,6 +862,18 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_listSectionFooterStyle", value: newValue, defaultValue: { nil }) }
     }
 
+    /// The visibility the content asks of the enclosing navigation bar, which only the bar reads.
+    var _navigationBarVisibility: BarVisibility? {
+        get { builtinValue(key: "_navigationBarVisibility", defaultValue: { nil }) as! BarVisibility? }
+        set { setBuiltinValue(key: "_navigationBarVisibility", value: newValue, defaultValue: { nil }) }
+    }
+
+    /// The visibility the content asks of the enclosing tab bar, which only the bar reads.
+    var _tabBarVisibility: BarVisibility? {
+        get { builtinValue(key: "_tabBarVisibility", defaultValue: { nil }) as! BarVisibility? }
+        set { setBuiltinValue(key: "_tabBarVisibility", value: newValue, defaultValue: { nil }) }
+    }
+
     var _onScrollGeometryChange: ((ScrollGeometry) -> Void)? {
         get { builtinValue(key: "_onScrollGeometryChange", defaultValue: { nil }) as! ((ScrollGeometry) -> Void)? }
         set { setBuiltinValue(key: "_onScrollGeometryChange", value: newValue, defaultValue: { nil }) }

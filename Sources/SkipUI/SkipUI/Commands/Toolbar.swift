@@ -346,11 +346,22 @@ extension View {
         }
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             let visibilityAnimation = EnvironmentValues.shared._animation
-            if bars.contains(ToolbarPlacement.tabBar) {
+            // Ask a floating bar directly, so that hiding and showing it only recomposes the bar. Other bars read the
+            // visibility from preferences
+            var preferenceBars = bars
+            if let navigationBar = EnvironmentValues.shared._navigationBarVisibility, bars.contains(where: { $0 == ToolbarPlacement.navigationBar || $0 == ToolbarPlacement.automatic }) {
+                RequestBarVisibility(navigationBar, visibility: visibility, animation: Animation.current(isAnimating: false) ?? visibilityAnimation)
+                preferenceBars = preferenceBars.filter { $0 != ToolbarPlacement.navigationBar && $0 != ToolbarPlacement.automatic }
+            }
+            if let tabBar = EnvironmentValues.shared._tabBarVisibility, bars.contains(ToolbarPlacement.tabBar) {
+                RequestBarVisibility(tabBar, visibility: visibility, animation: Animation.current(isAnimating: false) ?? visibilityAnimation)
+                preferenceBars = preferenceBars.filter { $0 != ToolbarPlacement.tabBar }
+            }
+            if preferenceBars.contains(ToolbarPlacement.tabBar) {
                 PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(visibility: visibility, visibilityAnimation: visibilityAnimation))
             }
-            if bars.contains(where: { $0 != ToolbarPlacement.tabBar }) {
-                PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(visibility: visibility, visibilityAnimation: visibilityAnimation, for: bars))
+            if preferenceBars.contains(where: { $0 != ToolbarPlacement.tabBar }) {
+                PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(visibility: visibility, visibilityAnimation: visibilityAnimation, for: preferenceBars))
             }
             renderable.Render(context: context)
         })
