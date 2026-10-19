@@ -392,7 +392,9 @@ public final class List : View, Renderable {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
                         updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                        let renderable = rowContent(factory(index + range.start, itemContext), isLast: itemCollector.value.isLastInSection(startItemIndex + offset + index), styling: styling)
+                        let content = factory(index + range.start, itemContext)
+                        itemCollector.value.recordEmptyItem(startItemIndex + offset + index, isEmpty: content.isSwiftUIEmptyView)
+                        let renderable = rowContent(content, isLast: itemCollector.value.isLastInSection(startItemIndex + offset + index), styling: styling)
                         Self.RenderItemAnimation(
                             forceUnanimatedItems: forceUnanimatedItems,
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
@@ -417,7 +419,9 @@ public final class List : View, Renderable {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
                         updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                        let renderable = rowContent(factory(objects[index], itemContext), isLast: itemCollector.value.isLastInSection(startItemIndex + offset + index), styling: styling)
+                        let content = factory(objects[index], itemContext)
+                        itemCollector.value.recordEmptyItem(startItemIndex + offset + index, isEmpty: content.isSwiftUIEmptyView)
+                        let renderable = rowContent(content, isLast: itemCollector.value.isLastInSection(startItemIndex + offset + index), styling: styling)
                         Self.RenderItemAnimation(
                             forceUnanimatedItems: forceUnanimatedItems,
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
@@ -442,7 +446,9 @@ public final class List : View, Renderable {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
                         updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                        let renderable = rowContent(factory(objectsBinding, index, itemContext), isLast: itemCollector.value.isLastInSection(startItemIndex + offset + index), styling: styling)
+                        let content = factory(objectsBinding, index, itemContext)
+                        itemCollector.value.recordEmptyItem(startItemIndex + offset + index, isEmpty: content.isSwiftUIEmptyView)
+                        let renderable = rowContent(content, isLast: itemCollector.value.isLastInSection(startItemIndex + offset + index), styling: styling)
                         Self.RenderItemAnimation(
                             forceUnanimatedItems: forceUnanimatedItems,
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
@@ -553,6 +559,7 @@ public final class List : View, Renderable {
             // A frame-marker expiry must not interrupt or restart an existing placement animation.
             let currentItemKeys = itemCollector.value.layoutIDs
             if currentItemKeys != listAnimationState.itemKeys {
+                itemCollector.value.resetEmptyItems()
                 forceUnanimatedItems.value = listAnimationState.itemKeys.isEmpty || isUnanimatedUpdate
                 listAnimationState.itemKeys = currentItemKeys
             }

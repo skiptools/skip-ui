@@ -4,6 +4,7 @@
 import Foundation
 #if SKIP
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
 #endif
 
 /// Adopted by `Renderables` that produce lazy items.
@@ -129,6 +130,7 @@ public final class LazyItemCollector {
     private(set) var sectionHeader: (kotlin.collections.List<Renderable>, Any?) -> Int = { _, _ in 0 }
     private(set) var sectionFooter: (kotlin.collections.List<Renderable>, Any?) -> Int = { _, _ in 0 }
     private var currentSectionItemCount: Int? = nil
+    private let emptyItemIndices = mutableStateMapOf<Int, Bool>()
     private var currentSectionFirstItemIndex: Int? = nil
     private var sectionFirstItemIndices: Set<Int> = []
     private var currentSectionLastItemIndex: Int? = nil
@@ -328,14 +330,36 @@ public final class LazyItemCollector {
         return nil
     }
 
+    /// Records conditional empty rows once their lazy content has been evaluated.
+    func recordEmptyItem(_ index: Int, isEmpty: Bool) {
+        if isEmpty {
+            emptyItemIndices[index] = true
+        } else {
+            emptyItemIndices.remove(index)
+        }
+    }
+
+    /// Discards row positions when the collected layout changes.
+    func resetEmptyItems() {
+        emptyItemIndices.clear()
+    }
+
     /// Whether the row is the first visible body item in its section.
     func isFirstInSection(_ index: Int) -> Bool {
-        return sectionFirstItemIndices.contains(index) || currentSectionFirstItemIndex == index
+        var firstIndex = index
+        while emptyItemIndices[firstIndex - 1] == true {
+            firstIndex -= 1
+        }
+        return sectionFirstItemIndices.contains(firstIndex) || currentSectionFirstItemIndex == firstIndex
     }
 
     /// Whether the row is the last visible body item in its section.
     func isLastInSection(_ index: Int) -> Bool {
-        return sectionLastItemIndices.contains(index) || currentSectionLastItemIndex == index
+        var lastIndex = index
+        while emptyItemIndices[lastIndex + 1] == true {
+            lastIndex += 1
+        }
+        return sectionLastItemIndices.contains(lastIndex) || currentSectionLastItemIndex == lastIndex
     }
 
     /// Returns the current layout identities in one pass, including section chrome placeholders.
