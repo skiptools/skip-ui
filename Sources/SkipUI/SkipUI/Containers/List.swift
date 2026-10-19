@@ -560,7 +560,8 @@ public final class List : View, Renderable {
             let currentItemKeys = itemCollector.value.layoutIDs
             if currentItemKeys != listAnimationState.itemKeys {
                 itemCollector.value.resetEmptyItems()
-                forceUnanimatedItems.value = listAnimationState.itemKeys.isEmpty || isUnanimatedUpdate
+                forceUnanimatedItems.value = isUnanimatedUpdate
+                rearmingItems.value = false
                 listAnimationState.itemKeys = currentItemKeys
             }
 
