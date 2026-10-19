@@ -138,7 +138,7 @@ public struct AsyncImage : View, Renderable {
                     #else
                     return Self.defaultPlaceholder()
                     #endif
-                case .failure(let error):
+                case .failure:
                     return Self.defaultPlaceholder()
                 case .success(let image):
                     return image

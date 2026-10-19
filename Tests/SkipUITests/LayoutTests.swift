@@ -65,6 +65,54 @@ final class LayoutTests: XCSnapshotTestCase {
         """)
     }
 
+    func testFixedSizeVerticalScrollViewTakesContentHeight() throws {
+        XCTAssertEqual(try pixmap(content: ZStack {
+            Color.black.frame(width: 12.0, height: 12.0)
+            ScrollView {
+                Color.white.frame(width: 4.0, height: 4.0)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(width: 12.0, height: 12.0)), """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
+    }
+
+    func testFixedSizeHorizontalScrollViewTakesContentWidth() throws {
+        XCTAssertEqual(try pixmap(content: ZStack {
+            Color.black.frame(width: 12.0, height: 12.0)
+            ScrollView(.horizontal) {
+                Color.white.frame(width: 4.0, height: 4.0)
+            }
+            .fixedSize(horizontal: true, vertical: false)
+        }
+        .frame(width: 12.0, height: 12.0)), """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
+    }
+
     func testRenderWhiteSquare() throws {
         XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 4.0, height: 4.0)).pixmap, """
         F F F F

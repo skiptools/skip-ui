@@ -28,10 +28,8 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -601,7 +599,7 @@ public struct NavigationStack : View, Renderable {
                         }
                     }
                     // Pull the bottom bar below the keyboard
-                    let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
+                    let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(windowKeyboardInsets().getBottom(density))).toDp() }
                     PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
                         let containerColor = showScrolledBackground ? bottomBarBackgroundColor : unscrolledBottomBarBackgroundColor
                         let usesBottomSystemBarInset = EnvironmentValues.shared._isEdgeToEdge == true && arguments.safeArea?.absoluteSystemBarEdges.contains(.bottom) == true
@@ -636,10 +634,10 @@ public struct NavigationStack : View, Renderable {
                     .insetting(.top, to: effectiveTopBarBottomPx)
                     .insetting(.bottom, to: bottomBarTopPx.value)
                 // Inset manually for any edge where our container ignored the safe area, but we aren't showing a bar
-                let topPadding = effectiveTopBarBottomPx <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
+                let topPadding = effectiveTopBarBottomPx <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ? windowSafeDrawingInsets().asPaddingValues().calculateTopPadding() : 0.dp
                 var bottomPadding = 0.dp
                 if bottomBarTopPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) {
-                    bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                    bottomPadding = max(0.dp, windowSafeDrawingInsets().asPaddingValues().calculateBottomPadding() - windowKeyboardInsets().asPaddingValues().calculateBottomPadding())
                 }
                 let contentModifier = Modifier.fillMaxWidth().weight(Float(1.0)).padding(top: topPadding, bottom: bottomPadding)
 
@@ -710,7 +708,7 @@ public struct NavigationStack : View, Renderable {
                 // arguments.ignoresSafeAreaEdges contains it, so content does not overlap the status bar or home
                 // indicator.
                 var contentModifier = Modifier.fillMaxSize()
-                let safeTopDp = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                let safeTopDp = windowSafeDrawingInsets().asPaddingValues().calculateTopPadding()
                 let topBarBottomDp: Dp
                 if showsTopBar {
                     if isInlineTitleDisplayMode {
@@ -753,7 +751,7 @@ public struct NavigationStack : View, Renderable {
                 if bottomBarHeightPx.value > Float(0.0) {
                     bottomPadding = with(density) { bottomBarHeightPx.value.toDp() }
                 } else if arguments.ignoresSafeAreaEdges.contains(.bottom) {
-                    bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                    bottomPadding = max(0.dp, windowSafeDrawingInsets().asPaddingValues().calculateBottomPadding() - windowKeyboardInsets().asPaddingValues().calculateBottomPadding())
                 } else {
                     bottomPadding = 0.dp
                 }
@@ -1292,6 +1290,7 @@ public struct NavigationBarItem : Hashable {
     }
 }
 
+// SKIP NOWARN
 extension View {
     // SKIP @bridge
     public func navigationBarBackButtonHidden(_ hidesBackButton: Bool = true) -> any View {

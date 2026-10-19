@@ -66,7 +66,7 @@ public struct ScrollView : View, Renderable {
         let scrollsContent = wantsVerticalScroll || wantsHorizontalScroll
         let density = LocalDensity.current.density
         let driver = remember(scrollState, wantsVerticalScroll) { ScrollViewDriver(state: scrollState, isVertical: wantsVerticalScroll, density: density) }
-        var scrollModifier: Modifier = Modifier.onSizeChanged { driver.viewportSize.value = $0 }
+        var scrollModifier: Modifier = Modifier.idealSizeOnUnboundedScrollAxes(vertical: wantsVerticalScroll, horizontal: wantsHorizontalScroll).onSizeChanged { driver.viewportSize.value = $0 }
         var effectiveScrollAxes: Axis.Set = []
         if wantsVerticalScroll {
             scrollModifier = scrollModifier.verticalScroll(scrollState, enabled: !isScrollDisabled)

@@ -136,6 +136,7 @@ extension View where Self: Equatable {
     }
 }
 
+// SKIP NOWARN
 extension View {
     /// On Android, reuses evaluated content until `recomposeOverride` changes.
     ///

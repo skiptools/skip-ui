@@ -10,10 +10,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -44,13 +41,13 @@ import androidx.compose.ui.platform.LocalLayoutDirection
                 .background(backgroundColor != nil ? androidx.compose.ui.graphics.Color.Transparent : androidx.compose.ui.graphics.Color.Black)
                 .fillMaxSize()
             if systemBarEdges.contains(.leading) {
-                rootModifier = rootModifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+                rootModifier = rootModifier.windowInsetsPadding(windowSafeDrawingInsets().only(WindowInsetsSides.Start))
             }
             if systemBarEdges.contains(.trailing) {
-                rootModifier = rootModifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.End))
+                rootModifier = rootModifier.windowInsetsPadding(windowSafeDrawingInsets().only(WindowInsetsSides.End))
             }
             if systemBarEdges.contains(.bottom) {
-                rootModifier = rootModifier.imePadding()
+                rootModifier = rootModifier.windowInsetsPadding(windowKeyboardInsets())
             }
             // Resolve adaptive colors under this presentation's preferred color scheme.
             rootModifier = rootModifier.background((backgroundColor ?? Color.background).colorImpl())
@@ -66,10 +63,10 @@ import androidx.compose.ui.platform.LocalLayoutDirection
                 // Android app behavior like e.g. Settings
                 var (safeLeft, safeTop, safeRight, safeBottom) = presentationBounds.value
                 if systemBarEdges.contains(.top) {
-                    safeTop += WindowInsets.safeDrawing.getTop(density)
+                    safeTop += windowSafeDrawingInsets().getTop(density)
                 }
                 if systemBarEdges.contains(.bottom) {
-                    safeBottom -= max(0, WindowInsets.safeDrawing.getBottom(density) - WindowInsets.ime.getBottom(density))
+                    safeBottom -= max(0, windowSafeDrawingInsets().getBottom(density) - windowKeyboardInsets().getBottom(density))
                 }
                 let safeBounds = Rect(left: safeLeft, top: safeTop, right: safeRight, bottom: safeBottom)
                 let safeArea = SafeArea(presentation: presentationBounds.value, safe: safeBounds, absoluteSystemBars: systemBarEdges)
