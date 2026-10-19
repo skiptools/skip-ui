@@ -126,6 +126,7 @@ extension ModifiedContent: LazyItemFactory {
 
 /// Collect lazy content added by `LazyItemFactory` instances.
 public final class LazyItemCollector {
+    /// Changes whenever collected item identity or ordering is rebuilt.
     private(set) var revision = 0
     private(set) var item: (Renderable, Int) -> Void = { _, _ in }
     private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Int, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _ in  }
