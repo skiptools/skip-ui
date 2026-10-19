@@ -75,6 +75,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -83,6 +84,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
@@ -95,6 +97,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.ReorderableItem
@@ -734,25 +738,32 @@ public final class List : View, Renderable {
                 isFlashing.value = false
             }
         }
-        let layoutInfo = listState.layoutInfo
-        let totalCount = layoutInfo.totalItemsCount
-        let visibleCount = layoutInfo.visibleItemsInfo.size
-        guard totalCount > 0 && visibleCount < totalCount else {
+        // Derived, so that scrolling only recomposes the indicator when the content starts or stops overflowing
+        let isOverflowing = remember(listState) { derivedStateOf { listState.layoutInfo.totalItemsCount > 0 && listState.layoutInfo.visibleItemsInfo.size < listState.layoutInfo.totalItemsCount } }.value
+        guard isOverflowing else {
             return
         }
         let isShown = isAlwaysVisible || listState.isScrollInProgress || isFlashing.value
-        let alpha = animateFloatAsState(targetValue: isShown ? Float(1.0) : Float(0.0), animationSpec: tween(durationMillis: isShown ? 150 : 500, delayMillis: isShown ? 0 : 300), label: "scrollIndicator")
-        let viewportHeight = with(LocalDensity.current) { layoutInfo.viewportSize.height.toDp() }
-        let thumbHeight = max(36.dp, viewportHeight * (Float(visibleCount) / Float(totalCount)))
-        let firstItemSize = layoutInfo.visibleItemsInfo.firstOrNull()?.size ?? 1
-        let position = (Float(listState.firstVisibleItemIndex) + Float(listState.firstVisibleItemScrollOffset) / Float(max(1, firstItemSize))) / Float(max(1, totalCount - visibleCount))
-        let offset = (viewportHeight - thumbHeight) * min(Float(1.0), max(Float(0.0), position))
+        let thumbAlpha = animateFloatAsState(targetValue: isShown ? Float(1.0) : Float(0.0), animationSpec: tween(durationMillis: isShown ? 150 : 500, delayMillis: isShown ? 0 : 300), label: "scrollIndicator")
+        let minThumbHeight = 36.dp
         Box(modifier: modifier.fillMaxHeight().padding(end: 2.dp).width(3.dp)) {
+            // Read the scroll position only while placing the thumb, so that scrolling never recomposes it
             Box(modifier: Modifier
-                .offset(y: offset)
-                .height(thumbHeight)
-                .width(3.dp)
-                .alpha(alpha.value)
+                .layout { measurable, constraints in
+                    let layoutInfo = listState.layoutInfo
+                    let totalCount = layoutInfo.totalItemsCount
+                    let visibleCount = layoutInfo.visibleItemsInfo.size
+                    let viewportHeight = constraints.maxHeight
+                    let thumbHeight = min(viewportHeight, max(minThumbHeight.roundToPx(), Int(Float(viewportHeight) * Float(visibleCount) / Float(max(1, totalCount)))))
+                    let firstItemSize = layoutInfo.visibleItemsInfo.firstOrNull()?.size ?? 1
+                    let position = (Float(listState.firstVisibleItemIndex) + Float(listState.firstVisibleItemScrollOffset) / Float(max(1, firstItemSize))) / Float(max(1, totalCount - visibleCount))
+                    let offset = Int(Float(viewportHeight - thumbHeight) * min(Float(1.0), max(Float(0.0), position)))
+                    let placeable = measurable.measure(Constraints.fixed(constraints.maxWidth, thumbHeight))
+                    return layout(width: constraints.maxWidth, height: viewportHeight) {
+                        placeable.place(x: 0, y: offset)
+                    }
+                }
+                .graphicsLayer { alpha = thumbAlpha.value }
                 .background(Color.secondary.opacity(0.6).colorImpl(), androidx.compose.foundation.shape.RoundedCornerShape(50)))
         }
     }

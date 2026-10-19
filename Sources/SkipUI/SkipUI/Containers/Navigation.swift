@@ -62,6 +62,7 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -323,7 +324,10 @@ public struct NavigationStack : View, Renderable {
             navigationIconButtonStyle = Material3TopAppBarNavigationIconButtonStyle.iconButton
             navigationIconButtonColors = nil
         }
-        var modifier = Modifier.nestedScroll(searchFieldScrollConnection)
+        // The search field connection consumes scrolling until the field tucks under the bar, so only attach it with a
+        // field to tuck: otherwise it swallows the start of every upward scroll after the content returns to the top
+        let hasSearchField = arguments.isRoot && (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) != nil
+        var modifier: Modifier = hasSearchField ? Modifier.nestedScroll(searchFieldScrollConnection) : Modifier
         SideEffect {
             if isInitialRootPreferencePass.value {
                 isInitialRootPreferencePass.value = false
