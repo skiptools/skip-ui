@@ -147,7 +147,7 @@ public final class List : View, Renderable {
     @Composable public override func Render(context: ComposeContext) {
         let style = EnvironmentValues.shared._listStyle ?? ListStyle.automatic
         let backgroundVisibility = EnvironmentValues.shared._scrollContentBackground ?? Visibility.visible
-        let styling = ListStyling(style: style, backgroundVisibility: backgroundVisibility)
+        let styling = ListStyling(style: style, backgroundVisibility: backgroundVisibility, cornerRadius: EnvironmentValues.shared._listSectionCornerRadius)
         let itemContext = context.content()
 
         // When we layout, extend into safe areas that are due to system bars, not into any app chrome
@@ -368,6 +368,7 @@ public final class List : View, Renderable {
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
                         updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
                         Self.RenderItemAnimation(
+                            cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(itemIndex),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(itemIndex),
@@ -396,6 +397,7 @@ public final class List : View, Renderable {
                         itemCollector.value.recordEmptyItem(startItemIndex + offset + index, isEmpty: content.isSwiftUIEmptyView)
                         let renderable = rowContent(content, isLast: itemCollector.value.isLastInSection(startItemIndex + offset + index), styling: styling)
                         Self.RenderItemAnimation(
+                            cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
@@ -423,6 +425,7 @@ public final class List : View, Renderable {
                         itemCollector.value.recordEmptyItem(startItemIndex + offset + index, isEmpty: content.isSwiftUIEmptyView)
                         let renderable = rowContent(content, isLast: itemCollector.value.isLastInSection(startItemIndex + offset + index), styling: styling)
                         Self.RenderItemAnimation(
+                            cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
@@ -450,6 +453,7 @@ public final class List : View, Renderable {
                         itemCollector.value.recordEmptyItem(startItemIndex + offset + index, isEmpty: content.isSwiftUIEmptyView)
                         let renderable = rowContent(content, isLast: itemCollector.value.isLastInSection(startItemIndex + offset + index), styling: styling)
                         Self.RenderItemAnimation(
+                            cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
@@ -583,6 +587,7 @@ public final class List : View, Renderable {
     /// Isolates placement-state changes from the construction of a row's content.
     ///
     /// - Parameters:
+    ///   - cornerRadius: The radius of the section’s outer corners.
     ///   - forceUnanimatedItems: Whether the current update suppresses placement animations.
     ///   - isFirstInSection: Clips the first row's top corners together with its background.
     ///   - isLastInSection: Clips the final row's bottom corners together with its background.
@@ -590,6 +595,7 @@ public final class List : View, Renderable {
     ///   - animatedModifier: The lazy item scope's animated placement modifier.
     ///   - content: Renders the existing row with the chosen modifier.
     @Composable static func RenderItemAnimation(
+        cornerRadius: CGFloat,
         forceUnanimatedItems: MutableState<Bool>,
         isFirstInSection: Bool,
         isLastInSection: Bool,
@@ -599,8 +605,8 @@ public final class List : View, Renderable {
     ) {
         let animate = !forceUnanimatedItems.value && !suppressAnimation.value
         let modifier = animate ? animatedModifier : Modifier
-        let topRadius = isFirstInSection ? listSectionCornerRadius.dp : 0.dp
-        let bottomRadius = isLastInSection ? listSectionCornerRadius.dp : 0.dp
+        let topRadius = isFirstInSection ? cornerRadius.dp : 0.dp
+        let bottomRadius = isLastInSection ? cornerRadius.dp : 0.dp
         content(isFirstInSection || isLastInSection ? modifier.clip(RoundedCornerShape(topStart: topRadius, topEnd: topRadius, bottomStart: bottomRadius, bottomEnd: bottomRadius)) : modifier)
     }
 
@@ -1445,9 +1451,10 @@ public func List<Data, ObjectType>(_ data: Binding<Data>, id: (ObjectType) -> An
 struct ListStyling: Equatable {
     let style: ListStyle
     let backgroundVisibility: Visibility
+    let cornerRadius: CGFloat
 
     func withStyle(_ style: ListStyle) -> ListStyling {
-        return ListStyling(style: style, backgroundVisibility: backgroundVisibility)
+        return ListStyling(style: style, backgroundVisibility: backgroundVisibility, cornerRadius: cornerRadius)
     }
 }
 
@@ -1536,6 +1543,15 @@ extension View {
     @available(*, unavailable)
     public func listSectionSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View {
         return self
+    }
+
+    // SKIP @bridge
+    public func listSectionCornerRadius(_ radius: CGFloat) -> any View {
+        #if SKIP
+        return environment(\._listSectionCornerRadius, max(0.0, radius), affectsEvaluate: false)
+        #else
+        return self
+        #endif
     }
 
     public func listStyle(_ style: ListStyle) -> some View {
