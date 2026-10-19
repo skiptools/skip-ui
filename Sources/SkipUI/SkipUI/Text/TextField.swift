@@ -138,10 +138,10 @@ public struct TextField : View, Renderable {
                 return false
             }
         }
-        // `lineLimit` caps a vertical field's growth; `reservesSpace` makes it start at that height.
-        let lineLimit = EnvironmentValues.shared.lineLimit
-        let maxLines = isVertical ? (lineLimit ?? Int.max) : 1
-        let minLines = isVertical && EnvironmentValues.shared._lineLimitReservesSpace == true ? (lineLimit ?? 1) : 1
+        // A vertical field grows with its text from the `lineLimit` minimum (a range's lower bound, or the limit
+        // itself with `reservesSpace`) up to its maximum.
+        let maxLines = isVertical ? max(1, EnvironmentValues.shared.lineLimit ?? Int.max) : 1
+        let minLines = isVertical ? min(max(1, EnvironmentValues.shared._lineLimitMinimum ?? 1), maxLines) : 1
         var options = Material3TextFieldOptions(value: currentTextFieldValue, onValueChange: { value in
             text.wrappedValue = value.text
             selection?.wrappedValue = TextSelection(range: value.selection.start..<value.selection.end)

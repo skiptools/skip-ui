@@ -1804,13 +1804,17 @@ Support levels:
        </td>
     </tr>
     <tr>
-      <td>🟢</td>
+      <td>✅</td>
       <td>
           <details>
               <summary><code>.lineLimit</code></summary>
               <ul>
                   <li>func lineLimit(_ number: Int?) -> some View</li>
                   <li>func lineLimit(_ number: Int, reservesSpace: Bool) -> some View</li>
+                  <li>func lineLimit(_ limit: ClosedRange<Int>) -> some View</li>
+                  <li>func lineLimit(_ limit: Range<Int>) -> some View</li>
+                  <li>func lineLimit(_ limit: PartialRangeFrom<Int>) -> some View (SkipFuse only)</li>
+                  <li>func lineLimit(_ limit: PartialRangeThrough<Int>) -> some View (SkipFuse only)</li>
               </ul>
           </details>      
        </td>

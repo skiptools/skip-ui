@@ -802,9 +802,10 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_layoutImplementationVersion", value: newValue, defaultValue: { 2 }) }
     }
 
-    var _lineLimitReservesSpace: Bool? {
-        get { builtinValue(key: "_lineLimitReservesSpace", defaultValue: { nil }) as! Bool? }
-        set { setBuiltinValue(key: "_lineLimitReservesSpace", value: newValue, defaultValue: { nil }) }
+    /// The minimum number of lines set by a range-based `lineLimit` or `lineLimit(_:reservesSpace:)`.
+    var _lineLimitMinimum: Int? {
+        get { builtinValue(key: "_lineLimitMinimum", defaultValue: { nil }) as! Int? }
+        set { setBuiltinValue(key: "_lineLimitMinimum", value: newValue, defaultValue: { nil }) }
     }
     
     var _listItemTint: Color? {
