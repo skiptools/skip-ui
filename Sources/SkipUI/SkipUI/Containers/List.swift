@@ -1601,7 +1601,8 @@ extension View {
         return self
     }
 
-    public func listSectionCornerRadius(_ radius: CGFloat) -> some View {
+    // SKIP @bridge
+    public func listSectionCornerRadius(_ radius: CGFloat) -> any View {
         #if SKIP
         return environment(\._listSectionCornerRadius, max(0.0, radius), affectsEvaluate: false)
         #else
