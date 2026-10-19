@@ -6,6 +6,7 @@ import Foundation
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animate
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.AnchoredDraggableState
@@ -20,6 +21,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,7 +38,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.PullRefreshState
@@ -56,24 +58,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.RoundRect
-import androidx.compose.ui.graphics.Path.Companion.combine
-import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableLazyListState
@@ -260,25 +257,22 @@ public final class List : View, Renderable {
             PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(isSystemBackground: isSystemBackground, scrollableState: listState))
         }
 
-        // List item animations in Compose work by setting the `animateItemPlacement` modifier on the items. Critically,
-        // this must be done when the items are composed *prior* to any animated change. So by default we compose all items
-        // with `animateItemPlacement`. If the entire List is recomposed without an animation in progress (e.g. an unanimated
-        // data change), we recompose without animation, then after some time to complete the recompose we flip back to the
-        // animated state in anticipation of the next, potentially animated, update.
-        let forceUnanimatedItems = remember { mutableStateOf(false) }
-
-        // Section chrome has separate placement rules from rows: row inserts/deletes should animate, while
-        // initial/bulk section loads need their rounded bottom chrome to appear at the settled position.
-        let sectionChromeAnimationState = remember { SectionChromeAnimationState() }
-        if Animation.current(isAnimating: false) == nil {
+        // Immediate updates must bypass animateItem: even snap() can retain the previous
+        // placement offset until its animation coroutine runs on the next frame.
+        // Avoid exit fades as outgoing rows retain their previous animation specs.
+        let forceUnanimatedItems = remember { mutableStateOf(true) }
+        let rearmingItems = remember { mutableStateOf(false) }
+        // A sheet's keyboard can temporarily resize the covered list. Adopt its updates
+        // immediately instead of animating from positions in that temporary viewport.
+        let isCoveredByKeyboard = !LocalWindowInfo.current.isWindowFocused && WindowInsets.ime.getBottom(LocalDensity.current) > 0
+        let isSearching = searchableState?.isSearching.value == true
+        let isUnanimatedUpdate = Animation.current(isAnimating: false) == nil || isCoveredByKeyboard || isSearching
+        if isSearching || isCoveredByKeyboard {
             forceUnanimatedItems.value = true
-            LaunchedEffect(System.currentTimeMillis()) {
-                delay(300)
-                forceUnanimatedItems.value = false
-            }
-        } else {
-            forceUnanimatedItems.value = false
         }
+
+        // Follow-up recompositions retain the animation policy of the last item-layout update.
+        let listAnimationState = remember { ListAnimationState() }
 
         let itemContext = context.content()
         /* Tracks which row currently has its swipe actions revealed. When one
@@ -293,7 +287,15 @@ public final class List : View, Renderable {
         }
         let listRowSpacing = EnvironmentValues.shared._listRowSpacing
         let listVerticalArrangement = listRowSpacing != nil ? Arrangement.spacedBy(listRowSpacing!.dp) : Arrangement.Top
-        LazyColumn(state: reorderableState.listState, modifier: modifier, contentPadding: contentPadding, verticalArrangement: listVerticalArrangement) {
+        LazyColumn(state: reorderableState.listState, modifier: modifier.onPlaced { _ in
+            if forceUnanimatedItems.value && !isCoveredByKeyboard && !isSearching {
+                // Reattach after the immediate layout has established the new positions.
+                rearmingItems.value = true
+                forceUnanimatedItems.value = false
+            } else if rearmingItems.value {
+                rearmingItems.value = false
+            }
+        }, contentPadding: contentPadding, verticalArrangement: listVerticalArrangement) {
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
             let updateTextInputAnimationSuppression: @Composable (MutableState<Bool>, MutableState<Bool>) -> Void = { textInputFocused, suppressTextInputAnimation in
@@ -312,7 +314,6 @@ public final class List : View, Renderable {
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
             var itemKeyOccurrences = mutableMapOf<String, Int>()
-            let currentSectionBodyItemCounts: kotlin.collections.MutableMap<String, Int> = mutableMapOf()
             var implicitPathComponents: [String] = []
             var implicitSiblingOccurrences: [Int: Int] = [:]
 
@@ -351,7 +352,8 @@ public final class List : View, Renderable {
                 return "\(baseKey)#\(occurrence)"
             }
 
-            var sectionIndex = -1
+            var implicitSectionIndex = 0
+            var currentSectionKey: String? = nil
             var startItemIndex = hasHeader ? 1 : 0 // Header inset
             if isSearchable {
                 startItemIndex += 1 // Search field
@@ -360,20 +362,24 @@ public final class List : View, Renderable {
             itemCollector.value.initialize(
                 startItemIndex: startItemIndex,
                 item: { renderable, level in
+                    let itemIndex = startItemIndex + itemCollector.value.count
                     item(key: itemKey(renderable, level)) {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
                         updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
                         Self.RenderItemAnimation(
                             forceUnanimatedItems: forceUnanimatedItems,
+                            isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(itemIndex),
+                            isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(itemIndex),
                             suppressAnimation: suppressTextInputAnimation,
-                            animatedModifier: Modifier.animateItem()
+                            animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil)),
+                            unanimatedModifier: Modifier
                         ) { itemModifier in
                             EnvironmentValues.shared.setValues {
                                 $0.set_listItemTextInputFocused(textInputFocused)
                                 return ComposeResult.ok
                             } in: {
-                                RenderItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling)
+                                RenderItem(content: rowContent(renderable, isLast: itemCollector.value.isLastInSection(itemIndex), styling: styling), level: level, context: itemContext, modifier: itemModifier, styling: styling)
                             }
                         }
                     }
@@ -387,11 +393,14 @@ public final class List : View, Renderable {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
                         updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                        let renderable = factory(index + range.start, itemContext)
+                        let renderable = rowContent(factory(index + range.start, itemContext), isLast: itemCollector.value.isLastInSection(startItemIndex + offset + index), styling: styling)
                         Self.RenderItemAnimation(
                             forceUnanimatedItems: forceUnanimatedItems,
+                            isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
+                            isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
-                            animatedModifier: Modifier.animateItem()
+                            animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil)),
+                            unanimatedModifier: Modifier
                         ) { itemModifier in
                             EnvironmentValues.shared.setValues {
                                 $0.set_listItemTextInputFocused(textInputFocused)
@@ -410,11 +419,14 @@ public final class List : View, Renderable {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
                         updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                        let renderable = factory(objects[index], itemContext)
+                        let renderable = rowContent(factory(objects[index], itemContext), isLast: itemCollector.value.isLastInSection(startItemIndex + offset + index), styling: styling)
                         Self.RenderItemAnimation(
                             forceUnanimatedItems: forceUnanimatedItems,
+                            isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
+                            isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
-                            animatedModifier: Modifier.animateItem()
+                            animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil)),
+                            unanimatedModifier: Modifier
                         ) { itemModifier in
                             EnvironmentValues.shared.setValues {
                                 $0.set_listItemTextInputFocused(textInputFocused)
@@ -433,11 +445,14 @@ public final class List : View, Renderable {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
                         updateTextInputAnimationSuppression(textInputFocused, suppressTextInputAnimation)
-                        let renderable = factory(objectsBinding, index, itemContext)
+                        let renderable = rowContent(factory(objectsBinding, index, itemContext), isLast: itemCollector.value.isLastInSection(startItemIndex + offset + index), styling: styling)
                         Self.RenderItemAnimation(
                             forceUnanimatedItems: forceUnanimatedItems,
+                            isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
+                            isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
-                            animatedModifier: Modifier.animateItem()
+                            animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil)),
+                            unanimatedModifier: Modifier
                         ) { itemModifier in
                             EnvironmentValues.shared.setValues {
                                 $0.set_listItemTextInputFocused(textInputFocused)
@@ -449,9 +464,12 @@ public final class List : View, Renderable {
                     }
                 },
                 sectionHeader: { content, sectionIdentity in
-                    sectionIndex += 1
-                    let currentSectionIndex = sectionIndex
-                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: currentSectionIndex)
+                    // Anonymous sections keep their identity when explicit ForEach sections change.
+                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: implicitSectionIndex)
+                    if sectionIdentity == nil {
+                        implicitSectionIndex += 1
+                    }
+                    currentSectionKey = sectionKey
                     let headerRenderables = content.size == 0 ? listOf(EmptyView()) : content
                     let firstRenderable = (renderables.firstOrNull() as? LazySectionHeader)?.content.firstOrNull()
                     let isTop = firstRenderable === headerRenderables.firstOrNull()
@@ -468,10 +486,10 @@ public final class List : View, Renderable {
                                 // from the header content. Rendering it inside RenderSectionHeader makes the chrome jump.
                                 item(key: "section-\(sectionKey)-top-gap") {
                                     let itemModifier: Modifier
-                                    if itemCollector.value.hasActiveMove {
+                                    if itemCollector.value.hasActiveMove || forceUnanimatedItems.value {
                                         itemModifier = Modifier
                                     } else {
-                                        itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
+                                        itemModifier = (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                                     }
                                     RenderFooter(styling: styling, modifier: itemModifier, safeAreaHeight: 0.dp, hasBottomSection: true)
                                 }
@@ -480,10 +498,10 @@ public final class List : View, Renderable {
 
                             item(key: "section-\(sectionKey)-header-\(renderableIndex)") {
                                 let itemModifier: Modifier
-                                if itemCollector.value.hasActiveMove {
+                                if itemCollector.value.hasActiveMove || forceUnanimatedItems.value {
                                     itemModifier = Modifier
                                 } else {
-                                    itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
+                                    itemModifier = (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                                 }
                                 RenderSectionHeader(content: renderable, context: itemContext, modifier: itemModifier, styling: styling, isTop: isTop)
                             }
@@ -492,30 +510,22 @@ public final class List : View, Renderable {
                     }
                     return renderedCount
                 },
-                sectionFooter: { content, sectionIdentity, sectionItemCount in
-                    let currentSectionIndex = sectionIndex
-                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: currentSectionIndex)
+                sectionFooter: { content, sectionIdentity, _ in
+                    let sectionKey = currentSectionKey ?? Self.sectionKey(for: sectionIdentity, fallbackIndex: implicitSectionIndex)
+                    if currentSectionKey == nil {
+                        implicitSectionIndex += 1
+                        currentSectionKey = sectionKey
+                    }
                     let footerRenderables = content.size == 0 ? listOf(EmptyView()) : content
-                    let currentSectionItemCount = sectionItemCount ?? 0
-                    currentSectionBodyItemCounts[sectionKey] = currentSectionItemCount
-
-                    let placementReady = sectionChromeAnimationState.prepare(
-                        sectionKey: sectionKey,
-                        previousCount: sectionChromeAnimationState.sectionBodyItemCounts[sectionKey],
-                        currentCount: currentSectionItemCount
-                    )
-
                     var renderedCount = 0
                     for renderableIndex in 0..<footerRenderables.size {
                         let renderable = footerRenderables[renderableIndex]
                         item(key: "section-\(sectionKey)-footer-\(renderableIndex)") {
                             let itemModifier: Modifier
-                            if itemCollector.value.hasActiveMove {
+                            if itemCollector.value.hasActiveMove || forceUnanimatedItems.value {
                                 itemModifier = Modifier
-                            } else if placementReady.value && EnvironmentValues.shared._searchableState?.isSearching.value != true {
-                                itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
                             } else {
-                                itemModifier = Modifier.animateItem(fadeInSpec: nil, placementSpec: nil, fadeOutSpec: nil)
+                                itemModifier = (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                             }
                             RenderSectionFooter(content: renderable, context: itemContext, modifier: itemModifier, styling: styling)
                         }
@@ -531,9 +541,8 @@ public final class List : View, Renderable {
                 }
             }
             if hasHeader {
-                let hasTopSection = renderables.firstOrNull() is LazySectionHeader
                 item {
-                    RenderHeader(styling: styling, safeAreaHeight: isSearchable ? 0.dp : arguments.headerSafeAreaHeight, hasTopSection: hasTopSection)
+                    RenderHeader(styling: styling, safeAreaHeight: isSearchable ? 0.dp : arguments.headerSafeAreaHeight)
                 }
             }
             for renderable in renderables {
@@ -544,38 +553,22 @@ public final class List : View, Renderable {
                 }
             }
 
-            sectionChromeAnimationState.retainSections(currentSectionBodyItemCounts.keys)
-            sectionChromeAnimationState.sectionBodyItemCounts = currentSectionBodyItemCounts
-
-            if sectionChromeAnimationState.beginFrame() {
-                coroutineScope.launch {
-                    // SKIP INSERT: withFrameNanos { _ -> }
-                    sectionChromeAnimationState.completeFrame()
-                }
+            // Keep the transaction decision for this item layout through follow-up recompositions.
+            // A frame-marker expiry must not interrupt or restart an existing placement animation.
+            let currentItemKeys = itemCollector.value.layoutIDs
+            if currentItemKeys != listAnimationState.itemKeys {
+                forceUnanimatedItems.value = listAnimationState.itemKeys.isEmpty || isUnanimatedUpdate
+                listAnimationState.itemKeys = currentItemKeys
             }
-
-            let currentListItemCount = itemCollector.value.count
-            let previousListItemCount = sectionChromeAnimationState.listItemCount
-            let shouldAnimateListFooterPlacement: Bool
-            if let previousListItemCount {
-                let countDelta = currentListItemCount > previousListItemCount ? currentListItemCount - previousListItemCount : previousListItemCount - currentListItemCount
-                shouldAnimateListFooterPlacement = countDelta <= 1
-            } else {
-                shouldAnimateListFooterPlacement = false
-            }
-
-            sectionChromeAnimationState.listItemCount = currentListItemCount
 
             let hasBottomSection = itemCollector.value.endsWithSectionFooter
             if hasFooter {
                 item(key: "list-footer") {
                     let itemModifier: Modifier
-                    if itemCollector.value.hasActiveMove {
+                    if itemCollector.value.hasActiveMove || forceUnanimatedItems.value {
                         itemModifier = Modifier
-                    } else if shouldAnimateListFooterPlacement && EnvironmentValues.shared._searchableState?.isSearching.value != true {
-                        itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
                     } else {
-                        itemModifier = Modifier.animateItem(fadeInSpec: nil, placementSpec: nil, fadeOutSpec: nil)
+                        itemModifier = Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil)
                     }
                     RenderFooter(styling: styling, modifier: itemModifier, safeAreaHeight: arguments.footerSafeAreaHeight, hasBottomSection: hasBottomSection)
                 }
@@ -587,19 +580,26 @@ public final class List : View, Renderable {
     ///
     /// - Parameters:
     ///   - forceUnanimatedItems: Whether the current update suppresses placement animations.
+    ///   - isFirstInSection: Clips the first row's top corners together with its background.
+    ///   - isLastInSection: Clips the final row's bottom corners together with its background.
     ///   - suppressAnimation: Whether the row's focused text input suppresses animations.
     ///   - animatedModifier: The lazy item scope's animated placement modifier.
+    ///   - unanimatedModifier: Applies an immediate update without placement animation.
     ///   - content: Renders the existing row with the chosen modifier.
     @Composable static func RenderItemAnimation(
         forceUnanimatedItems: MutableState<Bool>,
+        isFirstInSection: Bool,
+        isLastInSection: Bool,
         suppressAnimation: MutableState<Bool>,
         animatedModifier: Modifier,
+        unanimatedModifier: Modifier,
         content: @Composable (Modifier) -> Void
     ) {
-        let animate = !forceUnanimatedItems.value
-            && !suppressAnimation.value
-            && EnvironmentValues.shared._searchableState?.isSearching.value != true
-        content(animate ? animatedModifier : Modifier)
+        let animate = !forceUnanimatedItems.value && !suppressAnimation.value
+        let modifier = animate ? animatedModifier : unanimatedModifier
+        let topRadius = isFirstInSection ? listSectionCornerRadius.dp : 0.dp
+        let bottomRadius = isLastInSection ? listSectionCornerRadius.dp : 0.dp
+        content(isFirstInSection || isLastInSection ? modifier.clip(RoundedCornerShape(topStart: topRadius, topEnd: topRadius, bottomStart: bottomRadius, bottomEnd: bottomRadius)) : modifier)
     }
 
     /// Build a stable key for section chrome animation state.
@@ -614,49 +614,9 @@ public final class List : View, Renderable {
         return "id-\(composeBundleString(for: sectionIdentity))"
     }
 
-    /// Tracks section chrome placement separately from row animation state.
-    final class SectionChromeAnimationState {
-        var sectionBodyItemCounts: kotlin.collections.Map<String, Int> = mapOf()
-        var listItemCount: Int? = nil
-        private let sectionBottomPlacementReady: kotlin.collections.MutableMap<String, androidx.compose.runtime.MutableState<Bool>> = mutableMapOf()
-        private let sectionBottomPlacementPending: kotlin.collections.MutableSet<String> = mutableSetOf()
-        private var isFrameScheduled = false
-
-        /// Prepares placement state for an initial, small, or bulk section update.
-        func prepare(sectionKey: String, previousCount: Int?, currentCount: Int) -> androidx.compose.runtime.MutableState<Bool> {
-            let state = sectionBottomPlacementReady.getOrPut(sectionKey) { androidx.compose.runtime.mutableStateOf(false) }
-            let isSmallChange = previousCount != nil && abs(currentCount - previousCount!) <= 1
-            if !isSmallChange {
-                state.value = false
-                sectionBottomPlacementPending.add(sectionKey)
-            }
-
-            return state
-        }
-
-        /// Releases placement state for sections removed from the current list.
-        func retainSections(_ sectionKeys: kotlin.collections.Set<String>) {
-            sectionBottomPlacementReady.keys.retainAll(sectionKeys)
-            sectionBottomPlacementPending.retainAll(sectionKeys)
-        }
-
-        /// Reserves one frame callback for all pending sections.
-        func beginFrame() -> Bool {
-            guard !isFrameScheduled && !sectionBottomPlacementPending.isEmpty() else { return false }
-
-            isFrameScheduled = true
-            return true
-        }
-
-        /// Enables placement after all pending footers have established their baseline.
-        func completeFrame() {
-            for key in sectionBottomPlacementPending {
-                sectionBottomPlacementReady[key]?.value = true
-            }
-
-            sectionBottomPlacementPending.clear()
-            isFrameScheduled = false
-        }
+    /// Keeps a layout's animation decision stable through follow-up recompositions.
+    final class ListAnimationState {
+        var itemKeys: [AnyHashable?] = []
     }
 
     private static let horizontalInset = 16.0
@@ -739,6 +699,12 @@ public final class List : View, Renderable {
         } in: {
             badge.Compose(context: context)
         }
+    }
+
+    /// Hide the final divider on the row itself instead of moving a footer mask over other rows.
+    private func rowContent(_ content: Renderable, isLast: Bool, styling: ListStyling) -> Renderable {
+        let hideSeparator = styling.style != .plain && isLast && ListItemModifier.combined(for: content).separator != .visible
+        return ModifiedContent(content: content.asView(), modifier: ListItemModifier(separator: hideSeparator ? .hidden : nil))
     }
 
     @Composable private func RenderItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isItem: Bool = true) {
@@ -1318,8 +1284,9 @@ public final class List : View, Renderable {
     @Composable private func RenderSectionHeader(content: Renderable, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isTop: Bool) {
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
         let containerModifier = modifier.fillMaxWidth()
-            .zIndex(Float(0.5))
-            .background(backgroundColor)
+            .heightIn(min: styling.style == .plain ? 0.dp : listSectionCornerRadius.dp)
+            .zIndex(styling.style == .plain ? Float(0.5) : Float(-0.5))
+            .background(styling.style == .plain ? backgroundColor : androidx.compose.ui.graphics.Color.Transparent)
             .then(context.modifier)
         var contentModifier = Modifier.fillMaxWidth()
         if isTop && styling.style != .plain {
@@ -1336,9 +1303,6 @@ public final class List : View, Renderable {
                     content.Render(context: context.content(modifier: contentModifier))
                 }
             }
-            if styling.style != ListStyle.plain {
-                RenderRoundedCorners(isTop: true, fill: backgroundColor)
-            }
         }
     }
 
@@ -1353,10 +1317,8 @@ public final class List : View, Renderable {
             }
             RenderItem(content: footerContent, level: 0, context: context, modifier: modifier, styling: styling, isItem: false)
         } else {
-            let backgroundColor = BackgroundColor(styling: styling, isItem: false)
-            let containerModifier = modifier.offset(y: -1.dp) // Cover last row's divider
-                .zIndex(Float(0.5))
-                .background(backgroundColor)
+            let containerModifier = modifier.heightIn(min: listSectionCornerRadius.dp)
+                .zIndex(styling.style == .plain ? Float(0.5) : Float(-0.5))
                 .then(context.modifier)
             let contentModifier = Modifier.fillMaxWidth().padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
             Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
@@ -1368,14 +1330,13 @@ public final class List : View, Renderable {
                         content.Render(context: context.content(modifier: contentModifier))
                     }
                 }
-                RenderRoundedCorners(isTop: false, fill: backgroundColor)
             }
         }
     }
 
     /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
     /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
-    @Composable private func RenderHeader(styling: ListStyling, safeAreaHeight: Dp, hasTopSection: Bool) {
+    @Composable private func RenderHeader(styling: ListStyling, safeAreaHeight: Dp) {
         var height = safeAreaHeight
         if styling.style != .plain {
             height += Self.verticalInset.dp
@@ -1383,60 +1344,26 @@ public final class List : View, Renderable {
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
         let modifier = Modifier.fillMaxWidth()
             .height(height)
-            .zIndex(Float(0.5))
+            .zIndex(styling.style == .plain ? Float(0.5) : Float(-1.0))
             .background(backgroundColor)
-        Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.BottomCenter) {
-            if !hasTopSection && styling.style != .plain {
-                RenderRoundedCorners(isTop: true, fill: backgroundColor)
-            }
-        }
+        Box(modifier: modifier)
     }
 
     /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
     /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
     @Composable private func RenderFooter(styling: ListStyling, modifier: Modifier = Modifier, safeAreaHeight: Dp, hasBottomSection: Bool) {
         var height = safeAreaHeight
-        var offset = 0.dp
         if styling.style != .plain {
             height += Self.verticalInset.dp
-            offset = -1.dp // Cover last row's divider
         }
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
+        // Grouped rows clip their own corners. This spacer must not paint over
+        // section content while its placement animates to the new list height.
         let containerModifier = modifier.fillMaxWidth()
             .height(height)
-            .offset(y: offset)
-            .zIndex(Float(0.5))
-            .background(backgroundColor)
-        Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
-            if !hasBottomSection && styling.style != .plain {
-                RenderRoundedCorners(isTop: false, fill: backgroundColor)
-            }
-        }
-    }
-
-    @Composable private func RenderRoundedCorners(isTop: Bool, fill: androidx.compose.ui.graphics.Color) {
-        let shape = GenericShape { size, _ in
-            let rect = Rect(left: Float(0.0), top: Float(0.0), right: size.width, bottom: size.height)
-            let rectPath = androidx.compose.ui.graphics.Path()
-            rectPath.addRect(rect)
-            let roundRect: RoundRect
-            if isTop {
-                roundRect = RoundRect(rect, topLeft: CornerRadius(size.height), topRight: CornerRadius(size.height))
-            } else {
-                roundRect = RoundRect(rect, bottomLeft: CornerRadius(size.height), bottomRight: CornerRadius(size.height))
-            }
-            let roundedRectPath = androidx.compose.ui.graphics.Path()
-            roundedRectPath.addRoundRect(roundRect)
-            addPath(combine(PathOperation.Difference, rectPath, roundedRectPath))
-        }
-        let offset = isTop ? listSectionCornerRadius.dp : -listSectionCornerRadius.dp
-        let modifier = Modifier
-            .fillMaxWidth()
-            .height(listSectionCornerRadius.dp)
-            .offset(y: offset)
-            .clip(shape)
-            .background(fill)
-        Box(modifier: modifier)
+            .zIndex(hasBottomSection ? Float(-0.5) : Float(0.5))
+            .background(styling.style == .plain ? backgroundColor : androidx.compose.ui.graphics.Color.Transparent)
+        Box(modifier: containerModifier)
     }
 
     @Composable private func RenderSearchField(state: SearchableState, context: ComposeContext, styling: ListStyling, safeAreaHeight: Dp) {
