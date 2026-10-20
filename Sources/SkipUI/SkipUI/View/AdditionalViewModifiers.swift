@@ -540,15 +540,27 @@ extension View {
         // Fix an axis to the content's ideal size by measuring it unbounded on that axis, mirroring
         // SwiftUI's fixedSize (the view is proposed its ideal size and won't be compressed/truncated).
         // A non-fixed axis is left untouched so the flexible-width layout system still governs it.
-        return ModifiedContent(content: self, modifier: RenderModifier { context in
-            var modifier = context.modifier
+        // The content is rendered without the parent's flexible layout on a fixed axis, so it does not
+        // report itself as filling and the parent stack gives its free space to other children instead.
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
+            var context = context
             if horizontal {
-                modifier = modifier.wrapContentWidth(unbounded: true)
+                context.modifier = context.modifier.wrapContentWidth(unbounded: true)
             }
             if vertical {
-                modifier = modifier.wrapContentHeight(unbounded: true)
+                context.modifier = context.modifier.wrapContentHeight(unbounded: true)
             }
-            return modifier
+            EnvironmentValues.shared.setValues {
+                if horizontal {
+                    $0.set_flexibleWidth(nil)
+                }
+                if vertical {
+                    $0.set_flexibleHeight(nil)
+                }
+                return ComposeResult.ok
+            } in: {
+                renderable.Render(context: context)
+            }
         })
         #else
         return self
