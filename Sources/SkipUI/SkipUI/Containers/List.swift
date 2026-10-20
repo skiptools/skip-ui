@@ -4,6 +4,8 @@
 import Foundation
 #if SKIP
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -609,9 +611,9 @@ public final class List : View, Renderable {
     ) {
         let animate = !forceUnanimatedItems.value && !suppressAnimation.value
         let modifier = animate ? animatedModifier : Modifier
-        let topRadius = isFirstInSection ? cornerRadius.dp : 0.dp
-        let bottomRadius = isLastInSection ? cornerRadius.dp : 0.dp
-        content(isFirstInSection || isLastInSection ? modifier.clip(RoundedCornerShape(topStart: topRadius, topEnd: topRadius, bottomStart: bottomRadius, bottomEnd: bottomRadius)) : modifier)
+        let topRadius = animateDpAsState(targetValue: isFirstInSection ? cornerRadius.dp : 0.dp, animationSpec: animate ? spring() : snap()).value
+        let bottomRadius = animateDpAsState(targetValue: isLastInSection ? cornerRadius.dp : 0.dp, animationSpec: animate ? spring() : snap()).value
+        content(topRadius > 0.dp || bottomRadius > 0.dp ? modifier.clip(RoundedCornerShape(topStart: topRadius, topEnd: topRadius, bottomStart: bottomRadius, bottomEnd: bottomRadius)) : modifier)
     }
 
     /// Build a stable key for section chrome animation state.
