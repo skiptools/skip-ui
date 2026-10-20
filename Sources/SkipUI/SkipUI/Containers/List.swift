@@ -12,11 +12,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.MutatePriority
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.animateTo
-import androidx.compose.foundation.gestures.snapTo
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,10 +69,14 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.ReorderableItem
@@ -80,9 +87,6 @@ import org.burnoutcrew.reorderable.reorderable
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
-
-/// Corner radius for list sections.
-let listSectionCornerRadius = 8.0
 
 #if SKIP
 /// Discrete rest positions for a row's swipe gesture. Used as the value
@@ -937,6 +941,9 @@ public final class List : View, Renderable {
                 decayAnimationSpec: exponentialDecay<Float>()
             )
         }
+        let interactionSource = remember { MutableInteractionSource() }
+        let isDragging = interactionSource.collectIsDraggedAsState()
+        let haptic = LocalHapticFeedback.current
         let rowWidthPxState = remember { mutableFloatStateOf(Float(0)) }
         /* Natural (content-sized) buttons-row width per edge, captured via
            onSizeChanged when the reveal is in natural-layout mode. Defaults
@@ -964,36 +971,6 @@ public final class List : View, Renderable {
                 }
             } else if cur != SwipeAnchor.trailingFull && cur != SwipeAnchor.leadingFull {
                 activeSwipeKey.value = rowKey
-            }
-        }
-
-        /* When the row actually settles on a full-swipe anchor, fire the
-           primary action (and optional auto-delete for destructive), then
-           snap back to closed. */
-        LaunchedEffect(anchoredState.settledValue) {
-            let settled = anchoredState.settledValue
-            if settled == SwipeAnchor.trailingFull {
-                if let action = trailingFullSwipeTarget?.action {
-                    action()
-                }
-                if trailingFullSwipeTarget?.role == ButtonRole.destructive, let onDestructiveDelete {
-                    onDestructiveDelete()
-                }
-                anchoredState.snapTo(SwipeAnchor.closed)
-                if activeSwipeKey.value == rowKey {
-                    activeSwipeKey.value = nil
-                }
-            } else if settled == SwipeAnchor.leadingFull {
-                if let action = leadingFullSwipeTarget?.action {
-                    action()
-                }
-                if leadingFullSwipeTarget?.role == ButtonRole.destructive, let onDestructiveDelete {
-                    onDestructiveDelete()
-                }
-                anchoredState.snapTo(SwipeAnchor.closed)
-                if activeSwipeKey.value == rowKey {
-                    activeSwipeKey.value = nil
-                }
             }
         }
 
@@ -1026,6 +1003,11 @@ public final class List : View, Renderable {
                transition is animated to smooth out the moment of takeover. */
             let trailingFullSwipeActive = allowsTrailingFullSwipe && revealedTrailingPx > rowWidthPx * swipeFullSwipeFraction
             let leadingFullSwipeActive = allowsLeadingFullSwipe && revealedLeadingPx > rowWidthPx * swipeFullSwipeFraction
+            LaunchedEffect(trailingFullSwipeActive, leadingFullSwipeActive) {
+                if isDragging.value {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                }
+            }
             let trailingFullSwipeAnim = animateFloatAsState(targetValue: trailingFullSwipeActive ? Float(1) : Float(0)).value
             let leadingFullSwipeAnim = animateFloatAsState(targetValue: leadingFullSwipeActive ? Float(1) : Float(0)).value
 
@@ -1037,15 +1019,15 @@ public final class List : View, Renderable {
                building hidden labels and symbols for every closed row stalls
                scrolling. Until its first measurement, the edge uses the
                count-based natural-width fallback above. */
-            let leadingUseStretch = leadingButtons.size > 0 && revealedLeadingPx > leadingNaturalPx + Float(1)
-            let trailingUseStretch = trailingButtons.size > 0 && revealedTrailingPx > trailingNaturalPx + Float(1)
+            let leadingUseStretch = leadingButtons.size > 0 && (revealedLeadingPx > leadingNaturalPx + Float(1) || leadingFullSwipeAnim > Float(0))
+            let trailingUseStretch = trailingButtons.size > 0 && (revealedTrailingPx > trailingNaturalPx + Float(1) || trailingFullSwipeAnim > Float(0))
             let leadingCount = Float(leadingButtons.size)
             let trailingCount = Float(trailingButtons.size)
 
             if leadingButtons.size > 0 && curOffset > Float(0) {
                 Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
                     if leadingUseStretch {
-                        let rowWidthDp = with(density) { revealedLeadingPx.toDp() }
+                        let rowWidthDp = with(density) { max(revealedLeadingPx, leadingNaturalPx).toDp() }
                         Row(modifier: Modifier.fillMaxHeight().width(rowWidthDp)) {
                             for button in leadingButtons {
                                 let isPrimary = button === leadingFullSwipeTarget
@@ -1088,7 +1070,7 @@ public final class List : View, Renderable {
             if trailingButtons.size > 0 && curOffset < Float(0) {
                 Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
                     if trailingUseStretch {
-                        let rowWidthDp = with(density) { revealedTrailingPx.toDp() }
+                        let rowWidthDp = with(density) { max(revealedTrailingPx, trailingNaturalPx).toDp() }
                         Row(modifier: Modifier.fillMaxHeight().width(rowWidthDp)) {
                             for button in trailingButtons {
                                 let isPrimary = button === trailingFullSwipeTarget
@@ -1171,7 +1153,49 @@ public final class List : View, Renderable {
                     let o = anchoredState.offset
                     IntOffset(o.isNaN() ? 0 : o.toInt(), 0)
                 }
-                .anchoredDraggable(state: anchoredState, orientation: Orientation.Horizontal)
+                .draggable(
+                    state: rememberDraggableState { delta in
+                        _ = anchoredState.dispatchRawDelta(delta)
+                    },
+                    orientation: Orientation.Horizontal,
+                    reverseDirection: LocalLayoutDirection.current == LayoutDirection.Rtl,
+                    interactionSource: interactionSource,
+                    startDragImmediately: anchoredState.isAnimationRunning,
+                    onDragStarted: { _ in
+                        anchoredState.anchoredDrag(dragPriority: MutatePriority.UserInput) { _ in }
+                        activeSwipeKey.value = rowKey
+                    },
+                    onDragStopped: { velocity in
+                        let offset = anchoredState.offset
+                        let trailingFull = allowsTrailingFullSwipe && -offset > rowWidthPxState.value * swipeFullSwipeFraction
+                        let leadingFull = allowsLeadingFullSwipe && offset > rowWidthPxState.value * swipeFullSwipeFraction
+                        if trailingFull || leadingFull {
+                            let button = trailingFull ? trailingFullSwipeTarget : leadingFullSwipeTarget
+                            if button?.role == ButtonRole.destructive && onDestructiveDelete != nil {
+                                anchoredState.animateTo(trailingFull ? SwipeAnchor.trailingFull : SwipeAnchor.leadingFull)
+                            }
+                            button?.action?()
+                            if button?.role == ButtonRole.destructive, let onDestructiveDelete {
+                                onDestructiveDelete()
+                            }
+                            anchoredState.animateTo(SwipeAnchor.closed)
+                        } else {
+                            let projectedOffset = offset + velocity * swipeVelocityProjectionSeconds
+                            let target: SwipeAnchor
+                            if offset > Float(0) && projectedOffset > leadingOpenPx * Float(0.5) && leadingButtons.size > 0 {
+                                target = SwipeAnchor.leadingOpen
+                            } else if offset < Float(0) && projectedOffset < trailingOpenPx * Float(0.5) && trailingButtons.size > 0 {
+                                target = SwipeAnchor.trailingOpen
+                            } else {
+                                target = SwipeAnchor.closed
+                            }
+                            anchoredState.animateTo(target)
+                        }
+                        if anchoredState.currentValue == SwipeAnchor.closed && activeSwipeKey.value == rowKey {
+                            activeSwipeKey.value = nil
+                        }
+                    }
+                )
             ) {
                 RenderItem(content: content, level: level, context: context, styling: styling)
                 /* Subtle scrim that intensifies with swipe progress so the row
@@ -1298,7 +1322,7 @@ public final class List : View, Renderable {
     @Composable private func RenderSectionHeader(content: Renderable, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isTop: Bool) {
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
         let containerModifier = modifier.fillMaxWidth()
-            .heightIn(min: styling.style == .plain ? 0.dp : listSectionCornerRadius.dp)
+            .heightIn(min: styling.style == .plain ? 0.dp : styling.cornerRadius.dp)
             .zIndex(styling.style == .plain ? Float(0.5) : Float(-0.5))
             .background(styling.style == .plain ? backgroundColor : androidx.compose.ui.graphics.Color.Transparent)
             .then(context.modifier)
@@ -1331,7 +1355,7 @@ public final class List : View, Renderable {
             }
             RenderItem(content: footerContent, level: 0, context: context, modifier: modifier, styling: styling, isItem: false)
         } else {
-            let containerModifier = modifier.heightIn(min: listSectionCornerRadius.dp)
+            let containerModifier = modifier.heightIn(min: styling.cornerRadius.dp)
                 .zIndex(Float(-0.5))
                 .then(context.modifier)
             let contentModifier = Modifier.fillMaxWidth().padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
