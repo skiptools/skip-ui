@@ -226,7 +226,9 @@ public final class List : View, Renderable {
             // Trigger recompose on move, but don't read the trigger state until we're inside the list content to limit its scope
             itemCollector.value.move(from: from.index, to: to.index, trigger: { moveTrigger.value = $0 })
         }, onDragEnd: { _, _ in
-            itemCollector.value.commitMove()
+            withAnimation {
+                itemCollector.value.commitMove()
+            }
         }, canDragOver: { candidate, dragging in
             itemCollector.value.canMove(from: dragging.index, to: candidate.index)
         })
