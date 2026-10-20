@@ -38,6 +38,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.ResolvedTextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -153,7 +154,7 @@ public struct TextField : View, Renderable {
         let lineLimit = EnvironmentValues.shared.lineLimit
         let maxLines = isVertical ? (lineLimit ?? Int.max) : 1
         let minLines = isVertical && EnvironmentValues.shared._lineLimitReservesSpace == true ? (lineLimit ?? 1) : 1
-        let placeholderCursorX = remember { mutableStateOf(nil as Float?) }
+        let placeholderLayout = remember { mutableStateOf(nil as TextLayoutResult?) }
         let emptyCursorX = remember { mutableStateOf(Float(0.0)) }
         var options = Material3TextFieldOptions(value: currentTextFieldValue, onValueChange: { value in
             text.wrappedValue = value.text
@@ -161,7 +162,7 @@ public struct TextField : View, Renderable {
             textFieldValue.value = value
         }, placeholder: {
             Self.Placeholder(prompt: prompt ?? label, context: contentContext, onTextLayout: {
-                placeholderCursorX.value = $0.getCursorRect(0).left
+                placeholderLayout.value = $0
             })
         }, modifier: baseModifier, textStyle: alignedTextStyle, enabled: EnvironmentValues.shared.isEnabled, singleLine: !isVertical, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: maxLines, minLines: minLines, shape: OutlinedTextFieldDefaults.shape, colors: colors)
         if let updateOptions = EnvironmentValues.shared._material3TextField {
@@ -187,8 +188,9 @@ public struct TextField : View, Renderable {
             let density = LocalDensity.current
             var cursorOffset = 0.dp
             if options.singleLine && options.value.text.isEmpty && !isSecure && options.visualTransformation == VisualTransformation.None,
-                let placeholderX = placeholderCursorX.value {
-                cursorOffset = with(density) { (placeholderX - emptyCursorX.value).toDp() }
+                let layout = placeholderLayout.value {
+                let gap = layout.getParagraphDirection(0) == ResolvedTextDirection.Rtl ? 2.dp : -2.dp
+                cursorOffset = with(density) { (layout.getCursorRect(0).left - emptyCursorX.value).toDp() } + gap
             }
             BasicTextField(value: options.value, onValueChange: options.onValueChange, modifier: fieldModifier, enabled: options.enabled, readOnly: options.readOnly, textStyle: entryTextStyle, keyboardOptions: options.keyboardOptions, keyboardActions: options.keyboardActions, singleLine: options.singleLine, maxLines: options.maxLines, minLines: options.minLines, visualTransformation: options.visualTransformation, interactionSource: interactionSource, cursorBrush: SolidColor(cursorColor), onTextLayout: {
                 if options.value.text.isEmpty {
