@@ -203,7 +203,7 @@ extension Modifier {
                     let event = awaitPointerEvent(pass: PointerEventPass.Initial)
                     if let change = event.changes.firstOrNull() {
                         pressed = change.pressed
-                        if abs(change.position.x - start.x) > slop || abs(change.position.y - start.y) > slop {
+                        if abs(change.position.y - start.y) > slop && abs(change.position.y - start.y) > abs(change.position.x - start.x) {
                             isUserScrollActive.value = true
                         }
                     } else {

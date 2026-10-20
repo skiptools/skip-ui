@@ -4,6 +4,10 @@
 import Foundation
 #if SKIP
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -14,9 +18,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
@@ -26,14 +32,19 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
 #endif
 
 // SKIP @bridge
@@ -142,25 +153,58 @@ public struct TextField : View, Renderable {
         let lineLimit = EnvironmentValues.shared.lineLimit
         let maxLines = isVertical ? (lineLimit ?? Int.max) : 1
         let minLines = isVertical && EnvironmentValues.shared._lineLimitReservesSpace == true ? (lineLimit ?? 1) : 1
+        let placeholderCursorX = remember { mutableStateOf(nil as Float?) }
+        let emptyCursorX = remember { mutableStateOf(Float(0.0)) }
         var options = Material3TextFieldOptions(value: currentTextFieldValue, onValueChange: { value in
             text.wrappedValue = value.text
             selection?.wrappedValue = TextSelection(range: value.selection.start..<value.selection.end)
             textFieldValue.value = value
         }, placeholder: {
-            Self.Placeholder(prompt: prompt ?? label, context: contentContext)
+            Self.Placeholder(prompt: prompt ?? label, context: contentContext, onTextLayout: {
+                placeholderCursorX.value = $0.getCursorRect(0).left
+            })
         }, modifier: baseModifier, textStyle: alignedTextStyle, enabled: EnvironmentValues.shared.isEnabled, singleLine: !isVertical, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: maxLines, minLines: minLines, shape: OutlinedTextFieldDefaults.shape, colors: colors)
         if let updateOptions = EnvironmentValues.shared._material3TextField {
             options = updateOptions(options)
         }
-        if let tfContentPadding = EnvironmentValues.shared._textFieldContentPadding {
+        let tfContentPadding = EnvironmentValues.shared._textFieldContentPadding
+        if tfContentPadding != nil || (options.singleLine && options.label == nil && !isSecure) {
+            let contentPadding = tfContentPadding?.asPaddingValues() ?? OutlinedTextFieldDefaults.contentPadding()
+            let fieldModifier = tfContentPadding == nil ? options.modifier.defaultMinSize(minWidth: OutlinedTextFieldDefaults.MinWidth, minHeight: OutlinedTextFieldDefaults.MinHeight) : options.modifier
             let interactionSource = options.interactionSource ?? remember { MutableInteractionSource() }
-            let cursorColor = (EnvironmentValues.shared._tint ?? Color.primary).colorImpl()
+            let isFocused = interactionSource.collectIsFocusedAsState()
+            let showTruncatedText = !isFocused.value && options.singleLine && !options.value.text.isEmpty && !isSecure && options.visualTransformation == VisualTransformation.None
+            LaunchedEffect(showTruncatedText, options.value.text) {
+                if showTruncatedText && selection == nil {
+                    textFieldValue.value = options.value.copy(selection: TextRange(0))
+                }
+            }
+            let cursorColor = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
             // Unlike `OutlinedTextField`, `BasicTextField` colors its text solely from the text style, so
             // fold in the foreground color that `styleInfo` hands back separately from the style itself.
             let entryColor = Self.textColor(styleInfo: styleInfo, enabled: options.enabled)
             let entryTextStyle = entryColor == androidx.compose.ui.graphics.Color.Unspecified ? options.textStyle : options.textStyle.copy(color: entryColor)
-            BasicTextField(value: options.value, onValueChange: options.onValueChange, modifier: options.modifier, enabled: options.enabled, readOnly: options.readOnly, textStyle: entryTextStyle, keyboardOptions: options.keyboardOptions, keyboardActions: options.keyboardActions, singleLine: options.singleLine, maxLines: options.maxLines, minLines: options.minLines, visualTransformation: options.visualTransformation, interactionSource: interactionSource, cursorBrush: SolidColor(cursorColor), decorationBox: { innerTextField in
-                OutlinedTextFieldDefaults.DecorationBox(value: options.value.text, visualTransformation: options.visualTransformation, innerTextField: innerTextField, placeholder: options.placeholder, label: options.label, leadingIcon: options.leadingIcon, trailingIcon: options.trailingIcon, prefix: options.prefix, suffix: options.suffix, supportingText: options.supportingText, singleLine: options.singleLine, enabled: options.enabled, isError: options.isError, interactionSource: interactionSource, colors: options.colors, contentPadding: tfContentPadding.asPaddingValues(), container: {
+            let density = LocalDensity.current
+            var cursorOffset = 0.dp
+            if options.singleLine && options.value.text.isEmpty && !isSecure && options.visualTransformation == VisualTransformation.None,
+                let placeholderX = placeholderCursorX.value {
+                cursorOffset = with(density) { (placeholderX - emptyCursorX.value).toDp() }
+            }
+            BasicTextField(value: options.value, onValueChange: options.onValueChange, modifier: fieldModifier, enabled: options.enabled, readOnly: options.readOnly, textStyle: entryTextStyle, keyboardOptions: options.keyboardOptions, keyboardActions: options.keyboardActions, singleLine: options.singleLine, maxLines: options.maxLines, minLines: options.minLines, visualTransformation: options.visualTransformation, interactionSource: interactionSource, cursorBrush: SolidColor(cursorColor), onTextLayout: {
+                if options.value.text.isEmpty {
+                    emptyCursorX.value = $0.getCursorRect(0).left
+                }
+            }, decorationBox: { innerTextField in
+                OutlinedTextFieldDefaults.DecorationBox(value: options.value.text, visualTransformation: options.visualTransformation, innerTextField: {
+                    Box {
+                        Box(modifier: Modifier.fillMaxWidth().absoluteOffset(x: cursorOffset).alpha(showTruncatedText ? Float(0.0) : Float(1.0)), propagateMinConstraints: true) {
+                            innerTextField()
+                        }
+                        if showTruncatedText {
+                            androidx.compose.material3.Text(text: options.value.text, modifier: Modifier.fillMaxWidth().clearAndSetSemantics {}, style: entryTextStyle, maxLines: 1, softWrap: false, overflow: TextOverflow.Ellipsis)
+                        }
+                    }
+                }, placeholder: options.placeholder, label: options.label, leadingIcon: options.leadingIcon, trailingIcon: options.trailingIcon, prefix: options.prefix, suffix: options.suffix, supportingText: options.supportingText, singleLine: options.singleLine, enabled: options.enabled, isError: options.isError, interactionSource: interactionSource, colors: options.colors, contentPadding: contentPadding, container: {
                     OutlinedTextFieldDefaults.Container(enabled: options.enabled, isError: options.isError, interactionSource: interactionSource, colors: options.colors, shape: options.shape)
                 })
             })
@@ -199,13 +243,18 @@ public struct TextField : View, Renderable {
         }
     }
 
-    @Composable static func Placeholder(prompt: View?, context: ComposeContext) {
+    @Composable static func Placeholder(prompt: View?, context: ComposeContext, onTextLayout: ((TextLayoutResult) -> Void)? = nil) {
         guard let prompt else {
             return
         }
         
         EnvironmentValues.shared.setValues {
-            $0.set_material3Text { options in options.copy(modifier: options.modifier.fillMaxWidth()) }
+            $0.set_material3Text { options in
+                options.copy(modifier: options.modifier.fillMaxWidth(), onTextLayout: { result in
+                    options.onTextLayout?(result)
+                    onTextLayout?(result)
+                })
+            }
             $0.set_foregroundStyle(Color(colorImpl: { Color.primary.colorImpl().copy(alpha: ContentAlpha.disabled) }))
             return ComposeResult.ok
         } in: {
