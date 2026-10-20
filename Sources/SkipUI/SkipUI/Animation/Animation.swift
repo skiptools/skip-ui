@@ -166,11 +166,10 @@ public struct Animation : Hashable {
     /// their value during the render pass) consult this when neither an environment
     /// `.animation(_:)` override nor an enclosing scope is active.
     ///
-    /// Cleared on the next Android frame through Choreographer. A global Main coroutine has
-    /// no Compose MonotonicFrameClock, so suspending with `withFrameNanos` there never clears
-    /// the marker. Each mark increments `recentWithAnimationGeneration` and
-    /// the scheduled clear only fires if the generation still matches, so a fresh
-    /// `withAnimation` issued before the next frame can't be wiped by a stale clear.
+    /// Cleared on the next Android frame through Choreographer.
+    /// Each mark increments `recentWithAnimationGeneration`, and the scheduled
+    /// clear only fires if the generation still matches, so a fresh
+    /// `withAnimation` can't be wiped by a stale clear.
     private static var recentWithAnimationAnimation: Animation? = nil
     private static var recentWithAnimationGeneration: Long = 0
 
