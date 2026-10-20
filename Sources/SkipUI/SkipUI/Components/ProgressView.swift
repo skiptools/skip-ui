@@ -9,13 +9,59 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LoadingIndicatorDefaults
 import androidx.compose.material3.ProgressIndicatorDefaults
+import androidx.compose.material3.WavyProgressIndicatorDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 #endif
 
+#if SKIP
+/// Configuration for Material 3 expressive wavy progress indicators on Android.
+///
+/// For ``amplitude``, pass `nil` to use a default of `1.0`.
+/// The closure receives `nil` for indeterminate indicators; for determinate indicators it receives the current fraction in `0...1`.
+/// Material’s wavy indicators coerce amplitude into the valid range.
+public struct Material3WavyProgressConfiguration: Equatable {
+    public var isEnabled: Bool
+    public var amplitude: ((Double?) -> Double)?
+    public var wavelength: Double?
+    public var waveSpeed: Double?
+
+    public init(isEnabled: Bool, amplitude: ((Double?) -> Double)? = nil, wavelength: Double? = nil, waveSpeed: Double? = nil) {
+        self.isEnabled = isEnabled
+        self.amplitude = amplitude
+        self.wavelength = wavelength
+        self.waveSpeed = waveSpeed
+    }
+
+    public var indeterminateAmplitude: Float {
+        Float(amplitude?(nil) ?? 1.0)
+    }
+
+    public var amplitudeForProgress: (Float) -> Float {
+        { fraction in Float(amplitude?(Double(fraction)) ?? 1.0) }
+    }
+
+    public static func == (lhs: Material3WavyProgressConfiguration, rhs: Material3WavyProgressConfiguration) -> Bool {
+        guard lhs.isEnabled == rhs.isEnabled, lhs.wavelength == rhs.wavelength, lhs.waveSpeed == rhs.waveSpeed else {
+            return false
+        }
+        // Cannot compare closure values; treat as equal only when both are absent.
+        switch (lhs.amplitude, rhs.amplitude) {
+        case (nil, nil): return true
+        default: return false
+        }
+    }
+}
+#endif
+
+// SKIP INSERT: @OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 // SKIP @bridge
 public struct ProgressView : View, Renderable {
     let value: Double?
@@ -111,25 +157,54 @@ public struct ProgressView : View, Renderable {
     @Composable private func RenderLinearProgress(context: ComposeContext) {
         let modifier = Modifier.fillWidth().then(context.modifier)
         let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.linearColor
-        if value == nil || total == nil {
-            LinearProgressIndicator(modifier: modifier, color: color)
+        let material3WavyProgressConfiguration = EnvironmentValues.shared._material3WavyProgress
+        if let wavyConfiguration = material3WavyProgressConfiguration, wavyConfiguration.isEnabled {
+            if let value, let total {
+                material3LinearWavyDeterminate(modifier: modifier, color: color, wavyConfiguration: wavyConfiguration, progress: { Float(value / total) })
+            } else {
+                material3LinearWavyIndeterminate(modifier: modifier, color: color, wavyConfiguration: wavyConfiguration)
+            }
+        } else if let value, let total {
+            LinearProgressIndicator(progress: { Float(value / total) }, modifier: modifier, color: color)
         } else {
-            LinearProgressIndicator(progress: { Float(value! / total!) }, modifier: modifier, color: color)
+            LinearProgressIndicator(modifier: modifier, color: color)
         }
+    }
+
+    @Composable private func material3LinearWavyIndeterminate(modifier: Modifier, color: androidx.compose.ui.graphics.Color, wavyConfiguration: Material3WavyProgressConfiguration) {
+        let wavelength = wavyConfiguration.wavelength.map { Float($0).dp } ?? WavyProgressIndicatorDefaults.LinearIndeterminateWavelength
+        let waveSpeed = wavyConfiguration.waveSpeed.map { Float($0).dp } ?? wavelength
+        LinearWavyProgressIndicator(modifier: modifier, color: color, amplitude: wavyConfiguration.indeterminateAmplitude, wavelength: wavelength, waveSpeed: waveSpeed)
+    }
+
+    @Composable private func material3LinearWavyDeterminate(modifier: Modifier, color: androidx.compose.ui.graphics.Color, wavyConfiguration: Material3WavyProgressConfiguration, progress: () -> Float) {
+        let wavelength = wavyConfiguration.wavelength.map { Float($0).dp } ?? WavyProgressIndicatorDefaults.LinearDeterminateWavelength
+        let waveSpeed = wavyConfiguration.waveSpeed.map { Float($0).dp } ?? wavelength
+        LinearWavyProgressIndicator(progress: progress, modifier: modifier, color: color, amplitude: wavyConfiguration.amplitudeForProgress, wavelength: wavelength, waveSpeed: waveSpeed)
     }
 
     @Composable private func RenderCircularProgress(context: ComposeContext) {
         let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.circularColor
         // Reduce size to better match SwiftUI
-        let indicatorModifier = Modifier.size(20.dp)
+        let indicatorModifier = context.modifier.size(20.dp)
+        let material3WavyProgressConfiguration = EnvironmentValues.shared._material3WavyProgress
         Box(modifier: context.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
-            if value == nil || total == nil {
-                CircularProgressIndicator(modifier: indicatorModifier, color: color)
+            if let wavyConfiguration = material3WavyProgressConfiguration, wavyConfiguration.isEnabled {
+                let wavelength = wavyConfiguration.wavelength.map { Float($0).dp } ?? WavyProgressIndicatorDefaults.CircularWavelength
+                let waveSpeed = wavyConfiguration.waveSpeed.map { Float($0).dp } ?? wavelength
+                if let value, let total {
+                    CircularWavyProgressIndicator(progress: { Float(value / total) }, modifier: indicatorModifier, color: color, amplitude: wavyConfiguration.amplitudeForProgress, wavelength: wavelength, waveSpeed: waveSpeed)
+                } else {
+                    CircularWavyProgressIndicator(modifier: indicatorModifier, color: color, amplitude: wavyConfiguration.indeterminateAmplitude, wavelength: wavelength, waveSpeed: waveSpeed)
+                }
+            } else if let value, let total {
+                CircularProgressIndicator(progress: { Float(value / total) }, modifier: indicatorModifier, color: color)
             } else {
-                CircularProgressIndicator(progress: { Float(value! / total!) }, modifier: indicatorModifier, color: color)
+                CircularProgressIndicator(modifier: indicatorModifier, color: color)
             }
         }
     }
+
     #else
     public var body: some View {
         stubView()
@@ -157,6 +232,18 @@ extension View {
         return self
         #endif
     }
+
+    #if SKIP
+    public func material3WavyProgress(wavy: Bool = true, amplitude: ((Double?) -> Double)? = nil, wavelength: Double? = nil, waveSpeed: Double? = nil) -> any View {
+        let wavyProgressConfiguration = Material3WavyProgressConfiguration(isEnabled: wavy, amplitude: amplitude, wavelength: wavelength, waveSpeed: waveSpeed)
+        return environment(\._material3WavyProgress, wavyProgressConfiguration, affectsEvaluate: false)
+    }
+
+    /// Convenience overload: constant amplitude for every progress value (same as `{ _ in fixedAmplitude }`).
+    public func material3WavyProgress(wavy: Bool = true, amplitude fixedAmplitude: Double, wavelength: Double? = nil, waveSpeed: Double? = nil) -> any View {
+        material3WavyProgress(wavy: wavy, amplitude: { _ in fixedAmplitude }, wavelength: wavelength, waveSpeed: waveSpeed)
+    }
+    #endif
 
     // SKIP @bridge
     public func progressViewStyle(bridgedStyle: Int) -> any View {
