@@ -199,12 +199,18 @@ extension Modifier {
                     return
                 }
                 var pressed = true
+                var hasDeterminedAxis = false
                 while pressed {
                     let event = awaitPointerEvent(pass: PointerEventPass.Initial)
                     if let change = event.changes.firstOrNull() {
                         pressed = change.pressed
-                        if abs(change.position.y - start.y) > slop && abs(change.position.y - start.y) > abs(change.position.x - start.x) {
-                            isUserScrollActive.value = true
+                        if !hasDeterminedAxis {
+                            let dx = abs(change.position.x - start.x)
+                            let dy = abs(change.position.y - start.y)
+                            if dx > slop || dy > slop {
+                                hasDeterminedAxis = true
+                                isUserScrollActive.value = dy > dx
+                            }
                         }
                     } else {
                         pressed = false
