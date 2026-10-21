@@ -226,9 +226,7 @@ public final class List : View, Renderable {
             // Trigger recompose on move, but don't read the trigger state until we're inside the list content to limit its scope
             itemCollector.value.move(from: from.index, to: to.index, trigger: { moveTrigger.value = $0 })
         }, onDragEnd: { _, _ in
-            withAnimation {
-                itemCollector.value.commitMove()
-            }
+            itemCollector.value.commitMove()
         }, canDragOver: { candidate, dragging in
             itemCollector.value.canMove(from: dragging.index, to: candidate.index)
         })
@@ -382,12 +380,12 @@ public final class List : View, Renderable {
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(itemIndex),
                             suppressAnimation: suppressTextInputAnimation,
                             animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
-                        ) { itemModifier in
+                        ) { itemModifier, decorationModifier in
                             EnvironmentValues.shared.setValues {
                                 $0.set_listItemTextInputFocused(textInputFocused)
                                 return ComposeResult.ok
                             } in: {
-                                RenderItem(content: rowContent(renderable, isLast: itemCollector.value.isLastInSection(itemIndex), styling: styling), level: level, context: itemContext, modifier: itemModifier, styling: styling)
+                                RenderItem(content: rowContent(renderable, isLast: itemCollector.value.isLastInSection(itemIndex), styling: styling), level: level, context: itemContext, modifier: itemModifier.then(decorationModifier), styling: styling)
                             }
                         }
                     }
@@ -407,16 +405,17 @@ public final class List : View, Renderable {
                         Self.RenderItemAnimation(
                             cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
+                            isDragging: reorderableState.draggingItemKey == keyValue,
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
                             animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
-                        ) { itemModifier in
+                        ) { itemModifier, decorationModifier in
                             EnvironmentValues.shared.setValues {
                                 $0.set_listItemTextInputFocused(textInputFocused)
                                 return ComposeResult.ok
                             } in: {
-                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, decorationModifier: decorationModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
                             }
                         }
                     }
@@ -435,16 +434,17 @@ public final class List : View, Renderable {
                         Self.RenderItemAnimation(
                             cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
+                            isDragging: reorderableState.draggingItemKey == keyValue,
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
                             animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
-                        ) { itemModifier in
+                        ) { itemModifier, decorationModifier in
                             EnvironmentValues.shared.setValues {
                                 $0.set_listItemTextInputFocused(textInputFocused)
                                 return ComposeResult.ok
                             } in: {
-                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, decorationModifier: decorationModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
                             }
                         }
                     }
@@ -463,16 +463,17 @@ public final class List : View, Renderable {
                         Self.RenderItemAnimation(
                             cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
+                            isDragging: reorderableState.draggingItemKey == keyValue,
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
                             animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
-                        ) { itemModifier in
+                        ) { itemModifier, decorationModifier in
                             EnvironmentValues.shared.setValues {
                                 $0.set_listItemTextInputFocused(textInputFocused)
                                 return ComposeResult.ok
                             } in: {
-                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, decorationModifier: decorationModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
                             }
                         }
                     }
@@ -597,25 +598,31 @@ public final class List : View, Renderable {
     /// - Parameters:
     ///   - cornerRadius: The radius of the section’s outer corners.
     ///   - forceUnanimatedItems: Whether the current update suppresses placement animations.
+    ///   - isDragging: Whether the row is currently being dragged.
     ///   - isFirstInSection: Clips the first row's top corners together with its background.
     ///   - isLastInSection: Clips the final row's bottom corners together with its background.
     ///   - suppressAnimation: Whether the row's focused text input suppresses animations.
     ///   - animatedModifier: The lazy item scope's animated placement modifier.
-    ///   - content: Renders the existing row with the chosen modifier.
+    ///   - content: Renders the existing row with placement and decoration modifiers.
     @Composable static func RenderItemAnimation(
         cornerRadius: CGFloat,
         forceUnanimatedItems: MutableState<Bool>,
+        isDragging: Bool = false,
         isFirstInSection: Bool,
         isLastInSection: Bool,
         suppressAnimation: MutableState<Bool>,
         animatedModifier: Modifier,
-        content: @Composable (Modifier) -> Void
+        content: @Composable (Modifier, Modifier) -> Void
     ) {
         let animate = !forceUnanimatedItems.value && !suppressAnimation.value
         let modifier = animate ? animatedModifier : Modifier
         let topRadius = animateDpAsState(targetValue: isFirstInSection ? cornerRadius.dp : 0.dp, animationSpec: animate ? spring() : snap()).value
         let bottomRadius = animateDpAsState(targetValue: isLastInSection ? cornerRadius.dp : 0.dp, animationSpec: animate ? spring() : snap()).value
-        content(topRadius > 0.dp || bottomRadius > 0.dp ? modifier.clip(RoundedCornerShape(topStart: topRadius, topEnd: topRadius, bottomStart: bottomRadius, bottomEnd: bottomRadius)) : modifier)
+        let dragProgress = animateFloatAsState(targetValue: isDragging ? Float(1) : Float(0), animationSpec: tween(durationMillis: 200)).value
+        let dragTopRadius = topRadius * (Float(1) - dragProgress)
+        let dragBottomRadius = bottomRadius * (Float(1) - dragProgress)
+        let decorationModifier = topRadius > 0.dp || bottomRadius > 0.dp ? Modifier.clip(RoundedCornerShape(topStart: dragTopRadius, topEnd: dragTopRadius, bottomStart: dragBottomRadius, bottomEnd: dragBottomRadius)) : Modifier
+        content(modifier, decorationModifier)
     }
 
     /// Build a stable key for section chrome animation state.
@@ -763,12 +770,12 @@ public final class List : View, Renderable {
         }
     }
 
-    @Composable private func RenderEditableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, objectsBinding: Binding<RandomAccessCollection<Any>>? = nil, key: String?, index: Int, editActions: EditActions = [], onDelete: ((IndexSet) -> Void)?, onMove: ((IndexSet, Int) -> Void)?, reorderableState: ReorderableLazyListState, activeSwipeKey: MutableState<String?>) {
+    @Composable private func RenderEditableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, decorationModifier: Modifier, styling: ListStyling, objectsBinding: Binding<RandomAccessCollection<Any>>? = nil, key: String?, index: Int, editActions: EditActions = [], onDelete: ((IndexSet) -> Void)?, onMove: ((IndexSet, Int) -> Void)?, reorderableState: ReorderableLazyListState, activeSwipeKey: MutableState<String?>) {
         guard !content.isSwiftUIEmptyView else {
             return
         }
         guard let key else {
-            RenderItem(content: content, level: level, context: context, modifier: modifier, styling: styling)
+            RenderItem(content: content, level: level, context: context, modifier: modifier.then(decorationModifier), styling: styling)
             return
         }
         let editActionsModifier = EditActionsModifier.combined(for: content)
@@ -780,7 +787,7 @@ public final class List : View, Renderable {
         let hasMoveAction = editActions.contains(.move) || onMove != nil
         let isMoveEnabled = hasMoveAction && editActionsModifier.isMoveDisabled != true
         guard isDeleteEnabled || hasMoveAction || hasUserSwipe else {
-            RenderItem(content: content, level: level, context: context, modifier: modifier, styling: styling)
+            RenderItem(content: content, level: level, context: context, modifier: modifier.then(decorationModifier), styling: styling)
             return
         }
 
@@ -848,9 +855,9 @@ public final class List : View, Renderable {
         // Keep the row's composition mounted when moveDisabled changes with edit mode.
         // Only the gesture changes; remembered child state (including image painters) survives.
         if hasMoveAction {
-            RenderReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier, isMoveEnabled: isMoveEnabled, content: itemContent)
+            RenderReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier, decorationModifier: decorationModifier, isMoveEnabled: isMoveEnabled, content: itemContent)
         } else {
-            itemContent(modifier)
+            itemContent(modifier.then(decorationModifier))
         }
     }
 
@@ -1309,17 +1316,14 @@ public final class List : View, Renderable {
         }
     }
 
-    @Composable private func RenderReorderableItem(reorderableState: ReorderableLazyListState, key: String, modifier: Modifier, isMoveEnabled: Bool, content: @Composable (Modifier) -> Void) {
+    @Composable private func RenderReorderableItem(reorderableState: ReorderableLazyListState, key: String, modifier: Modifier, decorationModifier: Modifier, isMoveEnabled: Bool, content: @Composable (Modifier) -> Void) {
         ReorderableItem(state: reorderableState, key: key, defaultDraggingModifier: modifier) { dragging in
             var itemModifier: Modifier = Modifier
             if isMoveEnabled {
                 itemModifier = itemModifier.detectReorderAfterLongPress(reorderableState)
             }
-            if dragging {
-                let elevation = animateDpAsState(8.dp)
-                itemModifier = itemModifier.shadow(elevation.value)
-            }
-            content(itemModifier)
+            let elevation = animateDpAsState(targetValue: dragging ? 8.dp : 0.dp, animationSpec: tween(durationMillis: 200))
+            content(itemModifier.shadow(elevation.value).then(decorationModifier))
         }
     }
 
