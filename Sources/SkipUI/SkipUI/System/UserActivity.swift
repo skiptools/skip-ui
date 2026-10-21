@@ -48,7 +48,9 @@ extension View {
                 }
             }
 
-            guard let intent = newIntent.value ?? activity.intent else {
+            // A relaunched activity's launch intent was handled in the activity's earlier life.
+            let launchIntent = activity.intent === UIApplication.shared.replayedLaunchIntent ? nil : activity.intent
+            guard let intent = newIntent.value ?? launchIntent else {
                 return ComposeResult.ok
             }
             newIntent.value = nil

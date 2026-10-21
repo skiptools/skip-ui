@@ -76,6 +76,7 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     public static func launch(_ activity: androidx.activity.ComponentActivity) {
         if activity !== shared.androidActivity {
             shared.androidActivity = activity
+            shared.replayedLaunchIntent = isRelaunch(activity) ? activity.intent : nil
 
             // Must registerForActivityResult on or before Activity.onCreate
             do {
@@ -94,6 +95,29 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
             }
 
             UNUserNotificationCenter.current().receiveResponses(in: activity)
+        }
+    }
+
+    /// The intent the system relaunched the activity with, which the activity's earlier life
+    /// already handled: an activity recreated from saved state (after a process death or a
+    /// configuration change) or relaunched from Recents gets its task's launch intent again.
+    var replayedLaunchIntent: Intent?
+
+    private static let relaunchStateKey = "skip.ui.UIApplication"
+
+    private static func isRelaunch(_ activity: androidx.activity.ComponentActivity) -> Bool {
+        if let intent = activity.intent, (intent.flags & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0 {
+            return true
+        }
+        // The saved state holds this key from the activity's earlier life only.
+        do {
+            let registry = activity.savedStateRegistry
+            let restored = registry.consumeRestoredStateForKey(relaunchStateKey) != nil
+            registry.registerSavedStateProvider(relaunchStateKey, RelaunchStateProvider())
+            return restored
+        } catch {
+            android.util.Log.w("SkipUI", "error reading the activity's saved state", error as? Throwable)
+            return false
         }
     }
 
@@ -485,6 +509,13 @@ struct UIApplicationLifecycleEventObserver: LifecycleEventObserver, DefaultLifec
         case Lifecycle.Event.ON_ANY:
             break
         }
+    }
+}
+
+/// Saves a marker in the activity's state, so a recreated activity can tell it was restored.
+struct RelaunchStateProvider: androidx.savedstate.SavedStateRegistry.SavedStateProvider {
+    override func saveState() -> android.os.Bundle {
+        return android.os.Bundle()
     }
 }
 #endif
