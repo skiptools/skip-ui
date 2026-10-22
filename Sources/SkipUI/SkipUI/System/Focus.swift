@@ -9,6 +9,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 #endif
 
+#if SKIP
+/// How many frames in a row a failed focus request is retried.
+let maxFocusRequestRetries = 10
+#endif
+
 extension View {
     public func focused<Value>(_ binding: Binding<Value>, equals value: Value) -> any View {
         #if SKIP
@@ -16,6 +21,7 @@ extension View {
             let focusRequester = remember { FocusRequester() }
             let focusManager = LocalFocusManager.current
             let isFocused = remember { mutableStateOf(false) }
+            let failedFocusRequests = remember { mutableStateOf(0) }
             var context = context
             context.modifier = context.modifier
                 .focusRequester(focusRequester)
@@ -31,14 +37,32 @@ extension View {
                         }
                     }
                 }
+            if value != binding.wrappedValue {
+                // Reset while this view isn't the focus target, so the next request gets every retry.
+                SideEffect {
+                    failedFocusRequests.value = 0
+                }
+            }
             if value == binding.wrappedValue {
+                // A text field focused in its first frame has no text layout yet, and Compose
+                // throws from requestFocus (offset out of bounds). Counting the failure in state
+                // this view reads recomposes it on the next frame, after layout, which requests
+                // focus again.
+                let _ = failedFocusRequests.value
+                // SKIP REPLACE: SideEffect { if (!isFocused.value) { try { focusRequester.requestFocus(); failedFocusRequests.value = 0 } catch (_: IllegalArgumentException) { if (failedFocusRequests.value < maxFocusRequestRetries) { failedFocusRequests.value += 1 } } } }
                 SideEffect {
                     if !isFocused.value {
                         focusRequester.requestFocus()
                     }
                 }
             } else if isFocused.value {
-                SideEffect { focusManager.clearFocus() }
+                SideEffect {
+                    // Recheck ownership after other focus effects have run: in a transfer from
+                    // this field to another composed before it, the other's request has landed.
+                    if value != binding.wrappedValue && isFocused.value {
+                        focusManager.clearFocus()
+                    }
+                }
             }
             renderable.Render(context: context)
         })
