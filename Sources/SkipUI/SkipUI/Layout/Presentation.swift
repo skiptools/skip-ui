@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
@@ -56,7 +57,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -97,16 +98,25 @@ private let AlertDialogMaxWidth: Dp = 560.dp
 
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     let isPresentedValue = isPresented.get()
-    let presentingFocusManager = LocalFocusManager.current
     let presentingKeyboardController = LocalSoftwareKeyboardController.current
+    let restoreKeyboard = remember { mutableStateOf(false) }
+    let keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    let windowFocused = LocalWindowInfo.current.isWindowFocused
+    let presentationVisible = isPresentedValue || sheetState.isVisible
+    LaunchedEffect(presentationVisible, windowFocused) {
+        if !presentationVisible && windowFocused && restoreKeyboard.value {
+            restoreKeyboard.value = false
+            presentingKeyboardController?.show()
+        }
+    }
     if isPresentedValue {
         LaunchedEffect(true) {
-            // Release the presenting field while the new window opens, without delaying presentation.
-            presentingFocusManager.clearFocus()
+            // Preserve the presenting field's focus and restore its keyboard after dismissal.
+            restoreKeyboard.value = keyboardVisible
             presentingKeyboardController?.hide()
         }
     }
-    if isPresentedValue || sheetState.isVisible {
+    if presentationVisible {
         // Don't fully evaluate content until we set up the presented environment. For now we just want
         // to get at the modifiers to look for `BackDismissDisabled`
         let contentRenderables = ComposeBuilder.from(content).Evaluate(context: context, options: EvaluateOptions(isKeepNonModified: true).value)
