@@ -891,10 +891,11 @@ public class NotificationWorker : Worker {
             }
             // createWithResource throws when the id is 0, which fails the worker and
             // the notification is never posted. A platform status icon always exists.
-            // createWithResource(context, id) records the app package, so a framework
-            // id is not found there. Name the android package for that fallback.
+            // createWithResource records the package of the Context it is given, so a
+            // framework id is not found in the app package. Load it from the android package.
             if resId == 0 {
-                builder.setSmallIcon(IconCompat.createWithResource("android", android.R.drawable.stat_notify_chat))
+                let androidContext = context.createPackageContext("android", 0)
+                builder.setSmallIcon(IconCompat.createWithResource(androidContext, android.R.drawable.stat_notify_chat))
             } else {
                 builder.setSmallIcon(IconCompat.createWithResource(context, resId))
             }
