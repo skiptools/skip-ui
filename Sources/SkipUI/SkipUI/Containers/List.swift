@@ -408,7 +408,7 @@ public final class List : View, Renderable {
                         Self.RenderItemAnimation(
                             cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
-                            isDragging: reorderableState.draggingItemKey == keyValue,
+                            isDragging: keyValue != nil && reorderableState.draggingItemKey == keyValue,
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
