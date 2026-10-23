@@ -59,10 +59,20 @@ public struct ViewThatFits : View, Renderable {
 
                 // Determine each candidate's ideal size using intrinsics with an unconstrained cross-axis,
                 // then pick the first that fits within the parent constraints in the specified axes.
+                // Compose remeasures any child whose maxIntrinsicWidth/Height was read, then
+                // remeasures this Layout if that child is never measure()d, so measure queried losers too.
                 var chosenIndex = measurables.size - 1
+                var lastQueriedIndex = -1
                 for i in 0..<measurables.size {
-                    let idealWidth = measurables[i].maxIntrinsicWidth(Constraints.Infinity)
-                    let idealHeight = measurables[i].maxIntrinsicHeight(Constraints.Infinity)
+                    lastQueriedIndex = i
+                    var idealWidth = 0
+                    var idealHeight = 0
+                    if axes.contains(.horizontal) {
+                        idealWidth = measurables[i].maxIntrinsicWidth(maxHeight)
+                    }
+                    if axes.contains(.vertical) {
+                        idealHeight = measurables[i].maxIntrinsicHeight(maxWidth)
+                    }
                     if fits(measuredWidth: idealWidth, measuredHeight: idealHeight) {
                         chosenIndex = i
                         break
@@ -70,6 +80,13 @@ public struct ViewThatFits : View, Renderable {
                 }
 
                 let placeable = measurables[chosenIndex].measure(constraints)
+                if lastQueriedIndex >= 0 {
+                    for i in 0...lastQueriedIndex {
+                        if i != chosenIndex {
+                            measurables[i].measure(constraints)
+                        }
+                    }
+                }
                 let layoutWidth = max(constraints.minWidth, placeable.width)
                 let layoutHeight = max(constraints.minHeight, placeable.height)
                 return layout(width: layoutWidth, height: layoutHeight) {
