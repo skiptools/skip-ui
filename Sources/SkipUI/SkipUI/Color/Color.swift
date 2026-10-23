@@ -218,8 +218,11 @@ public struct Color: ShapeStyle, Renderable, Hashable {
 
     /// Use for separators, etc.
     static var separator: Color = Color(colorImpl: {
-        MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+        MaterialTheme.colorScheme.onSurface.copy(alpha: Float(0.10))
     })
+
+    // SKIP @bridge
+    public static let _separator = separator
 
     /// Use for placeholder content.
     static let placeholderOpacity = 0.2
