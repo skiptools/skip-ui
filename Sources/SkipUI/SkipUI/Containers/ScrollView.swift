@@ -16,14 +16,18 @@ import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
@@ -261,6 +265,26 @@ struct ScrollPositionPreferenceKey: PreferenceKey {
 
     static func reduce(value: inout ScrollPositionState, nextValue: () -> ScrollPositionState) {
         value = nextValue()
+    }
+}
+
+/// Observe a lazy container's first visible item and contribute its ID as the scroll position preference.
+///
+/// This must remain its own composable: the first visible index changes continually while scrolling, and reading
+/// the resulting state in the lazy container's scope would recompose the container and all of its visible items.
+@Composable func ContributeScrollPosition(context: ComposeContext, scrollState: Any, itemCollector: LazyItemCollector, firstVisibleItemIndex: () -> Int) {
+    let scrollPositionState = remember { mutableStateOf<ScrollPositionState?>(nil) }
+    let currentItemCollector = rememberUpdatedState(itemCollector)
+    LaunchedEffect(scrollState) {
+        snapshotFlow { firstVisibleItemIndex() }
+        .distinctUntilChanged()
+        .collect { index in
+            let id = currentItemCollector.value.id(for: index)
+            scrollPositionState.value = ScrollPositionState(id: id)
+        }
+    }
+    if let scrollPosition = scrollPositionState.value {
+        PreferenceValues.shared.contribute(context: context, key: ScrollPositionPreferenceKey.self, value: scrollPosition)
     }
 }
 #endif
