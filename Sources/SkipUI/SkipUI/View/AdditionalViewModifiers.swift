@@ -1904,7 +1904,8 @@ final class AndroidVerticalOverscrollPullDownConnection: NestedScrollConnection 
         return Offset(x: Float(0.0), y: available.y)
     }
 
-    override func onPostFling(consumed: Velocity, available: Velocity) async -> Velocity {
+    // Keep pull state and callbacks on the UI thread when this async override is transpiled.
+    @MainActor override func onPostFling(consumed: Velocity, available: Velocity) async -> Velocity {
         guard accumulatedPullPx > Float(0.0) else {
             return Velocity.Zero
         }
