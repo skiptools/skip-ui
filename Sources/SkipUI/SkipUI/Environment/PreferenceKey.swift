@@ -19,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
-import kotlin.reflect.full.companionObjectInstance
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 #endif
@@ -137,7 +136,7 @@ struct PreferenceCollector<Value> {
 
     init(key: Any.Type, initialValue: Value? = nil) {
         self.key = key
-        let companion = key.companionObjectInstance as! PreferenceKeyCompanion<Value>
+        let companion = companionInstance(ofType: key) as! PreferenceKeyCompanion<Value>
         self.initialValue = initialValue ?? companion.defaultValue
         self.reducer = { value, nextValue in
             var updatedValue = value
@@ -200,8 +199,8 @@ extension View {
     public func onPreferenceChange<K>(_ key: K.Type /* = K.self */, perform action: @escaping (K.Value) -> Void) -> any View where K : PreferenceKey {
         #if SKIP
         // Work around transpiler bug
-        // SKIP REPLACE: val companion = key.companionObjectInstance as PreferenceKeyCompanion<V>
-        let companion = key.companionObjectInstance as! PreferenceKeyCompanion<V>
+        // SKIP REPLACE: val companion = companionInstance(key) as PreferenceKeyCompanion<V>
+        let companion = companionInstance(ofType: key) as! PreferenceKeyCompanion<V>
         return onPreferenceChange(key: key, defaultValue: companion.defaultValue, reducer: { value, nextValue in
             var updatedValue = value as! V
             companion.reduce(value: &updatedValue, nextValue: { nextValue as! V })
