@@ -2575,6 +2575,7 @@ Support levels:
                   <li><code>var delegate: (any UNUserNotificationCenterDelegate)?</code></li>
                   <li><code>func add(_ request: UNNotificationRequest) async throws</code></li>
                   <li>The `add` function ignores all repeat options and and simply delivers the notification either immediately or after the next trigger date is reached.</li>
+                  <li>As on iOS, adding a request replaces the pending request with the same identifier.</li>
                   <li><code>func pendingNotificationRequests() async -> [UNNotificationRequest]</code></li>
                   <li><code>func removePendingNotificationRequests(withIdentifiers identifiers: [String])</code></li>
                   <li><code>func removeAllPendingNotificationRequests()</code></li>

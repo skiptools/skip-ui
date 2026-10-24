@@ -12,5 +12,20 @@ permissions:
   contents: write
 
 jobs:
+  # iOS, export, host swift test and Robolectric on arm macOS,
+  # which cannot run the Android emulator (no nested virtualization)
   call-workflow:
     uses: skiptools/actions/.github/workflows/skip-framework.yml@v1
+    with:
+      runs-on: "['macos-26']"
+  # Android emulator tests on Linux, from the transpiled Gradle project,
+  # since the host swift test needs macOS (CoreGraphics, SwiftUI)
+  android-emulator:
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+    uses: skiptools/actions/.github/workflows/skip-framework.yml@v1
+    with:
+      runs-on: "['ubuntu-24.04']"
+      android-native-disabled: true
+      run-local-tests: false
+      run-export: false
+      emulator-host-build: 'transpile'

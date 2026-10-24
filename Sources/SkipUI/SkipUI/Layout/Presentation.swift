@@ -15,11 +15,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -58,6 +57,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -97,7 +98,25 @@ private let AlertDialogMaxWidth: Dp = 560.dp
 
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     let isPresentedValue = isPresented.get()
-    if isPresentedValue || sheetState.isVisible {
+    let presentingKeyboardController = LocalSoftwareKeyboardController.current
+    let restoreKeyboard = remember { mutableStateOf(false) }
+    let keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    let windowFocused = LocalWindowInfo.current.isWindowFocused
+    let presentationVisible = isPresentedValue || sheetState.isVisible
+    LaunchedEffect(presentationVisible, windowFocused) {
+        if !presentationVisible && windowFocused && restoreKeyboard.value {
+            restoreKeyboard.value = false
+            presentingKeyboardController?.show()
+        }
+    }
+    if isPresentedValue {
+        LaunchedEffect(true) {
+            // Preserve the presenting field's focus and restore its keyboard after dismissal.
+            restoreKeyboard.value = keyboardVisible
+            presentingKeyboardController?.hide()
+        }
+    }
+    if presentationVisible {
         // Don't fully evaluate content until we set up the presented environment. For now we just want
         // to get at the modifiers to look for `BackDismissDisabled`
         let contentRenderables = ComposeBuilder.from(content).Evaluate(context: context, options: EvaluateOptions(isKeepNonModified: true).value)
@@ -160,14 +179,14 @@ private let AlertDialogMaxWidth: Dp = 560.dp
                 case let .height(h):
                     // A fixed detent describes usable content height, excluding system bars.
                     // The bottom inset is consumed by PresentationRoot or the spacer below it.
-                    let bottomBarHeight = max(0.dp, WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
-                    let topBarHeight = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                    let bottomBarHeight = max(0.dp, WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() - windowKeyboardInsets().asPaddingValues().calculateBottomPadding())
+                    let topBarHeight = windowSafeDrawingInsets().asPaddingValues().calculateTopPadding()
                     inset = max(topBarHeight + (24 * sheetDepth).dp + 44.dp, screenHeight - h.dp - bottomBarHeight)
                 case let .fraction(f):
                     inset = screenHeight * Float(1 - f)
                 default:
                     // We have to delay access to WindowInsets until inside the ModalBottomSheet composable to get accurate values
-                    let topBarHeight = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                    let topBarHeight = windowSafeDrawingInsets().asPaddingValues().calculateTopPadding()
                     // Add 44 for draggable area in case content is not draggable
                     inset = topBarHeight + (24 * sheetDepth).dp + 44.dp
                 }
@@ -188,7 +207,7 @@ private let AlertDialogMaxWidth: Dp = 560.dp
             } else if !isEdgeToEdge {
                 systemBarEdges.remove(.top)
                 systemBarEdges.remove(.bottom)
-                let inset = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                let inset = windowSafeDrawingInsets().asPaddingValues().calculateTopPadding()
                 topInset.value = inset
                 // Push the presentation root content area below the top bar
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
@@ -221,7 +240,7 @@ private let AlertDialogMaxWidth: Dp = 560.dp
             }
             if !isEdgeToEdge {
                 // Move the presentation root content area above the bottom bar
-                let inset = max(0.dp, WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                let inset = max(0.dp, WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() - windowKeyboardInsets().asPaddingValues().calculateBottomPadding())
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
             }
         }
