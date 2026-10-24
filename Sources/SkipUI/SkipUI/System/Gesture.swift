@@ -7,7 +7,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.drag
+import androidx.compose.foundation.gestures.awaitDragOrCancellation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,6 +21,7 @@ import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.input.pointer.positionChangeIgnoreConsumed
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -778,7 +779,14 @@ final class GestureModifier: RenderModifier {
                         dragGesture.onDragChange(location: location, translation: translation)
                     }
                 }
-                let onDragEnd: () -> Void = {
+                let onDragEnd: (PointerInputChange?) -> Void = { change in
+                    if let change {
+                        // A release can carry movement that was never delivered in a move event.
+                        let delta = change.positionChangeIgnoreConsumed()
+                        dragOffsetX.value += (with(density) { delta.x.toDp() }).value
+                        dragOffsetY.value += (with(density) { delta.y.toDp() }).value
+                        dragPositionPx.value = change.position
+                    }
                     let translation = CGSize(width: CGFloat(dragOffsetX.value), height: CGFloat(dragOffsetY.value))
                     dragOffsetX.value = Float(0.0)
                     dragOffsetY.value = Float(0.0)
@@ -793,7 +801,7 @@ final class GestureModifier: RenderModifier {
                         dragGesture.onDragEnd(location: location, translation: translation)
                     }
                 }
-                detectDragGesturesWithScrollAxes(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: onDragEnd, shouldAwaitTouchSlop: { !noMinimumDistance }, scrollAxes: scrollAxes)
+                detectDragGesturesWithScrollAxes(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: { onDragEnd(nil) }, shouldAwaitTouchSlop: { !noMinimumDistance }, scrollAxes: scrollAxes)
             }
         }
 
@@ -823,7 +831,14 @@ final class GestureModifier: RenderModifier {
                         dragGesture.onDragChange(location: location, translation: translation)
                     }
                 }
-                let onDragEnd: () -> Void = {
+                let onDragEnd: (PointerInputChange?) -> Void = { change in
+                    if let change {
+                        // A release can carry movement that was never delivered in a move event.
+                        let delta = change.positionChangeIgnoreConsumed()
+                        dragOffsetX.value += (with(density) { delta.x.toDp() }).value
+                        dragOffsetY.value += (with(density) { delta.y.toDp() }).value
+                        dragPositionPx.value = change.position
+                    }
                     let translation = CGSize(width: CGFloat(dragOffsetX.value), height: CGFloat(dragOffsetY.value))
                     dragOffsetX.value = Float(0.0)
                     dragOffsetY.value = Float(0.0)
@@ -838,7 +853,7 @@ final class GestureModifier: RenderModifier {
                         dragGesture.onDragEnd(location: location, translation: translation)
                     }
                 }
-                detectSimultaneousDragGestures(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: onDragEnd, shouldAwaitTouchSlop: { !noMinimumDistance })
+                detectSimultaneousDragGestures(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: { onDragEnd(nil) }, shouldAwaitTouchSlop: { !noMinimumDistance })
             }
         }
 
@@ -918,8 +933,8 @@ final class GestureModifier: RenderModifier {
 }
 
 // This is an adaptation of the internal Compose function here: https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation/src/commonMain/kotlin/androidx/compose/foundation/gestures/DragGestureDetector.kt
-// SKIP DECLARE: suspend fun PointerInputScope.detectDragGesturesWithScrollAxes(onDrag: (PointerInputChange, Offset) -> Unit, onDragEnd: () -> Unit, onDragCancel: () -> Unit, shouldAwaitTouchSlop: () -> Boolean, scrollAxes: Axis.Set)
-func detectDragGesturesWithScrollAxes(onDragEnd: () -> Void, onDragCancel: () -> Void, onDrag: (PointerInputChange, Offset) -> Void, shouldAwaitTouchSlop: () -> Bool, scrollAxes: Axis.Set) {
+// SKIP DECLARE: suspend fun PointerInputScope.detectDragGesturesWithScrollAxes(onDrag: (PointerInputChange, Offset) -> Unit, onDragEnd: (PointerInputChange?) -> Unit, onDragCancel: () -> Unit, shouldAwaitTouchSlop: () -> Boolean, scrollAxes: Axis.Set)
+func detectDragGesturesWithScrollAxes(onDragEnd: (PointerInputChange?) -> Void, onDragCancel: () -> Void, onDrag: (PointerInputChange, Offset) -> Void, shouldAwaitTouchSlop: () -> Bool, scrollAxes: Axis.Set) {
     var overSlop: Offset
     awaitEachGesture {
         let initialDown = awaitFirstDown(requireUnconsumed: false, pass: PointerEventPass.Initial)
@@ -953,14 +968,20 @@ func detectDragGesturesWithScrollAxes(onDragEnd: () -> Void, onDragCancel: () ->
 
         if let drag {
             onDrag(drag, overSlop)
-            let didCompleteDrag = drag(pointerId: drag.id, onDrag: {
-                onDrag($0, $0.positionChange())
-                $0.consume()
-            })
-            if didCompleteDrag {
-                onDragEnd()
-            } else {
-                onDragCancel()
+            var pointerId = drag.id
+            while true {
+                let change = awaitDragOrCancellation(pointerId)
+                if change == nil {
+                    onDragCancel()
+                    break
+                }
+                if change!.changedToUpIgnoreConsumed() {
+                    onDragEnd(change)
+                    break
+                }
+                onDrag(change!, change!.positionChange())
+                change!.consume()
+                pointerId = change!.id
             }
         }
     }
@@ -968,8 +989,8 @@ func detectDragGesturesWithScrollAxes(onDragEnd: () -> Void, onDragCancel: () ->
 
 // A pure Swift async function is emitted through Async.run, which moves the detector to Dispatchers.Default.
 // Compose pointer input needs this body to stay in the pointerInput coroutine, so declare the direct suspend receiver.
-// SKIP DECLARE: suspend fun PointerInputScope.detectSimultaneousDragGestures(onDrag: (PointerInputChange, Offset) -> Unit, onDragEnd: () -> Unit, onDragCancel: () -> Unit, shouldAwaitTouchSlop: () -> Boolean)
-func detectSimultaneousDragGestures(onDrag: (PointerInputChange, Offset) -> Void, onDragEnd: () -> Void, onDragCancel: () -> Void, shouldAwaitTouchSlop: () -> Bool) {
+// SKIP DECLARE: suspend fun PointerInputScope.detectSimultaneousDragGestures(onDrag: (PointerInputChange, Offset) -> Unit, onDragEnd: (PointerInputChange?) -> Unit, onDragCancel: () -> Unit, shouldAwaitTouchSlop: () -> Boolean)
+func detectSimultaneousDragGestures(onDrag: (PointerInputChange, Offset) -> Void, onDragEnd: (PointerInputChange?) -> Void, onDragCancel: () -> Void, shouldAwaitTouchSlop: () -> Bool) {
     awaitEachGesture {
         let down = awaitFirstDown(requireUnconsumed: false, pass: PointerEventPass.Initial)
         let awaitTouchSlop = shouldAwaitTouchSlop()
@@ -985,7 +1006,7 @@ func detectSimultaneousDragGestures(onDrag: (PointerInputChange, Offset) -> Void
             let change = event.changes.firstOrNull { $0.id == down.id }
             if change == nil {
                 if accepted {
-                    onDragEnd()
+                    onDragEnd(nil)
                 } else {
                     onDragCancel()
                 }
@@ -994,7 +1015,7 @@ func detectSimultaneousDragGestures(onDrag: (PointerInputChange, Offset) -> Void
 
             if change!.changedToUpIgnoreConsumed() {
                 if accepted {
-                    onDragEnd()
+                    onDragEnd(change)
                 } else {
                     onDragCancel()
                 }
