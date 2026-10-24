@@ -14,8 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertWidthIsEqualTo
+import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import org.junit.Assert.assertNotNull
@@ -298,6 +300,29 @@ class RenderingRegressionTests {
         assertNestedRowsRetainState { content -> VStack(content = content) }
     }
 
+    /** Scrolling a lazy stack must compose newly visible rows only, not recompose rows that stay visible. */
+    @Test fun lazyVStackScrollDoesNotRecomposeVisibleRows() {
+        val compositions = mutableMapOf<Int, Int>()
+        rule.setContent {
+            Box(Modifier.size(100.dp, 200.dp)) {
+                ScrollView(content = {
+                    LazyVStack(spacing = 0.0, content = {
+                        ForEach(0 until 100) { index -> LazyRowCompositionProbe(index, compositions) }
+                    })
+                }).Compose()
+            }
+        }
+        rule.waitForIdle()
+        // Advance the first visible index one row at a time, as a slow drag would.
+        for (index in 1..20) {
+            rule.onNode(hasScrollToIndexAction()).performScrollToIndex(index)
+            rule.waitForIdle()
+        }
+        assertTrue("Rows must have scrolled into view", compositions.containsKey(25))
+        val recomposed = compositions.filterValues { it > 1 }
+        assertTrue("Visible rows must not recompose when the first visible index changes: $recomposed", recomposed.isEmpty())
+    }
+
     private fun assertNestedRowsRetainState(stack: (() -> View) -> View) {
         val reversed = mutableStateOf(false)
         val tokens = mutableMapOf<Pair<Int, Int>, Any>()
@@ -370,6 +395,17 @@ private class RenderingIdentityProbe(
     @Composable override fun Render(context: ComposeContext) {
         val token = remember { Any() }
         SideEffect { tokens[id] = token }
+        Box(Modifier.size(20.dp))
+    }
+}
+
+/** A non-skippable row, like a transpiled SwiftUI view, that counts its committed compositions. */
+private class LazyRowCompositionProbe(
+    val index: Int,
+    val compositions: MutableMap<Int, Int>
+): View, Renderable {
+    @Composable override fun Render(context: ComposeContext) {
+        SideEffect { compositions[index] = (compositions[index] ?: 0) + 1 }
         Box(Modifier.size(20.dp))
     }
 }
