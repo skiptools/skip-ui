@@ -239,18 +239,9 @@ public final class List : View, Renderable {
                 reorderableState.listState.animateScrollToItem(0)
             }
         })
-        let scrollToID = ScrollToIDAction(key: reorderableState.listState) { id in
-            if let itemIndex = itemCollector.value.index(for: id) {
-                coroutineScope.launch {
-                    if Animation.isInWithAnimation {
-                        reorderableState.listState.animateScrollToItem(itemIndex)
-                    } else {
-                        reorderableState.listState.scrollToItem(itemIndex)
-                    }
-                }
-            }
-        }
-        PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
+        let density = LocalDensity.current.density
+        let driver = remember(reorderableState.listState) { LazyScrollDriver(list: reorderableState.listState, items: itemCollector, density: density) }
+        ScrollDriverEffects(driver, context: context)
         let isSystemBackground = styling.style != ListStyle.plain && styling.backgroundVisibility != Visibility.hidden
         // We contribute top bar preferences even without knowing we're safe area-adjacent for multiple reasons:
         // - When there is a search bar we may not be adjacent to the top safe area, but we should act like it
@@ -293,6 +284,11 @@ public final class List : View, Renderable {
         }
         let listRowSpacing = EnvironmentValues.shared._listRowSpacing
         let listVerticalArrangement = listRowSpacing != nil ? Arrangement.spacedBy(listRowSpacing!.dp) : Arrangement.Top
+        // Scroll views in rows must not also act on the list's scroll position, geometry, or phase
+        EnvironmentValues.shared.setValues {
+            $0.clearScrollContainerValues()
+            return ComposeResult.ok
+        } in: {
         LazyColumn(state: reorderableState.listState, modifier: modifier.onPlaced { _ in
             if forceUnanimatedItems.value && !isCoveredByKeyboard && !isSearching {
                 // Reattach after the immediate layout has established the new positions.
@@ -590,6 +586,7 @@ public final class List : View, Renderable {
                     RenderFooter(styling: styling, modifier: itemModifier, safeAreaHeight: arguments.footerSafeAreaHeight, hasBottomSection: hasBottomSection)
                 }
             }
+        }
         }
     }
 

@@ -14,16 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
@@ -83,36 +79,13 @@ public struct LazyVStack : View, Renderable {
                         listState.animateScrollToItem(0)
                     }
                 })
-                let scrollToID = ScrollToIDAction(key: listState) { id in
-                    if let itemIndex = itemCollector.value.index(for: id) {
-                        coroutineScope.launch {
-                            if Animation.isInWithAnimation {
-                                listState.animateScrollToItem(itemIndex)
-                            } else {
-                                listState.scrollToItem(itemIndex)
-                            }
-                        }
-                    }
-                }
-                PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
-
-                // Observe scroll position changes and contribute them via preferences
-                let scrollPositionState = remember { mutableStateOf<ScrollPositionState?>(nil) }
-                let currentItemCollector = rememberUpdatedState(itemCollector.value)
-                LaunchedEffect(listState) {
-                    snapshotFlow { listState.firstVisibleItemIndex }
-                    .distinctUntilChanged()
-                    .collect { index in
-                        let id = currentItemCollector.value.id(for: index)
-                        scrollPositionState.value = ScrollPositionState(id: id)
-                    }
-                }
-                if let scrollPosition = scrollPositionState.value {
-                    PreferenceValues.shared.contribute(context: context, key: ScrollPositionPreferenceKey.self, value: scrollPosition)
-                }
+                let density = LocalDensity.current.density
+                let driver = remember(listState) { LazyScrollDriver(list: listState, items: itemCollector, density: density) }
+                ScrollDriverEffects(driver, context: context)
 
                 EnvironmentValues.shared.setValues {
                     $0.set_scrollTargetBehavior(nil)
+                    $0.clearScrollContainerValues()
                     return ComposeResult.ok
                 } in: {
                     // Combine contentPadding with contentMargins additively
