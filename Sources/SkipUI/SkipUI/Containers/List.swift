@@ -1695,7 +1695,7 @@ public final class List : View, Renderable {
     @Composable private func RenderCollapsibleSectionHeader(content: Renderable, context: ComposeContext, modifier: Modifier, isExpanded: Bool, onToggle: () -> Void) {
         let contentContext = context.content()
         let rotationAngle = Float(isExpanded ? 90 : 0).asAnimatable(context: contentContext)
-        let isRTL = EnvironmentValues.shared.layoutDirection == .rightToLeft
+        let isRTL = LocalLayoutDirection.current == LayoutDirection.Rtl
         let tint = EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl()
         Row(modifier: Modifier.clickable(onClick: onToggle).then(modifier), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
             Box(modifier: Modifier.padding(end: 8.dp).weight(Float(1.0))) {
