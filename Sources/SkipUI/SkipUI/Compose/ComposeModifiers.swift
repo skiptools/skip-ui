@@ -239,6 +239,14 @@ class OpacityModifier : DrawModifier {
 
     // SKIP DECLARE: override fun ContentDrawScope.draw()
     override func draw() {
+        // Invisible content does not need drawing; opaque content needs no extra layer.
+        if opacity == Float(0) {
+            return
+        }
+        if opacity == Float(1) {
+            drawContent()
+            return
+        }
         let paint = Paint().apply {
             alpha = opacity
         }

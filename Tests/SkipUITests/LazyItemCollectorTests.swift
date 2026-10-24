@@ -36,6 +36,103 @@ final class LazyItemCollectorTests: XCTestCase {
         XCTAssertNil(fixture.collector.id(for: 3_499))
     }
 
+    func testSectionCornersFollowFirstAndLastRowsInEachSection() {
+        // Arrange
+        let fixture = CollectorFixture()
+        fixture.initialize()
+
+        // Act
+        _ = fixture.collector.sectionHeader(listOf(), "first")
+        fixture.collector.indexedItems(0..<3, nil, nil, nil, 0, { _, _ in EmptyView() })
+        _ = fixture.collector.sectionFooter(listOf(), "first")
+        _ = fixture.collector.sectionHeader(listOf(), "second")
+        fixture.collector.indexedItems(0..<1, nil, nil, nil, 0, { _, _ in EmptyView() })
+        _ = fixture.collector.sectionFooter(listOf(), "second")
+
+        // Assert
+        XCTAssertTrue(fixture.collector.isFirstInSection(3))
+        XCTAssertFalse(fixture.collector.isLastInSection(3))
+        XCTAssertFalse(fixture.collector.isFirstInSection(4))
+        XCTAssertFalse(fixture.collector.isLastInSection(4))
+        XCTAssertFalse(fixture.collector.isFirstInSection(5))
+        XCTAssertTrue(fixture.collector.isLastInSection(5))
+        XCTAssertTrue(fixture.collector.isFirstInSection(10))
+        XCTAssertTrue(fixture.collector.isLastInSection(10))
+        XCTAssertFalse(fixture.collector.isFirstInSection(8))
+        XCTAssertFalse(fixture.collector.isLastInSection(9))
+    }
+
+    func testConditionalEmptyRowsTransferCornersToRemainingVisibleRow() {
+        // Arrange
+        let fixture = CollectorFixture()
+        fixture.initialize()
+        _ = fixture.collector.sectionHeader(listOf(), "section")
+        fixture.collector.indexedItems(0..<5, nil, nil, nil, 0, { _, _ in EmptyView() })
+        _ = fixture.collector.sectionFooter(listOf(), "section")
+
+        // Act
+        for index in [3, 4, 6, 7] {
+            fixture.collector.recordEmptyItem(index, isEmpty: true)
+        }
+
+        // Assert
+        XCTAssertTrue(fixture.collector.isFirstInSection(5))
+        XCTAssertTrue(fixture.collector.isLastInSection(5))
+
+        // Act
+        fixture.collector.recordEmptyItem(4, isEmpty: false)
+        fixture.collector.recordEmptyItem(6, isEmpty: false)
+
+        // Assert
+        XCTAssertTrue(fixture.collector.isFirstInSection(4))
+        XCTAssertFalse(fixture.collector.isFirstInSection(5))
+        XCTAssertFalse(fixture.collector.isLastInSection(5))
+        XCTAssertTrue(fixture.collector.isLastInSection(6))
+    }
+
+    func testLayoutChangeDiscardsPreviousEmptyRowPositions() {
+        // Arrange
+        let fixture = CollectorFixture()
+        fixture.initialize()
+        _ = fixture.collector.sectionHeader(listOf(), "section")
+        fixture.collector.indexedItems(0..<3, nil, nil, nil, 0, { _, _ in EmptyView() })
+        _ = fixture.collector.sectionFooter(listOf(), "section")
+        fixture.collector.recordEmptyItem(3, isEmpty: true)
+        fixture.collector.recordEmptyItem(5, isEmpty: true)
+        XCTAssertTrue(fixture.collector.isFirstInSection(4))
+        XCTAssertTrue(fixture.collector.isLastInSection(4))
+
+        // Act
+        fixture.collector.resetEmptyItems()
+
+        // Assert
+        XCTAssertTrue(fixture.collector.isFirstInSection(3))
+        XCTAssertFalse(fixture.collector.isFirstInSection(4))
+        XCTAssertFalse(fixture.collector.isLastInSection(4))
+        XCTAssertTrue(fixture.collector.isLastInSection(5))
+    }
+
+    func testDeletingRowsRecomputesSectionBoundaries() {
+        // Arrange
+        let fixture = CollectorFixture()
+        fixture.initialize()
+        _ = fixture.collector.sectionHeader(listOf(), "section")
+        fixture.collector.indexedItems(0..<3, nil, nil, nil, 0, { _, _ in EmptyView() })
+        _ = fixture.collector.sectionFooter(listOf(), "section")
+        XCTAssertTrue(fixture.collector.isLastInSection(5))
+
+        // Act
+        fixture.initialize()
+        _ = fixture.collector.sectionHeader(listOf(), "section")
+        fixture.collector.indexedItems(0..<1, nil, nil, nil, 0, { _, _ in EmptyView() })
+        _ = fixture.collector.sectionFooter(listOf(), "section")
+
+        // Assert
+        XCTAssertTrue(fixture.collector.isFirstInSection(3))
+        XCTAssertTrue(fixture.collector.isLastInSection(3))
+        XCTAssertFalse(fixture.collector.isLastInSection(5))
+    }
+
     func testReinitializingResetsCollectedCount() {
         // Arrange
         let fixture = CollectorFixture()

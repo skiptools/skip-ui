@@ -831,6 +831,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_contentMargins", value: newValue, defaultValue: { nil }) }
     }
 
+    var _listSectionCornerRadius: CGFloat {
+        get { builtinValue(key: "_listSectionCornerRadius", defaultValue: { 8.0 }) as! CGFloat }
+        set { setBuiltinValue(key: "_listSectionCornerRadius", value: newValue, defaultValue: { 8.0 }) }
+    }
+
     var _listRowSpacing: CGFloat? {
         get { builtinValue(key: "_listRowSpacing", defaultValue: { nil }) as! CGFloat? }
         set { setBuiltinValue(key: "_listRowSpacing", value: newValue, defaultValue: { nil }) }

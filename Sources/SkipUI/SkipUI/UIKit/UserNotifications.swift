@@ -109,13 +109,11 @@ public final class UNUserNotificationCenter {
 
     // SKIP @bridge
     public func add(_ request: UNNotificationRequest) async throws {
-        guard let delegate else { return }
-
-        let notification = UNNotification(request: request, date: Date.now)
-        let options = await delegate.userNotificationCenter(self, willPresent: notification)
-        guard options.contains(.banner) || options.contains(.alert) else { return }
-
         #if SKIP
+        // Scheduling does not require a delegate. On iOS, willPresent runs only when a
+        // notification fires while the app is in the foreground. Gating enqueue on it
+        // drops every request from an app that never set a delegate, and drops
+        // background notifications whose presentation options are empty.
         guard let activity = UIApplication.shared.androidActivity else { return }
         
         // Build the data which should be displayed in the notification.
@@ -1089,7 +1087,16 @@ public class NotificationWorker : Worker {
             if resId == 0 {
                 resId = context.getResources().getIdentifier("ic_launcher", "mipmap", context.getPackageName())
             }
-            builder.setSmallIcon(IconCompat.createWithResource(context, resId))
+            // createWithResource throws when the id is 0, which fails the worker and
+            // the notification is never posted. A platform status icon always exists.
+            // createWithResource records the package of the Context it is given, so a
+            // framework id is not found in the app package. Load it from the android package.
+            if resId == 0 {
+                let androidContext = context.createPackageContext("android", 0)
+                builder.setSmallIcon(IconCompat.createWithResource(androidContext, android.R.drawable.stat_notify_chat))
+            } else {
+                builder.setSmallIcon(IconCompat.createWithResource(context, resId))
+            }
         }
         
         // Display the notification.
