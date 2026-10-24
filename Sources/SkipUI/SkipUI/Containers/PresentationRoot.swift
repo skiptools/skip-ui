@@ -10,10 +10,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -29,7 +26,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 
 /// The root of a presentation, such as the root presentation or a sheet.
-@Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+@Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, backgroundColor: Color? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
     launchUIApplicationActivity()
 
     let preferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PreferredColorScheme>, Any>) { mutableStateOf(Preference<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self)) }
@@ -41,18 +38,19 @@ import androidx.compose.ui.platform.LocalLayoutDirection
             let density = LocalDensity.current
             let layoutDirection = LocalLayoutDirection.current
             var rootModifier = Modifier
-                .background(androidx.compose.ui.graphics.Color.Black)
+                .background(backgroundColor != nil ? androidx.compose.ui.graphics.Color.Transparent : androidx.compose.ui.graphics.Color.Black)
                 .fillMaxSize()
             if systemBarEdges.contains(.leading) {
-                rootModifier = rootModifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+                rootModifier = rootModifier.windowInsetsPadding(windowSafeDrawingInsets().only(WindowInsetsSides.Start))
             }
             if systemBarEdges.contains(.trailing) {
-                rootModifier = rootModifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.End))
+                rootModifier = rootModifier.windowInsetsPadding(windowSafeDrawingInsets().only(WindowInsetsSides.End))
             }
             if systemBarEdges.contains(.bottom) {
-                rootModifier = rootModifier.imePadding()
+                rootModifier = rootModifier.windowInsetsPadding(windowKeyboardInsets())
             }
-            rootModifier = rootModifier.background(Color.background.colorImpl())
+            // Resolve adaptive colors under this presentation's preferred color scheme.
+            rootModifier = rootModifier.background((backgroundColor ?? Color.background).colorImpl())
                 .onGloballyPositionedInWindow {
                     presentationBounds.value = $0
                 }
@@ -65,10 +63,10 @@ import androidx.compose.ui.platform.LocalLayoutDirection
                 // Android app behavior like e.g. Settings
                 var (safeLeft, safeTop, safeRight, safeBottom) = presentationBounds.value
                 if systemBarEdges.contains(.top) {
-                    safeTop += WindowInsets.safeDrawing.getTop(density)
+                    safeTop += windowSafeDrawingInsets().getTop(density)
                 }
                 if systemBarEdges.contains(.bottom) {
-                    safeBottom -= max(0, WindowInsets.safeDrawing.getBottom(density) - WindowInsets.ime.getBottom(density))
+                    safeBottom -= max(0, windowSafeDrawingInsets().getBottom(density) - windowKeyboardInsets().getBottom(density))
                 }
                 let safeBounds = Rect(left: safeLeft, top: safeTop, right: safeRight, bottom: safeBottom)
                 let safeArea = SafeArea(presentation: presentationBounds.value, safe: safeBounds, absoluteSystemBars: systemBarEdges)

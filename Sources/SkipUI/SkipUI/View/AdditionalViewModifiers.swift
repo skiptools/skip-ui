@@ -47,6 +47,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -539,15 +540,27 @@ extension View {
         // Fix an axis to the content's ideal size by measuring it unbounded on that axis, mirroring
         // SwiftUI's fixedSize (the view is proposed its ideal size and won't be compressed/truncated).
         // A non-fixed axis is left untouched so the flexible-width layout system still governs it.
-        return ModifiedContent(content: self, modifier: RenderModifier { context in
-            var modifier = context.modifier
+        // The content is rendered without the parent's flexible layout on a fixed axis, so it does not
+        // report itself as filling and the parent stack gives its free space to other children instead.
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
+            var context = context
             if horizontal {
-                modifier = modifier.wrapContentWidth(unbounded: true)
+                context.modifier = context.modifier.wrapContentWidth(unbounded: true)
             }
             if vertical {
-                modifier = modifier.wrapContentHeight(unbounded: true)
+                context.modifier = context.modifier.wrapContentHeight(unbounded: true)
             }
-            return modifier
+            EnvironmentValues.shared.setValues {
+                if horizontal {
+                    $0.set_flexibleWidth(nil)
+                }
+                if vertical {
+                    $0.set_flexibleHeight(nil)
+                }
+                return ComposeResult.ok
+            } in: {
+                renderable.Render(context: context)
+            }
         })
         #else
         return self
@@ -1008,24 +1021,25 @@ extension View {
     public func onGeometryChangeErased<T>(of transform: @escaping (GeometryProxy) -> T, action: @escaping (_ oldValue: T, _ newValue: T) -> Void) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
-            let globalFramePx = remember { mutableStateOf<Rect?>(nil) }
-            let previousValue = remember { mutableStateOf(nil as Any?) }
+            let geometry = remember { GeometryReaderState() }
+            let storage = remember { GeometryChangeValueStorage() }
             let density = LocalDensity.current
+            let safeArea = EnvironmentValues.shared._safeArea
 
-            if let rect = globalFramePx.value {
-                let proxy = GeometryProxy(globalFramePx: rect, density: density, safeArea: EnvironmentValues.shared._safeArea)
+            if geometry.isPositioned {
+                let proxy = GeometryProxy(sizePx: geometry.sizePx, globalFramePx: geometry.globalFramePx, density: density, safeArea: safeArea)
                 let newValue = transform(proxy)
-                let oldValue = previousValue.value as? T
+                let oldValue = storage.previousValue as? T
                 if oldValue == nil || oldValue != newValue {
                     let effectiveOldValue = oldValue ?? newValue
-                    previousValue.value = newValue
+                    storage.previousValue = newValue
                     SideEffect { action(effectiveOldValue, newValue) }
                 }
             }
 
             var updatedContext = context
-            updatedContext.modifier = context.modifier.onGloballyPositionedInRoot { rect in
-                globalFramePx.value = rect
+            updatedContext.modifier = context.modifier.onGloballyPositioned {
+                geometry.update(size: $0.size, frame: $0.boundsInRoot())
             }
             renderable.Render(context: updatedContext)
         })
@@ -1086,7 +1100,7 @@ extension View {
         let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
             let animatable = Float(opacity).asAnimatable(context: context, animTx: animTx)
-            return context.modifier.graphicsLayer { alpha = animatable.value }
+            return context.modifier.then(OpacityModifier(opacity: animatable.value))
         })
         #else
         return self
@@ -1343,6 +1357,49 @@ extension View {
     // SKIP @bridge
     public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchorX: CGFloat, anchorY: CGFloat) -> any View {
         return scaleEffect(x: x, y: y, anchor: UnitPoint(x: anchorX, y: anchorY))
+    }
+
+    /// Applies scale and translation in one compositor layer without changing layout position.
+    ///
+    /// Use this for native-backed content whose pixels should move without relocating its
+    /// Compose layout node. Translation values use SwiftUI points and are converted to pixels.
+    // SKIP @bridge
+    public func compositorTransform(
+        scaleX: CGFloat,
+        scaleY: CGFloat,
+        translationX: CGFloat,
+        translationY: CGFloat,
+        anchorX: CGFloat,
+        anchorY: CGFloat
+    ) -> any View {
+        #if SKIP
+        let animTx = StateTracking.captureLastReadAndClear()
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            let animatedScale = (Float(scaleX), Float(scaleY)).asAnimatable(
+                context: context,
+                animTx: animTx
+            )
+            let animatedTranslation = (Float(translationX), Float(translationY)).asAnimatable(
+                context: context,
+                animTx: animTx
+            )
+            let density = LocalDensity.current
+            let translationXPixels = with(density) { animatedTranslation.value.0.dp.toPx() }
+            let translationYPixels = with(density) { animatedTranslation.value.1.dp.toPx() }
+            return context.modifier.graphicsLayer(
+                transformOrigin: TransformOrigin(
+                    pivotFractionX: Float(anchorX),
+                    pivotFractionY: Float(anchorY)
+                ),
+                scaleX: animatedScale.value.0,
+                scaleY: animatedScale.value.1,
+                translationX: translationXPixels,
+                translationY: translationYPixels
+            )
+        })
+        #else
+        return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -1803,6 +1860,12 @@ final class AnimatedBorderModifier: RenderModifier {
 }
 
 #if SKIP
+final class GeometryChangeValueStorage {
+    var previousValue: Any?
+}
+#endif
+
+#if SKIP
 final class AndroidVerticalOverscrollPullDownConnection: NestedScrollConnection {
     let isEnabled: () -> Bool
     let onPullPx: (Float) -> Void
@@ -1841,7 +1904,8 @@ final class AndroidVerticalOverscrollPullDownConnection: NestedScrollConnection 
         return Offset(x: Float(0.0), y: available.y)
     }
 
-    override func onPostFling(consumed: Velocity, available: Velocity) async -> Velocity {
+    // Keep pull state and callbacks on the UI thread when this async override is transpiled.
+    @MainActor override func onPostFling(consumed: Velocity, available: Velocity) async -> Velocity {
         guard accumulatedPullPx > Float(0.0) else {
             return Velocity.Zero
         }

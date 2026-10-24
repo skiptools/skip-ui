@@ -60,10 +60,11 @@ public struct ScrollView : View, Renderable {
         let isScrollDisabled = EnvironmentValues.shared._scrollDisabled
         let wantsVerticalScroll = axes.contains(.vertical) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.vertical)
         let wantsHorizontalScroll = axes.contains(.horizontal) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.horizontal)
-        var scrollModifier: Modifier = Modifier
+        var scrollModifier: Modifier = Modifier.idealSizeOnUnboundedScrollAxes(vertical: wantsVerticalScroll, horizontal: wantsHorizontalScroll)
         var effectiveScrollAxes: Axis.Set = []
         if wantsVerticalScroll {
-            scrollModifier = scrollModifier.verticalScroll(scrollState, enabled: !isScrollDisabled)
+            // Fill the height so a drag below short content still reaches the scroll node, which `pullRefresh` listens to.
+            scrollModifier = scrollModifier.fillMaxHeight().verticalScroll(scrollState, enabled: !isScrollDisabled)
             effectiveScrollAxes.insert(Axis.Set.vertical)
             if !axes.contains(.horizontal) && !isScrollDisabled {
                 // Integrate with our scroll-to-top navigation bar taps

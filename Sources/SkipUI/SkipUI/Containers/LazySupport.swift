@@ -4,6 +4,7 @@
 import Foundation
 #if SKIP
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
 #endif
 
 /// Adopted by `Renderables` that produce lazy items.
@@ -88,7 +89,7 @@ final class LazySectionHeader: Renderable, LazyItemFactory {
 
     override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
         let modified = content.map { ModifiedContent.apply(modifiers: modifiers, to: $0) }
-        collector.sectionHeader(modified)
+        collector.sectionHeader(modified, LazyItemCollector.sectionIdentity(from: modifiers))
     }
 }
 
@@ -106,7 +107,7 @@ final class LazySectionFooter: Renderable, LazyItemFactory {
 
     override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
         let modified = content.map { ModifiedContent.apply(modifiers: modifiers, to: $0) }
-        collector.sectionFooter(modified)
+        collector.sectionFooter(modified, LazyItemCollector.sectionIdentity(from: modifiers))
     }
 }
 
@@ -126,74 +127,148 @@ public final class LazyItemCollector {
     private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Int, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _ in  }
     private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Any, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _ in }
     private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Binding<RandomAccessCollection<Any>>, Int, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _, _ in }
-    private(set) var sectionHeader: (kotlin.collections.List<Renderable>) -> Void = { _ in }
-    private(set) var sectionFooter: (kotlin.collections.List<Renderable>) -> Void = { _ in }
+    private(set) var sectionHeader: (kotlin.collections.List<Renderable>, Any?) -> Int = { _, _ in 0 }
+    private(set) var sectionFooter: (kotlin.collections.List<Renderable>, Any?) -> Int = { _, _ in 0 }
+    private var currentSectionItemCount: Int? = nil
+    private let emptyItemIndices = mutableStateMapOf<Int, Bool>()
+    private var currentSectionFirstItemIndex: Int? = nil
+    private var sectionFirstItemIndices: Set<Int> = []
+    private var currentSectionLastItemIndex: Int? = nil
+    private var sectionLastItemIndices: Set<Int> = []
     private var startItemIndex = 0
+    private var collectedItemCount = 0
+    private var containsBindingItems = false
+
+    /// Track emitted body items for the current section, excluding section header/footer chrome.
+    private func incrementCurrentSectionItemCount(by count: Int) {
+        if count > 0 {
+            if currentSectionFirstItemIndex == nil {
+                currentSectionFirstItemIndex = startItemIndex + self.count - count
+            }
+            currentSectionLastItemIndex = startItemIndex + self.count - 1
+        }
+        if let countInSection = currentSectionItemCount {
+            currentSectionItemCount = countInSection + count
+        }
+    }
 
     /// Initialize the content factories.
+    ///
+    /// Section callbacks return the number of lazy items they actually emitted. `List` needs this because grouped
+    /// section chrome can emit extra lazy items, such as the gap before non-top sections.
     func initialize(
         startItemIndex: Int,
         item: (Renderable, Int) -> Void,
         indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Int, ComposeContext) -> Renderable) -> Void,
         objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Any, ComposeContext) -> Renderable) -> Void,
         objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, Int, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Binding<RandomAccessCollection<Any>>, Int, ComposeContext) -> Renderable) -> Void,
-        sectionHeader: (kotlin.collections.List<Renderable>) -> Void,
-        sectionFooter: (kotlin.collections.List<Renderable>) -> Void
+        sectionHeader: (kotlin.collections.List<Renderable>, Any?) -> Int,
+        sectionFooter: (kotlin.collections.List<Renderable>, Any?, Int?) -> Int
     ) {
         self.startItemIndex = startItemIndex
 
-        content.removeAll()
+        content.clear()
+        collectedItemCount = 0
+        containsBindingItems = false
+        currentSectionItemCount = nil
+        currentSectionLastItemIndex = nil
+        sectionLastItemIndices.removeAll()
+        currentSectionFirstItemIndex = nil
+        sectionFirstItemIndices.removeAll()
+
         self.item = { renderable, level in
             // If this is an item after a section, add a header before it
-            if case .sectionFooter = content.last {
-                self.sectionHeader(listOf())
+            if case .sectionFooter = lastContent {
+                _ = self.sectionHeader(listOf(), nil)
             }
             item(renderable, level)
             let id = TagModifier.on(content: renderable, role: .id)?.value
-            content.append(.items(0, 1, { _ in id }, nil))
+            content.add(Content.items(0, 1, { _ in id }, nil))
+            collectedItemCount += 1
+            incrementCurrentSectionItemCount(by: renderable.isSwiftUIEmptyView ? 0 : 1)
         }
         self.indexedItems = { range, identifier, onDelete, onMove, level, factory in
-            if case .sectionFooter = content.last {
-                self.sectionHeader(listOf())
+            if case .sectionFooter = lastContent {
+                _ = self.sectionHeader(listOf(), nil)
             }
             indexedItems(range, identifier, count, onDelete, onMove, level, factory)
-            content.append(.items(range.start, range.endExclusive - range.start, identifier, onMove))
+            let itemCount = range.endExclusive - range.start
+            content.add(Content.items(range.start, itemCount, identifier, onMove))
+            collectedItemCount += itemCount
+            incrementCurrentSectionItemCount(by: itemCount)
         }
         self.objectItems = { objects, identifier, onDelete, onMove, level, factory in
-            if case .sectionFooter = content.last {
-                self.sectionHeader(listOf())
+            if case .sectionFooter = lastContent {
+                _ = self.sectionHeader(listOf(), nil)
             }
             objectItems(objects, identifier, count, onDelete, onMove, level, factory)
-            content.append(.objectItems(objects, identifier, onMove))
+            content.add(Content.objectItems(objects, identifier, onMove))
+            collectedItemCount += objects.count
+            incrementCurrentSectionItemCount(by: objects.count)
         }
         self.objectBindingItems = { binding, identifier, editActions, onDelete, onMove, level, factory in
-            if case .sectionFooter = content.last {
-                self.sectionHeader(listOf())
+            if case .sectionFooter = lastContent {
+                _ = self.sectionHeader(listOf(), nil)
             }
             objectBindingItems(binding, identifier, count, editActions, onDelete, onMove, level, factory)
-            content.append(.objectBindingItems(binding, identifier, onMove))
+            content.add(Content.objectBindingItems(binding, identifier, onMove))
+            containsBindingItems = true
+            incrementCurrentSectionItemCount(by: binding.wrappedValue.count)
         }
-        self.sectionHeader = { renderables in
+        self.sectionHeader = { renderables, sectionIdentity in
             // If this is a header after an item, add a section footer before it
-            switch content.last {
+            switch lastContent {
             case .sectionFooter, nil:
                 break
             default:
-                self.sectionFooter(listOf())
+                _ = self.sectionFooter(listOf(), nil)
             }
-            sectionHeader(renderables)
-            content.append(.sectionHeader(max(1, renderables.size)))
+            let renderedCount = max(1, sectionHeader(renderables, sectionIdentity))
+            content.add(Content.sectionHeader(renderedCount))
+            collectedItemCount += renderedCount
+            currentSectionItemCount = 0
+            currentSectionFirstItemIndex = nil
+            currentSectionLastItemIndex = nil
+            return renderedCount
         }
-        self.sectionFooter = { renderables in
-            sectionFooter(renderables)
-            content.append(.sectionFooter(max(1, renderables.size)))
+        self.sectionFooter = { renderables, sectionIdentity in
+            if let firstIndex = currentSectionFirstItemIndex {
+                sectionFirstItemIndices.insert(firstIndex)
+            }
+            currentSectionFirstItemIndex = nil
+            if let lastIndex = currentSectionLastItemIndex {
+                sectionLastItemIndices.insert(lastIndex)
+            }
+            currentSectionLastItemIndex = nil
+            let renderedCount = max(1, sectionFooter(renderables, sectionIdentity, currentSectionItemCount))
+            content.add(Content.sectionFooter(renderedCount))
+            collectedItemCount += renderedCount
+            currentSectionItemCount = nil
+            return renderedCount
         }
     }
 
-    /// The current number of content items.
+    /// Return the section identity supplied by an enclosing ForEach, if one exists.
+    static func sectionIdentity(from modifiers: kotlin.collections.List<ModifierProtocol>) -> Any? {
+        for modifier in modifiers {
+            if modifier.role == ModifierRole.tag, let tagModifier = modifier as? TagModifier {
+                return tagModifier.value
+            }
+        }
+
+        return nil
+    }
+
+    /// The current number of content items, including section chrome.
+    ///
+    /// Value-backed ranges are counted as they are collected, so creating many sections remains linear.
+    /// Binding-backed ranges retain live counting because their collections can change independently.
     var count: Int {
+        guard containsBindingItems else { return collectedItemCount }
+
         var itemCount = 0
-        for content in self.content {
+        for element in self.content {
+            let content: Content = element
             switch content {
             case .items(_, let count, _, _): itemCount += count
             case .objectItems(let objects, _, _): itemCount += objects.count
@@ -205,10 +280,19 @@ public final class LazyItemCollector {
         return itemCount
     }
 
+    /// If the current collected content ends with a section footer.
+    var endsWithSectionFooter: Bool {
+        if case .sectionFooter = lastContent {
+            return true
+        }
+        return false
+    }
+
     /// Return the list index for the given item ID, or nil.
     func index(for id: Any) -> Int? {
         var index = startItemIndex
-        for content in self.content {
+        for element in self.content {
+            let content: Content = element
             switch content {
             case .items(let start, let count, let idMap, _):
                 for i in start..<(start + count) {
@@ -246,10 +330,70 @@ public final class LazyItemCollector {
         return nil
     }
 
+    /// Records conditional empty rows once their lazy content has been evaluated.
+    func recordEmptyItem(_ index: Int, isEmpty: Bool) {
+        if isEmpty {
+            emptyItemIndices[index] = true
+        } else {
+            emptyItemIndices.remove(index)
+        }
+    }
+
+    /// Discards row positions when the collected layout changes.
+    func resetEmptyItems() {
+        emptyItemIndices.clear()
+    }
+
+    /// Whether the row is the first visible body item in its section.
+    func isFirstInSection(_ index: Int) -> Bool {
+        var firstIndex = index
+        while emptyItemIndices[firstIndex - 1] == true {
+            firstIndex -= 1
+        }
+        return sectionFirstItemIndices.contains(firstIndex) || currentSectionFirstItemIndex == firstIndex
+    }
+
+    /// Whether the row is the last visible body item in its section.
+    func isLastInSection(_ index: Int) -> Bool {
+        var lastIndex = index
+        while emptyItemIndices[lastIndex + 1] == true {
+            lastIndex += 1
+        }
+        return sectionLastItemIndices.contains(lastIndex) || currentSectionLastItemIndex == lastIndex
+    }
+
+    /// Returns the current layout identities in one pass, including section chrome placeholders.
+    var layoutIDs: [AnyHashable?] {
+        var ids: [AnyHashable?] = []
+        for element in self.content {
+            let content: Content = element
+            switch content {
+            case .items(let start, let count, let idMap, _):
+                for index in start..<(start + count) {
+                    ids.append(idMap?(index) ?? index)
+                }
+            case .objectItems(let objects, let idMap, _):
+                for object in objects {
+                    ids.append(idMap(object))
+                }
+            case .objectBindingItems(let binding, let idMap, _):
+                for object in binding.wrappedValue {
+                    ids.append(idMap(object))
+                }
+            case .sectionHeader(let count):
+                ids.append(contentsOf: Array(repeating: nil, count: count))
+            case .sectionFooter(let count):
+                ids.append(contentsOf: Array(repeating: nil, count: count))
+            }
+        }
+        return ids
+    }
+
     /// Return the item ID for the given list index, or nil.
     func id(for index: Int) -> AnyHashable? {
         var currentIndex = startItemIndex
-        for content in self.content {
+        for element in self.content {
+            let content: Content = element
             switch content {
             case .items(let start, let count, let idMap, _):
                 if index >= currentIndex && index < currentIndex + count {
@@ -312,6 +456,11 @@ public final class LazyItemCollector {
         }
     }
 
+    /// Whether a move operation is currently active.
+    var hasActiveMove: Bool {
+        return moving != nil
+    }
+
     /// Commit the current active move operation, if any.
     func commitMove() {
         guard let moving else {
@@ -343,7 +492,8 @@ public final class LazyItemCollector {
 
     private func performMove(fromIndex: Int, toIndex: Int) {
         var itemIndex = startItemIndex
-        for content in self.content {
+        for element in self.content {
+            let content: Content = element
             switch content {
             case .items(_, let count, _, let onMove):
                 if performMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: count, onMove: onMove) {
@@ -393,7 +543,8 @@ public final class LazyItemCollector {
             return true
         }
         var itemIndex = startItemIndex
-        for content in self.content {
+        for element in self.content {
+            let content: Content = element
             switch content {
             case .items(_, let count, _, _):
                 if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: count) {
@@ -436,7 +587,15 @@ public final class LazyItemCollector {
         case sectionHeader(Int)
         case sectionFooter(Int)
     }
-    private var content: [Content] = []
+
+    // This collector owns its storage exclusively. A Swift value array would copy the growing
+    // buffer on each property mutation after a read, making section construction quadratic.
+    private let content: kotlin.collections.MutableList<Content> = mutableListOf()
+
+    /// The most recently collected range or section chrome.
+    private var lastContent: Content? {
+        return content.lastOrNull()
+    }
 }
 
 #endif

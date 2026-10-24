@@ -27,12 +27,12 @@ import androidx.compose.ui.Modifier
     ///
     /// By default, modifiers and the `composer` are reset for child content.
     public func content(modifier: Modifier = Modifier, composer: Composer? = nil, stateSaver: Saver<Any?, Any>? = nil, scope: AnyObject? = nil) -> ComposeContext {
-        var context = self
-        context.modifier = modifier
-        context.composer = composer
-        context.stateSaver = stateSaver ?? self.stateSaver
-        context.scope = scope
-        return context
+        return ComposeContext(
+            modifier: modifier,
+            composer: composer,
+            stateSaver: stateSaver ?? self.stateSaver,
+            scope: scope
+        )
     }
 }
 

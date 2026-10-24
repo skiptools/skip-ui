@@ -123,6 +123,7 @@ public class UIImage {
 
     public func byPreparingThumbnail(ofSize size: CGSize) async -> UIImage? {
         #if SKIP
+        // SKIP NOWARN
         return await withContext(Dispatchers.Default) {
             preparingThumbnail(of: size)
         }
