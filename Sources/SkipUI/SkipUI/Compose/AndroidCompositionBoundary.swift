@@ -120,6 +120,7 @@ private final class AndroidCompositionBoundaryStorage {
 }
 #endif
 
+// SKIP NOWARN
 extension View {
     /// Gives this subtree its own retained identity and lifecycle on Android.
     ///

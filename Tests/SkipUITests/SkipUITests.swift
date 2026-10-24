@@ -103,6 +103,7 @@ import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.moveTo
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -117,6 +118,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextInputSelection
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.performGesture
+import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.up
 import androidx.compose.ui.text.AnnotatedString
@@ -453,6 +455,30 @@ final class SkipUITests: SkipUITestCase {
         }
     }
 
+    func testRefreshableScrollViewTakesPullBelowShortContent() throws {
+        #if !SKIP
+        throw XCTSkip("Pull to refresh is a Compose behavior")
+        #else
+        let refreshCount = mutableStateOf(0)
+        try testUI(view: {
+            ScrollView {
+                Text("Short")
+                    .accessibilityIdentifier("refresh.content")
+            }
+            .refreshable { refreshCount.value += 1 }
+            .frame(height: 400)
+            .accessibilityIdentifier("refresh.container")
+        }, eval: { rule in
+            let container = rule.onNodeWithTag("refresh.container").fetchSemanticsNode().boundsInRoot
+            let content = rule.onNodeWithTag("refresh.content").fetchSemanticsNode().boundsInRoot
+            XCTAssertLessThan(content.bottom, container.top + container.height / 4, "The pull would start on the content")
+            rule.onNodeWithTag("refresh.container").performTouchInput { swipeDown(startY: centerY / 2, endY: bottom) }
+            rule.waitForIdle()
+            XCTAssertEqual(refreshCount.value, 1, "A pull starting below the content did not refresh")
+        })
+        #endif
+    }
+
     func testConditionalTabDoesNotRenderBlankNavigationItem() throws {
         #if !SKIP
         throw XCTSkip("TabView navigation item count is a Compose behavior")
@@ -517,6 +543,30 @@ final class SkipUITests: SkipUITestCase {
                     }
             }
         }
+    }
+
+    func testShadowCopyIsHiddenFromAccessibility() throws {
+        #if !SKIP
+        throw XCTSkip("Compose semantics")
+        #else
+        try testUI(view: {
+            Text("Shadowed").shadow(radius: 4)
+        }, eval: { rule in
+            rule.onAllNodesWithText("Shadowed").assertCountEquals(1)
+        })
+        #endif
+    }
+
+    func testShadowCopyOfButtonIsHiddenFromAccessibility() throws {
+        #if !SKIP
+        throw XCTSkip("Compose semantics")
+        #else
+        try testUI(view: {
+            Button("Tap") { }.shadow(radius: 4, y: 8)
+        }, eval: { rule in
+            rule.onAllNodes(hasClickAction()).assertCountEquals(1)
+        })
+        #endif
     }
 
     func testMenuAccessibilityIdentifier() throws {

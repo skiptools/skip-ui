@@ -11,21 +11,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
@@ -391,7 +389,7 @@ public struct TabView : View, Renderable {
                                 let currentRoute = String(describing: selectedTabIndex.value) // Note: forces recompose of this context on tab navigation
                                 let bottomPadding: Dp
                                 if layoutType == NavigationSuiteType.NavigationBar {
-                                    bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
+                                    bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(windowKeyboardInsets().getBottom(density))).toDp() }
                                 } else {
                                     bottomPadding = 0.dp
                                 }
@@ -501,10 +499,10 @@ public struct TabView : View, Renderable {
                                 return NavEntry(tabKey, content: { key in
                                     let tabIndex = (key as! SkipTabViewRouteKey).index
                                     // Inset manually where our container ignored the safe area, but we aren't showing a bar
-                                    let topPadding = ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
+                                    let topPadding = ignoresSafeAreaEdges.contains(.top) ? windowSafeDrawingInsets().asPaddingValues().calculateTopPadding() : 0.dp
                                     var bottomPadding = 0.dp
                                     if bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) {
-                                        bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                                        bottomPadding = max(0.dp, windowSafeDrawingInsets().asPaddingValues().calculateBottomPadding() - windowKeyboardInsets().asPaddingValues().calculateBottomPadding())
                                     }
                                     let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: bottomPadding)
                                     let tabViewSafeArea = tabViewSafeAreaState.value

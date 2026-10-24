@@ -165,7 +165,19 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
         if !logTag.isEmpty {
             Log.d("SkipUI.ISAL.\(logTag)", "no SafeArea in environment; skipping expansion")
         }
-        target(IntRect.Zero, [])
+        Layout(modifier: modifier, content: {
+            target(IntRect.Zero, [])
+        }) { measurables, constraints in
+            guard !measurables.isEmpty() else {
+                return layout(width: 0, height: 0) {}
+            }
+            let targetPlaceables = measurables.map { $0.measure(constraints) }
+            layout(width: targetPlaceables[0].width, height: targetPlaceables[0].height) {
+                for targetPlaceable in targetPlaceables {
+                    targetPlaceable.placeRelative(x = 0, y = 0)
+                }
+            }
+        }
         return
     }
 
