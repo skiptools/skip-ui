@@ -30,8 +30,6 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.platform.AndroidUiDispatcher
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 #endif
 
 let defaultAnimationDuration = 0.35
@@ -169,11 +167,10 @@ public struct Animation : Hashable {
     /// their value during the render pass) consult this when neither an environment
     /// `.animation(_:)` override nor an enclosing scope is active.
     ///
-    /// Cleared on the next Compose frame by a coroutine that suspends on `withFrameNanos` —
-    /// that ties the clear to Compose's actual frame production, not to a wall-clock or to
-    /// `Dispatchers.Main`'s ordering. Each mark increments `recentWithAnimationGeneration` and
-    /// the scheduled clear only fires if the generation still matches, so a fresh
-    /// `withAnimation` issued before the next frame can't be wiped by a stale clear.
+    /// Cleared on the next Android frame through Choreographer.
+    /// Each mark increments `recentWithAnimationGeneration`, and the scheduled
+    /// clear only fires if the generation still matches, so a fresh
+    /// `withAnimation` can't be wiped by a stale clear.
     private static var recentWithAnimationAnimation: Animation? = nil
     private static var recentWithAnimationGeneration: Long = 0
 
@@ -230,11 +227,11 @@ public struct Animation : Hashable {
         recentWithAnimationAnimation = animation
         recentWithAnimationGeneration += 1
         let generation = recentWithAnimationGeneration
-        // AndroidUiDispatcher.Main has the frame clock that withFrameNanos needs, which Dispatchers.Main lacks
-        GlobalScope.async(AndroidUiDispatcher.Main) {
-            // SKIP INSERT: withFrameNanos { _ -> }
-            if recentWithAnimationGeneration == generation {
-                recentWithAnimationAnimation = nil
+        android.os.Handler(android.os.Looper.getMainLooper()).post {
+            android.view.Choreographer.getInstance().postFrameCallback { _ in
+                if recentWithAnimationGeneration == generation {
+                    recentWithAnimationAnimation = nil
+                }
             }
         }
     }

@@ -71,7 +71,8 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
 
     /// Setup the Android main activity.
     ///
-    /// This API mirrors `ProcessInfo.launch` for the application context.
+    /// This API mirrors `ProcessInfo.launch` for the application context. It also delivers the
+    /// notification taps that reach the activity to `UNUserNotificationCenter`'s delegate.
     public static func launch(_ activity: androidx.activity.ComponentActivity) {
         if activity !== shared.androidActivity {
             shared.androidActivity = activity
@@ -91,6 +92,8 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
             } catch {
                 android.util.Log.w("SkipUI", "error initializing permission launcher", error as? Throwable)
             }
+
+            UNUserNotificationCenter.current().receiveResponses(in: activity)
         }
     }
 

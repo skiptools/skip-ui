@@ -25,7 +25,7 @@ func composeBundleString(for value: Any?) -> String {
 /// Used in conjunction with `rememberSaveable` to save and restore state with SwiftUI-like behavior.
 struct ComposeStateSaver: Saver<Any?, Any> {
     private static let nilMarker = "__SkipUI.ComposeStateSaver.nilMarker"
-    private let state: MutableMap<Key, Any> = mutableMapOf()
+    private let state: MutableMap<Key, Any> = java.util.WeakHashMap<Key, Any>()
 
     override func restore(value: Any) -> Any? {
         if value == Self.nilMarker {

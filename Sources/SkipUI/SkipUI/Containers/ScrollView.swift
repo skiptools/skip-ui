@@ -66,10 +66,11 @@ public struct ScrollView : View, Renderable {
         let scrollsContent = wantsVerticalScroll || wantsHorizontalScroll
         let density = LocalDensity.current.density
         let driver = remember(scrollState, wantsVerticalScroll) { ScrollViewDriver(state: scrollState, isVertical: wantsVerticalScroll, density: density) }
-        var scrollModifier: Modifier = Modifier.onSizeChanged { driver.viewportSize.value = $0 }
+        var scrollModifier: Modifier = Modifier.idealSizeOnUnboundedScrollAxes(vertical: wantsVerticalScroll, horizontal: wantsHorizontalScroll).onSizeChanged { driver.viewportSize.value = $0 }
         var effectiveScrollAxes: Axis.Set = []
         if wantsVerticalScroll {
-            scrollModifier = scrollModifier.verticalScroll(scrollState, enabled: !isScrollDisabled)
+            // Fill the height so a drag below short content still reaches the scroll node, which `pullRefresh` listens to.
+            scrollModifier = scrollModifier.fillMaxHeight().verticalScroll(scrollState, enabled: !isScrollDisabled)
             effectiveScrollAxes.insert(Axis.Set.vertical)
             if !axes.contains(.horizontal) && !isScrollDisabled {
                 // Integrate with our scroll-to-top navigation bar taps

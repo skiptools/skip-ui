@@ -119,6 +119,32 @@ extension Modifier {
         }
     }
 
+    /// For internal use.
+    ///
+    /// When a scroll container is offered unbounded space along an axis it scrolls on, for example under
+    /// `.fixedSize()` or inside another view that measures its children unbounded, size it to its content's
+    /// ideal extent on that axis, as SwiftUI does. Compose's scroll modifiers throw on an unbounded maximum.
+    func idealSizeOnUnboundedScrollAxes(vertical: Bool, horizontal: Bool) -> Modifier {
+        guard vertical || horizontal else {
+            return self
+        }
+        return self.layout { measurable, constraints in
+            var scrollConstraints = constraints
+            if vertical && !constraints.hasBoundedHeight {
+                let idealHeight = max(constraints.minHeight, measurable.maxIntrinsicHeight(constraints.maxWidth))
+                scrollConstraints = scrollConstraints.copy(maxHeight: idealHeight)
+            }
+            if horizontal && !constraints.hasBoundedWidth {
+                let idealWidth = max(constraints.minWidth, measurable.maxIntrinsicWidth(constraints.maxHeight))
+                scrollConstraints = scrollConstraints.copy(maxWidth: idealWidth)
+            }
+            let placeable = measurable.measure(scrollConstraints)
+            return layout(width: placeable.width, height: placeable.height) {
+                placeable.placeRelative(x: 0, y: 0)
+            }
+        }
+    }
+
     /// Add padding equivalent to the given safe area.
     @Composable func padding(safeArea: SafeArea) -> Modifier {
         let density = LocalDensity.current
@@ -173,12 +199,18 @@ extension Modifier {
                     return
                 }
                 var pressed = true
+                var hasDeterminedAxis = false
                 while pressed {
                     let event = awaitPointerEvent(pass: PointerEventPass.Initial)
                     if let change = event.changes.firstOrNull() {
                         pressed = change.pressed
-                        if abs(change.position.x - start.x) > slop || abs(change.position.y - start.y) > slop {
-                            isUserScrollActive.value = true
+                        if !hasDeterminedAxis {
+                            let dx = abs(change.position.x - start.x)
+                            let dy = abs(change.position.y - start.y)
+                            if dx > slop || dy > slop {
+                                hasDeterminedAxis = true
+                                isUserScrollActive.value = dy > dx
+                            }
                         }
                     } else {
                         pressed = false
