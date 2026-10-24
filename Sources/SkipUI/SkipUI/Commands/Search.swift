@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -216,6 +217,12 @@ final class SearchableModifier: ModifierProtocol {
         let isSearching = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) {
             mutableStateOf(isPresented?.wrappedValue == true)
         }
+        let presented = isPresented?.wrappedValue
+        SideEffect {
+            if let presented {
+                isSearching.value = presented
+            }
+        }
         let renderables = EnvironmentValues.shared.setValuesWithReturn {
             $0.set_isSearching(isSearching)
             return ComposeResult.ok
@@ -246,19 +253,25 @@ final class SearchableStateModifier: RenderModifier {
             // so only Navigation shows the search bar; ScrollView/List/etc. must not show a second one.
             let isOnNavigationStack = isModifierOnNavigationStack || isNavigationRoot
             let state = SearchableState(text: text, prompt: prompt, submitState: submitState, isPresented: isPresented, isSearching: isSearching, isOnNavigationStack: isOnNavigationStack)
-            // Bubble the search state to the navigation stack if root, else down to the component
-            if isModifierOnNavigationStack || isNavigationRoot != true {
-                EnvironmentValues.shared.setValues {
-                    $0.set_searchableState(state)
-                    return ComposeResult.ok
-                } in: {
+            // Descendants evaluated during rendering must see the same search state as the field.
+            EnvironmentValues.shared.setValues {
+                $0.set_isSearching(isSearching)
+                return ComposeResult.ok
+            } in: {
+                // Bubble the search state to the navigation stack if root, else down to the component
+                if isModifierOnNavigationStack || isNavigationRoot != true {
+                    EnvironmentValues.shared.setValues {
+                        $0.set_searchableState(state)
+                        return ComposeResult.ok
+                    } in: {
+                        renderable.Render(context: context)
+                    }
+                } else {
+                    if isFirstRenderable {
+                        PreferenceValues.shared.contribute(context: context, key: SearchableStatePreferenceKey.self, value: state)
+                    }
                     renderable.Render(context: context)
                 }
-            } else {
-                if isFirstRenderable {
-                    PreferenceValues.shared.contribute(context: context, key: SearchableStatePreferenceKey.self, value: state)
-                }
-                renderable.Render(context: context)
             }
         }
     }

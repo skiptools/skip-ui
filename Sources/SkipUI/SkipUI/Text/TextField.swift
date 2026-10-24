@@ -4,19 +4,34 @@
 import Foundation
 #if SKIP
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardActionScope
+import androidx.compose.foundation.text.input.KeyboardActionHandler
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldDecorator
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
@@ -26,14 +41,20 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.ResolvedTextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
 #endif
 
 // SKIP @bridge
@@ -142,31 +163,131 @@ public struct TextField : View, Renderable {
         let lineLimit = EnvironmentValues.shared.lineLimit
         let maxLines = isVertical ? (lineLimit ?? Int.max) : 1
         let minLines = isVertical && EnvironmentValues.shared._lineLimitReservesSpace == true ? (lineLimit ?? 1) : 1
+        let placeholderLayout = remember { mutableStateOf(nil as TextLayoutResult?) }
+        let emptyCursorX = remember { mutableStateOf(Float(0.0)) }
         var options = Material3TextFieldOptions(value: currentTextFieldValue, onValueChange: { value in
             text.wrappedValue = value.text
             selection?.wrappedValue = TextSelection(range: value.selection.start..<value.selection.end)
             textFieldValue.value = value
         }, placeholder: {
-            Self.Placeholder(prompt: prompt ?? label, context: contentContext)
+            Self.Placeholder(prompt: prompt ?? label, context: contentContext, onTextLayout: {
+                placeholderLayout.value = $0
+            })
         }, modifier: baseModifier, textStyle: alignedTextStyle, enabled: EnvironmentValues.shared.isEnabled, singleLine: !isVertical, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: maxLines, minLines: minLines, shape: OutlinedTextFieldDefaults.shape, colors: colors)
         if let updateOptions = EnvironmentValues.shared._material3TextField {
             options = updateOptions(options)
         }
-        if let tfContentPadding = EnvironmentValues.shared._textFieldContentPadding {
+        let tfContentPadding = EnvironmentValues.shared._textFieldContentPadding
+        if tfContentPadding != nil || (options.singleLine && options.label == nil && !isSecure) {
+            let contentPadding = tfContentPadding?.asPaddingValues() ?? OutlinedTextFieldDefaults.contentPadding()
+            let fieldModifier = tfContentPadding == nil ? options.modifier.defaultMinSize(minWidth: OutlinedTextFieldDefaults.MinWidth, minHeight: OutlinedTextFieldDefaults.MinHeight) : options.modifier
             let interactionSource = options.interactionSource ?? remember { MutableInteractionSource() }
-            let cursorColor = (EnvironmentValues.shared._tint ?? Color.primary).colorImpl()
+            let isFocused = interactionSource.collectIsFocusedAsState()
+            let showTruncatedText = !isFocused.value && options.singleLine && !options.value.text.isEmpty && !isSecure && options.visualTransformation == VisualTransformation.None
+            LaunchedEffect(showTruncatedText, options.value.text) {
+                if showTruncatedText && selection == nil {
+                    textFieldValue.value = options.value.copy(selection: TextRange(0))
+                }
+            }
+            let cursorColor = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
             // Unlike `OutlinedTextField`, `BasicTextField` colors its text solely from the text style, so
             // fold in the foreground color that `styleInfo` hands back separately from the style itself.
             let entryColor = Self.textColor(styleInfo: styleInfo, enabled: options.enabled)
             let entryTextStyle = entryColor == androidx.compose.ui.graphics.Color.Unspecified ? options.textStyle : options.textStyle.copy(color: entryColor)
-            BasicTextField(value: options.value, onValueChange: options.onValueChange, modifier: options.modifier, enabled: options.enabled, readOnly: options.readOnly, textStyle: entryTextStyle, keyboardOptions: options.keyboardOptions, keyboardActions: options.keyboardActions, singleLine: options.singleLine, maxLines: options.maxLines, minLines: options.minLines, visualTransformation: options.visualTransformation, interactionSource: interactionSource, cursorBrush: SolidColor(cursorColor), decorationBox: { innerTextField in
-                OutlinedTextFieldDefaults.DecorationBox(value: options.value.text, visualTransformation: options.visualTransformation, innerTextField: innerTextField, placeholder: options.placeholder, label: options.label, leadingIcon: options.leadingIcon, trailingIcon: options.trailingIcon, prefix: options.prefix, suffix: options.suffix, supportingText: options.supportingText, singleLine: options.singleLine, enabled: options.enabled, isError: options.isError, interactionSource: interactionSource, colors: options.colors, contentPadding: tfContentPadding.asPaddingValues(), container: {
+            let density = LocalDensity.current
+            var cursorOffset = 0.dp
+            if options.singleLine && options.value.text.isEmpty && !isSecure && options.visualTransformation == VisualTransformation.None,
+                let layout = placeholderLayout.value {
+                let gap = layout.getParagraphDirection(0) == ResolvedTextDirection.Rtl ? 2.dp : -2.dp
+                cursorOffset = with(density) { (layout.getCursorRect(0).left - emptyCursorX.value).toDp() } + gap
+            }
+            let decorationBox: @Composable (@Composable () -> Void) -> Void = { innerTextField in
+                OutlinedTextFieldDefaults.DecorationBox(value: options.value.text, visualTransformation: options.visualTransformation, innerTextField: {
+                    Box {
+                        Box(modifier: Modifier.fillMaxWidth().absoluteOffset(x: cursorOffset).alpha(showTruncatedText ? Float(0.0) : Float(1.0)), propagateMinConstraints: true) {
+                            innerTextField()
+                        }
+                        if showTruncatedText {
+                            androidx.compose.material3.Text(text: options.value.text, modifier: Modifier.fillMaxWidth().clearAndSetSemantics {}, style: entryTextStyle, maxLines: 1, softWrap: false, overflow: TextOverflow.Ellipsis)
+                        }
+                    }
+                }, placeholder: options.placeholder, label: options.label, leadingIcon: options.leadingIcon, trailingIcon: options.trailingIcon, prefix: options.prefix, suffix: options.suffix, supportingText: options.supportingText, singleLine: options.singleLine, enabled: options.enabled, isError: options.isError, interactionSource: interactionSource, colors: options.colors, contentPadding: contentPadding, container: {
                     OutlinedTextFieldDefaults.Container(enabled: options.enabled, isError: options.isError, interactionSource: interactionSource, colors: options.colors, shape: options.shape)
                 })
-            })
+            }
+            if options.singleLine && !isSecure && options.visualTransformation == VisualTransformation.None {
+                Self.RenderSingleLineField(options: options, modifier: fieldModifier, textStyle: entryTextStyle, interactionSource: interactionSource, cursorColor: cursorColor, decorationBox: decorationBox, onTextLayout: {
+                    if options.value.text.isEmpty {
+                        emptyCursorX.value = $0.getCursorRect(0).left
+                    }
+                })
+            } else {
+                BasicTextField(value: options.value, onValueChange: options.onValueChange, modifier: fieldModifier, enabled: options.enabled, readOnly: options.readOnly, textStyle: entryTextStyle, keyboardOptions: options.keyboardOptions, keyboardActions: options.keyboardActions, singleLine: options.singleLine, maxLines: options.maxLines, minLines: options.minLines, visualTransformation: options.visualTransformation, interactionSource: interactionSource, cursorBrush: SolidColor(cursorColor), onTextLayout: {
+                    if options.value.text.isEmpty {
+                        emptyCursorX.value = $0.getCursorRect(0).left
+                    }
+                }, decorationBox: decorationBox)
+            }
         } else {
             OutlinedTextField(value: options.value, onValueChange: options.onValueChange, modifier: options.modifier, enabled: options.enabled, readOnly: options.readOnly, textStyle: options.textStyle, label: options.label, placeholder: options.placeholder, leadingIcon: options.leadingIcon, trailingIcon: options.trailingIcon, prefix: options.prefix, suffix: options.suffix, supportingText: options.supportingText, isError: options.isError, visualTransformation: options.visualTransformation, keyboardOptions: options.keyboardOptions, keyboardActions: options.keyboardActions, singleLine: options.singleLine, maxLines: options.maxLines, minLines: options.minLines, interactionSource: options.interactionSource, shape: options.shape, colors: options.colors)
         }
+    }
+
+    @Composable private static func RenderSingleLineField(options: Material3TextFieldOptions, modifier: Modifier, textStyle: TextStyle, interactionSource: MutableInteractionSource, cursorColor: androidx.compose.ui.graphics.Color, decorationBox: @Composable (@Composable () -> Void) -> Void, onTextLayout: (TextLayoutResult) -> Void) {
+        // Use the state-based editor for cursor and selection-handle auto-scrolling.
+        let state = remember { TextFieldState(initialText: options.value.text, initialSelection: options.value.selection) }
+        let scrollState = rememberScrollState()
+        let isFocused = interactionSource.collectIsFocusedAsState()
+        LaunchedEffect(isFocused.value, options.value.text) {
+            if !isFocused.value {
+                scrollState.scrollTo(0)
+            }
+        }
+        let lastValue = remember { mutableStateOf(options.value) }
+        let onValueChange = rememberUpdatedState(options.onValueChange)
+        SideEffect {
+            if options.value != lastValue.value {
+                state.edit {
+                    if state.text.toString() != options.value.text {
+                        replace(0, length, options.value.text)
+                    }
+                    selection = options.value.selection
+                }
+                lastValue.value = options.value
+            }
+        }
+        LaunchedEffect(state) {
+            snapshotFlow { TextFieldValue(text: state.text.toString(), selection: state.selection, composition: state.composition) }.collect { value in
+                if value != lastValue.value {
+                    lastValue.value = value
+                    onValueChange.value(value)
+                }
+            }
+        }
+        let onKeyboardAction = KeyboardActionHandler { performDefaultAction in
+            var action = options.keyboardActions.onDone
+            switch options.keyboardOptions.imeAction {
+            case ImeAction.Default, ImeAction.Done: break
+            case ImeAction.Go: action = options.keyboardActions.onGo
+            case ImeAction.Next: action = options.keyboardActions.onNext
+            case ImeAction.Previous: action = options.keyboardActions.onPrevious
+            case ImeAction.Search: action = options.keyboardActions.onSearch
+            case ImeAction.Send: action = options.keyboardActions.onSend
+            default: action = nil
+            }
+            if let action {
+                action(TextFieldKeyboardActionScope(performDefaultAction: performDefaultAction))
+            } else {
+                performDefaultAction()
+            }
+        }
+        BasicTextField(state: state, modifier: modifier, enabled: options.enabled, readOnly: options.readOnly, textStyle: textStyle, keyboardOptions: options.keyboardOptions, onKeyboardAction: onKeyboardAction, lineLimits: TextFieldLineLimits.SingleLine, scrollState: scrollState, interactionSource: interactionSource, cursorBrush: SolidColor(cursorColor), onTextLayout: { getResult in
+            if let result = getResult() {
+                onTextLayout(result)
+            }
+        }, decorator: TextFieldDecorator { innerTextField in
+            decorationBox(innerTextField)
+        })
     }
 
     @Composable static func textColor(styleInfo: TextStyleInfo, enabled: Bool) -> androidx.compose.ui.graphics.Color {
@@ -192,20 +313,25 @@ public struct TextField : View, Renderable {
             let borderColor = (outline ?? Color.primary.opacity(0.3)).colorImpl()
             if let tint = EnvironmentValues.shared._tint {
                 let tintColor = tint.colorImpl()
-                return OutlinedTextFieldDefaults.colors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, cursorColor: tintColor, focusedBorderColor: tintColor, unfocusedBorderColor: borderColor, disabledBorderColor: Color.separator.colorImpl())
+                return OutlinedTextFieldDefaults.colors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, cursorColor: tintColor, focusedBorderColor: borderColor, unfocusedBorderColor: borderColor, disabledBorderColor: Color.separator.colorImpl())
             } else {
-                return OutlinedTextFieldDefaults.colors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, unfocusedBorderColor: borderColor, disabledBorderColor: Color.separator.colorImpl())
+                return OutlinedTextFieldDefaults.colors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, focusedBorderColor: borderColor, unfocusedBorderColor: borderColor, disabledBorderColor: Color.separator.colorImpl())
             }
         }
     }
 
-    @Composable static func Placeholder(prompt: View?, context: ComposeContext) {
+    @Composable static func Placeholder(prompt: View?, context: ComposeContext, onTextLayout: ((TextLayoutResult) -> Void)? = nil) {
         guard let prompt else {
             return
         }
         
         EnvironmentValues.shared.setValues {
-            $0.set_material3Text { options in options.copy(modifier: options.modifier.fillMaxWidth()) }
+            $0.set_material3Text { options in
+                options.copy(modifier: options.modifier.fillMaxWidth(), onTextLayout: { result in
+                    options.onTextLayout?(result)
+                    onTextLayout?(result)
+                })
+            }
             $0.set_foregroundStyle(Color(colorImpl: { Color.primary.colorImpl().copy(alpha: ContentAlpha.disabled) }))
             return ComposeResult.ok
         } in: {
@@ -466,6 +592,18 @@ struct OnSubmitState {
 }
 
 #if SKIP
+private final class TextFieldKeyboardActionScope: KeyboardActionScope {
+    private let performDefaultAction: () -> Void
+
+    init(performDefaultAction: @escaping () -> Void) {
+        self.performDefaultAction = performDefaultAction
+    }
+
+    override func defaultKeyboardAction(imeAction: ImeAction) {
+        performDefaultAction()
+    }
+}
+
 /// Create keyboard actions that execute the given submit state.
 func KeyboardActions(submitState: OnSubmitState?, clearFocusWith: FocusManager? = nil) -> KeyboardActions {
     return KeyboardActions(onDone: {
