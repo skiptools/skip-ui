@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.InternalComposeApi
@@ -305,8 +306,16 @@ extension EnvironmentValues {
             return EnvironmentSupport(builtinValue: backgroundStyle)
         case "colorScheme":
             return EnvironmentSupport(builtinValue: colorScheme.rawValue)
+        case "defaultMinListHeaderHeight":
+            return EnvironmentSupport(builtinValue: defaultMinListHeaderHeight)
+        case "defaultMinListRowHeight":
+            return EnvironmentSupport(builtinValue: defaultMinListRowHeight)
         case "dismiss":
             return EnvironmentSupport(builtinValue: dismiss)
+        case "editMode":
+            return EnvironmentSupport(builtinValue: editMode == nil ? nil : EditModeBinding(editMode!))
+        case "headerProminence":
+            return EnvironmentSupport(builtinValue: headerProminence == .increased)
         case "font":
             return EnvironmentSupport(builtinValue: font)
         case "horizontalSizeClass":
@@ -365,8 +374,20 @@ extension EnvironmentValues {
             return true
         case "colorScheme":
             return false // Doesn't support setting outside of `.colorScheme(_:)` func
+        case "defaultMinListHeaderHeight":
+            setdefaultMinListHeaderHeight(value?.builtinValue as? CGFloat)
+            return true
+        case "defaultMinListRowHeight":
+            setdefaultMinListRowHeight(value?.builtinValue as? CGFloat ?? 48.0)
+            return true
         case "dismiss":
             setdismiss(value?.builtinValue as? DismissAction ?? DismissAction.default)
+            return true
+        case "editMode":
+            seteditMode((value?.builtinValue as? EditModeBinding)?.binding)
+            return true
+        case "headerProminence":
+            setheaderProminence(value?.builtinValue as? Bool == true ? Prominence.increased : Prominence.standard)
             return true
         case "font":
             setfont(value?.builtinValue as? Font)
@@ -450,6 +471,29 @@ extension EnvironmentValues {
     public var font: Font? {
         get { builtinValue(key: "font", defaultValue: { nil }) as! Font? }
         set { setBuiltinValue(key: "font", value: newValue, defaultValue: { nil }) }
+    }
+
+    /// The edit mode of the current navigation screen, toggled by `EditButton`.
+    public var editMode: Binding<EditMode>? {
+        get { builtinValue(key: "editMode", defaultValue: { nil }) as! Binding<EditMode>? }
+        set { setBuiltinValue(key: "editMode", value: newValue, defaultValue: { nil }) }
+    }
+
+    /// The minimum height of a list row; defaults to the Material equivalent of iOS's 44pt.
+    public var defaultMinListRowHeight: CGFloat {
+        get { builtinValue(key: "defaultMinListRowHeight", defaultValue: { 48.0 }) as! CGFloat }
+        set { setBuiltinValue(key: "defaultMinListRowHeight", value: newValue, defaultValue: { 48.0 }) }
+    }
+
+    /// The minimum height of a list section header, or nil to size headers to their content.
+    public var defaultMinListHeaderHeight: CGFloat? {
+        get { builtinValue(key: "defaultMinListHeaderHeight", defaultValue: { nil }) as! CGFloat? }
+        set { setBuiltinValue(key: "defaultMinListHeaderHeight", value: newValue, defaultValue: { nil }) }
+    }
+
+    public var headerProminence: Prominence {
+        get { builtinValue(key: "headerProminence", defaultValue: { Prominence.standard }) as! Prominence }
+        set { setBuiltinValue(key: "headerProminence", value: newValue, defaultValue: { Prominence.standard }) }
     }
 
     public var horizontalSizeClass: UserInterfaceSizeClass? {
@@ -628,7 +672,6 @@ extension EnvironmentValues {
     var horizontalScrollBounceBehavior: ScrollBounceBehavior
     var verticalScrollBounceBehavior: ScrollBounceBehavior
 
-    var editMode: Binding<EditMode>?
     var isActivityFullscreen: Bool
     var isFocused: Bool
     var isHoverEffectEnabled: Bool
@@ -652,10 +695,7 @@ extension EnvironmentValues {
     var badgeProminence: BadgeProminence
     var contentTransition: ContentTransition
     var contentTransitionAddsDrawingGroup: Bool
-    var defaultMinListHeaderHeight: CGFloat?
-    var defaultMinListRowHeight: CGFloat
     var isFocusEffectEnabled: Bool
-    var headerProminence: Prominence
     var physicalMetrics: PhysicalMetricsConverter
     var springLoadingBehavior: SpringLoadingBehavior
     var symbolRenderingMode: SymbolRenderingMode?
@@ -817,18 +857,71 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_listItemTint", value: newValue, defaultValue: { nil }) }
     }
 
-    var _listSectionHeaderStyle: ListStyle? {
-        get { builtinValue(key: "_listSectionHeaderStyle", defaultValue: { nil }) as! ListStyle? }
+    var _listSectionHeaderStyle: ListStyleKind? {
+        get { builtinValue(key: "_listSectionHeaderStyle", defaultValue: { nil }) as! ListStyleKind? }
         set { setBuiltinValue(key: "_listSectionHeaderStyle", value: newValue, defaultValue: { nil }) }
     }
 
-    var _listSectionFooterStyle: ListStyle? {
-        get { builtinValue(key: "_listSectionFooterStyle", defaultValue: { nil }) as! ListStyle? }
+    var _listSectionFooterStyle: ListStyleKind? {
+        get { builtinValue(key: "_listSectionFooterStyle", defaultValue: { nil }) as! ListStyleKind? }
         set { setBuiltinValue(key: "_listSectionFooterStyle", value: newValue, defaultValue: { nil }) }
     }
 
-    var _listStyle: ListStyle? {
-        get { builtinValue(key: "_listStyle", defaultValue: { nil }) as! ListStyle? }
+    /// The visibility the content asks of the enclosing navigation bar, which only the bar reads.
+    var _navigationBarVisibility: BarVisibility? {
+        get { builtinValue(key: "_navigationBarVisibility", defaultValue: { nil }) as! BarVisibility? }
+        set { setBuiltinValue(key: "_navigationBarVisibility", value: newValue, defaultValue: { nil }) }
+    }
+
+    /// The visibility the content asks of the enclosing tab bar, which only the bar reads.
+    var _tabBarVisibility: BarVisibility? {
+        get { builtinValue(key: "_tabBarVisibility", defaultValue: { nil }) as! BarVisibility? }
+        set { setBuiltinValue(key: "_tabBarVisibility", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _onScrollGeometryChange: ((ScrollGeometry) -> Void)? {
+        get { builtinValue(key: "_onScrollGeometryChange", defaultValue: { nil }) as! ((ScrollGeometry) -> Void)? }
+        set { setBuiltinValue(key: "_onScrollGeometryChange", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _defaultScrollAnchor: UnitPoint? {
+        get { builtinValue(key: "_defaultScrollAnchor", defaultValue: { nil }) as! UnitPoint? }
+        set { setBuiltinValue(key: "_defaultScrollAnchor", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _scrollBounceBehavior: ScrollBounceBehavior? {
+        get { builtinValue(key: "_scrollBounceBehavior", defaultValue: { nil }) as! ScrollBounceBehavior? }
+        set { setBuiltinValue(key: "_scrollBounceBehavior", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _listSectionIndexVisibility: Visibility? {
+        get { builtinValue(key: "_listSectionIndexVisibility", defaultValue: { nil }) as! Visibility? }
+        set { setBuiltinValue(key: "_listSectionIndexVisibility", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _listSectionSpacing: CGFloat? {
+        get { builtinValue(key: "_listSectionSpacing", defaultValue: { nil }) as! CGFloat? }
+        set { setBuiltinValue(key: "_listSectionSpacing", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _onScrollPhaseChange: ((ScrollPhase, ScrollPhase, ScrollPhaseChangeContext) -> Void)? {
+        get { builtinValue(key: "_onScrollPhaseChange", defaultValue: { nil }) as! ((ScrollPhase, ScrollPhase, ScrollPhaseChangeContext) -> Void)? }
+        set { setBuiltinValue(key: "_onScrollPhaseChange", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _scrollPosition: Binding<ScrollPosition>? {
+        get { builtinValue(key: "_scrollPosition", defaultValue: { nil }) as! Binding<ScrollPosition>? }
+        set { setBuiltinValue(key: "_scrollPosition", value: newValue, defaultValue: { nil }) }
+    }
+
+    /// Records a laid out view with an ID as a target of the enclosing `ScrollView`'s programmatic scrolling.
+    var _registerScrollTarget: ((Any, LayoutCoordinates) -> Void)? {
+        get { builtinValue(key: "_registerScrollTarget", defaultValue: { nil }) as! ((Any, LayoutCoordinates) -> Void)? }
+        set { setBuiltinValue(key: "_registerScrollTarget", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _listStyle: (any ListStyle)? {
+        get { builtinValue(key: "_listStyle", defaultValue: { nil }) as! (any ListStyle)? }
         set { setBuiltinValue(key: "_listStyle", value: newValue, defaultValue: { nil }) }
     }
 
@@ -939,6 +1032,16 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_scrollDisabled", value: newValue, defaultValue: { false }) }
     }
 
+    var _scrollEdgeEffect: ScrollEdgeEffect? {
+        get { builtinValue(key: "_scrollEdgeEffect", defaultValue: { nil }) as! ScrollEdgeEffect? }
+        set { setBuiltinValue(key: "_scrollEdgeEffect", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _scrollIndicatorsFlashTrigger: Any? {
+        get { builtinValue(key: "_scrollIndicatorsFlashTrigger", defaultValue: { nil }) }
+        set { setBuiltinValue(key: "_scrollIndicatorsFlashTrigger", value: newValue, defaultValue: { nil }) }
+    }
+
     var _scrollIndicatorVisibility: ScrollIndicatorVisibility {
         get { builtinValue(key: "_scrollIndicatorVisibility", defaultValue: { ScrollIndicatorVisibility.automatic }) as! ScrollIndicatorVisibility }
         set { setBuiltinValue(key: "_scrollIndicatorVisibility", value: newValue, defaultValue: { ScrollIndicatorVisibility.automatic }) }
@@ -954,6 +1057,26 @@ extension EnvironmentValues {
     var _scrollViewAxes: Axis.Set {
         get { builtinValue(key: "_scrollViewAxes", defaultValue: { Axis.Set(rawValue: 0) }) as! Axis.Set }
         set { setBuiltinValue(key: "_scrollViewAxes", value: newValue, defaultValue: { Axis.Set(rawValue: 0) }) }
+    }
+
+    var _selectionContextMenu: SelectionContextMenu? {
+        get { builtinValue(key: "_selectionContextMenu", defaultValue: { nil }) as! SelectionContextMenu? }
+        set { setBuiltinValue(key: "_selectionContextMenu", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _searchScopes: SearchScopes? {
+        get { builtinValue(key: "_searchScopes", defaultValue: { nil }) as! SearchScopes? }
+        set { setBuiltinValue(key: "_searchScopes", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _searchSuggestions: ComposeBuilder? {
+        get { builtinValue(key: "_searchSuggestions", defaultValue: { nil }) as! ComposeBuilder? }
+        set { setBuiltinValue(key: "_searchSuggestions", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _searchSuggestionsVisibility: Visibility? {
+        get { builtinValue(key: "_searchSuggestionsVisibility", defaultValue: { nil }) as! Visibility? }
+        set { setBuiltinValue(key: "_searchSuggestionsVisibility", value: newValue, defaultValue: { nil }) }
     }
 
     var _searchableState: SearchableState? {

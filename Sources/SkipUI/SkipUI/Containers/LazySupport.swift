@@ -78,9 +78,11 @@ final class LazyLevelRenderable: Renderable, LazyItemFactory {
 /// Add to lazy items to render a section header.
 final class LazySectionHeader: Renderable, LazyItemFactory {
     let content: kotlin.collections.List<Renderable>
+    let isExpanded: Binding<Bool>?
 
-    init(content: kotlin.collections.List<Renderable>) {
+    init(content: kotlin.collections.List<Renderable>, isExpanded: Binding<Bool>? = nil) {
         self.content = content
+        self.isExpanded = isExpanded
     }
 
     @Composable override func Render(context: ComposeContext) {
@@ -89,7 +91,9 @@ final class LazySectionHeader: Renderable, LazyItemFactory {
 
     override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
         let modified = content.map { ModifiedContent.apply(modifiers: modifiers, to: $0) }
+        collector.sectionExpansion = isExpanded
         collector.sectionHeader(modified, LazyItemCollector.sectionIdentity(from: modifiers))
+        collector.sectionExpansion = nil
     }
 }
 
@@ -123,6 +127,8 @@ extension ModifiedContent: LazyItemFactory {
 
 /// Collect lazy content added by `LazyItemFactory` instances.
 public final class LazyItemCollector {
+    /// Changes whenever collected item identity or ordering is rebuilt.
+    private(set) var revision = 0
     private(set) var item: (Renderable, Int) -> Void = { _, _ in }
     private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Int, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _ in  }
     private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Any, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _ in }
@@ -130,6 +136,8 @@ public final class LazyItemCollector {
     private(set) var sectionHeader: (kotlin.collections.List<Renderable>, Any?) -> Int = { _, _ in 0 }
     private(set) var sectionFooter: (kotlin.collections.List<Renderable>, Any?) -> Int = { _, _ in 0 }
     private var currentSectionItemCount: Int? = nil
+    /// The `Section(isExpanded:)` binding of the section header being produced, if any.
+    var sectionExpansion: Binding<Bool>?
     private let emptyItemIndices = mutableStateMapOf<Int, Bool>()
     private var currentSectionFirstItemIndex: Int? = nil
     private var sectionFirstItemIndices: Set<Int> = []
@@ -165,6 +173,7 @@ public final class LazyItemCollector {
         sectionHeader: (kotlin.collections.List<Renderable>, Any?) -> Int,
         sectionFooter: (kotlin.collections.List<Renderable>, Any?, Int?) -> Int
     ) {
+        revision += 1
         self.startItemIndex = startItemIndex
 
         content.clear()

@@ -16,6 +16,7 @@ import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -23,6 +24,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 #elseif canImport(CoreGraphics)
@@ -60,7 +64,10 @@ public struct ScrollView : View, Renderable {
         let isScrollDisabled = EnvironmentValues.shared._scrollDisabled
         let wantsVerticalScroll = axes.contains(.vertical) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.vertical)
         let wantsHorizontalScroll = axes.contains(.horizontal) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.horizontal)
-        var scrollModifier: Modifier = Modifier.idealSizeOnUnboundedScrollAxes(vertical: wantsVerticalScroll, horizontal: wantsHorizontalScroll)
+        let scrollsContent = wantsVerticalScroll || wantsHorizontalScroll
+        let density = LocalDensity.current.density
+        let driver = remember(scrollState, wantsVerticalScroll) { ScrollViewDriver(state: scrollState, isVertical: wantsVerticalScroll, density: density) }
+        var scrollModifier: Modifier = Modifier.idealSizeOnUnboundedScrollAxes(vertical: wantsVerticalScroll, horizontal: wantsHorizontalScroll).onSizeChanged { driver.viewportSize.value = $0 }
         var effectiveScrollAxes: Axis.Set = []
         if wantsVerticalScroll {
             // Fill the height so a drag below short content still reaches the scroll node, which `pullRefresh` listens to.
@@ -79,6 +86,10 @@ public struct ScrollView : View, Renderable {
             scrollModifier = scrollModifier.horizontalScroll(scrollState, enabled: !isScrollDisabled)
             effectiveScrollAxes.insert(Axis.Set.horizontal)
         }
+        if scrollsContent {
+            scrollModifier = scrollModifier.onPlaced { driver.content = $0 }.onSizeChanged { driver.contentSize.value = $0 }
+            ScrollDriverEffects(driver, context: context)
+        }
 
         let contentContext = context.content()
         ComposeContainer(scrollAxes: effectiveScrollAxes, modifier: context.modifier, fillWidth: axes.contains(.horizontal), fillHeight: axes.contains(.vertical)) { modifier in
@@ -86,7 +97,11 @@ public struct ScrollView : View, Renderable {
                 PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: scrollState, for: [ToolbarPlacement.bottomBar]))
                 PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: scrollState))
             }
-            IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier, logTag: "ScrollView") { _, safeAreaEdges in
+            // As on iOS, a scroll view that scrolls its content vertically extends beneath system bars and floating app
+            // bars, and insets its content instead. A lazy container scrolling for it extends itself
+            var scrollUnderEdges: Edge.Set = wantsVerticalScroll && !wantsHorizontalScroll ? [.top, .bottom] : []
+            scrollUnderEdges.formIntersection(EnvironmentValues.shared._safeArea?.scrollUnderEdges ?? [])
+            IgnoresSafeAreaLayout(expandInto: scrollUnderEdges, checkEdges: [.bottom], modifier: modifier, logTag: "ScrollView") { safeAreaExpansion, safeAreaEdges in
                 var containerModifier: Modifier = Modifier
                 if wantsVerticalScroll {
                     containerModifier = containerModifier.fillMaxHeight()
@@ -113,14 +128,19 @@ public struct ScrollView : View, Renderable {
                 }
                 containerModifier = containerModifier.scrollDismissesKeyboardMode(EnvironmentValues.shared.scrollDismissesKeyboardMode)
 
+                // Reserve the space beneath the bars inside the scrolling content
+                let insetTop = with(LocalDensity.current) { safeAreaExpansion.top.toDp() }
+                let insetBottom = with(LocalDensity.current) { safeAreaExpansion.bottom.toDp() }
+                SideEffect {
+                    driver.contentInsets.value = EdgeInsets(top: Double(insetTop.value), leading: 0.0, bottom: Double(insetBottom.value), trailing: 0.0)
+                }
+
                 Box(modifier: containerModifier) {
                     // Apply content margins as padding to the scrolling content only when this ScrollView is managing scroll
                     // (when a lazy container is the child, it manages its own scroll and will apply margins itself)
-                    let finalScrollModifier: Modifier
+                    var finalScrollModifier = scrollModifier.padding(top: insetTop, bottom: insetBottom)
                     if (wantsVerticalScroll || wantsHorizontalScroll), let contentMargins = EnvironmentValues.shared._contentMargins?.asComposePaddingValues(for: .automatic) {
-                        finalScrollModifier = scrollModifier.padding(contentMargins)
-                    } else {
-                        finalScrollModifier = scrollModifier
+                        finalScrollModifier = finalScrollModifier.padding(contentMargins)
                     }
 
                     Column(modifier: finalScrollModifier) {
@@ -133,6 +153,10 @@ public struct ScrollView : View, Renderable {
                         }
                         EnvironmentValues.shared.setValues {
                             $0.set_scrollViewAxes(axes)
+                            if scrollsContent {
+                                $0.clearScrollContainerValues()
+                                $0.set_registerScrollTarget { driver.targets[$0] = $1 }
+                            }
                             return ComposeResult.ok
                         } in: {
                             PreferenceValues.shared.collectPreferences([builtinScrollAxisSetCollector]) {
@@ -141,7 +165,7 @@ public struct ScrollView : View, Renderable {
                         }
                     }
                     if let refreshState {
-                        PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter))
+                        PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter).padding(top: insetTop))
                     }
                 }
             }
@@ -157,13 +181,12 @@ public struct ScrollView : View, Renderable {
 // SKIP @bridge
 public struct ScrollViewProxy {
     #if SKIP
-    let scrollToID: (Any) -> Void
+    let scrollToID: (Any, UnitPoint?) -> Void
     #endif
 
     public func scrollTo(_ id: Any, anchor: UnitPoint? = nil) {
         #if SKIP
-        // Warning: anchor is currently ignored
-        scrollToID(id)
+        scrollToID(id, anchor)
         #endif
     }
 
@@ -225,10 +248,21 @@ struct ScrollToTopAction : Equatable {
 }
 
 struct ScrollToIDPreferenceKey: PreferenceKey {
-    static let defaultValue = ScrollToIDAction(key: nil, action: { _ in })
+    static let defaultValue = ScrollToIDAction(key: nil, action: { _, _ in })
 
     static func reduce(value: inout ScrollToIDAction, nextValue: () -> ScrollToIDAction) {
-        value = nextValue()
+        // As on iOS, a reader scrolls whichever of its scroll views holds the ID, such as a list beneath a horizontal
+        // menu. Each scroll view ignores IDs it doesn't hold
+        let previous = value
+        let next = nextValue()
+        guard previous.key != nil else {
+            value = next
+            return
+        }
+        value = ScrollToIDAction(key: [previous.key, next.key], action: { id, anchor in
+            previous.action(id, anchor)
+            next.action(id, anchor)
+        })
     }
 }
 
@@ -236,7 +270,7 @@ struct ScrollToIDAction : Equatable {
     // Key the action on the listState/gridState/etc that performs the scrolling, so that on
     // recompose when the remembered state might change, the preference action is updated
     let key: Any?
-    let action: (Any) -> Void
+    let action: (Any, UnitPoint?) -> Void
 
     static func ==(lhs: ScrollToIDAction, rhs: ScrollToIDAction) -> Bool {
         return lhs.key == rhs.key
@@ -250,25 +284,7 @@ struct BuiltinScrollAxisSetPreferenceKey: PreferenceKey {
         value.formUnion(nextValue())
     }
 }
-
-/// Holds the current scroll position ID for visible items in a scroll view.
-struct ScrollPositionState {
-    let id: AnyHashable?
-}
-
-struct ScrollPositionPreferenceKey: PreferenceKey {
-    static let defaultValue = ScrollPositionState(id: nil)
-
-    static func reduce(value: inout ScrollPositionState, nextValue: () -> ScrollPositionState) {
-        value = nextValue()
-    }
-}
 #endif
-
-public struct ScrollPosition {
-    @available(*, unavailable)
-    public init() {}
-}
 
 public enum ScrollBounceBehavior {
     case automatic
@@ -364,9 +380,22 @@ extension View {
         return contentMargins(Edge.Set(rawValue: edges), EdgeInsets(top: top, leading: leading, bottom: bottom, trailing: trailing), for: placementValue)
     }
 
-    @available(*, unavailable)
-    public func scrollBounceBehavior(_ behavior: ScrollBounceBehavior, axes: Axis.Set = [.vertical]) -> some View {
+    /// With `.basedOnSize`, a `List` whose rows fit shows no overscroll stretch.
+    // SKIP @bridge
+    public func scrollBounceBehavior(bridgedBehavior: Int) -> any View {
+        switch bridgedBehavior {
+        case 1: return scrollBounceBehavior(.always)
+        case 2: return scrollBounceBehavior(.basedOnSize)
+        default: return scrollBounceBehavior(.automatic)
+        }
+    }
+
+    public func scrollBounceBehavior(_ behavior: ScrollBounceBehavior, axes: Axis.Set = [.vertical]) -> any View {
+        #if SKIP
+        return environment(\._scrollBounceBehavior, behavior, affectsEvaluate: false)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -409,9 +438,25 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func scrollEdgeEffectStyle(_ style: ScrollEdgeEffectStyle?, for edges: Edge.Set) -> some View {
+    /// Treats a `List`'s content as it scrolls under an edge: `.soft` fades it out, `.hard` shows a crisp dividing edge.
+    // SKIP @bridge
+    public func scrollEdgeEffectStyle(bridgedStyle: Int?, bridgedEdges: Int) -> any View {
+        let style: ScrollEdgeEffectStyle?
+        switch bridgedStyle {
+        case nil: style = nil
+        case 1: style = .hard
+        case 2: style = .soft
+        default: style = .automatic
+        }
+        return scrollEdgeEffectStyle(style, for: Edge.Set(rawValue: bridgedEdges))
+    }
+
+    public func scrollEdgeEffectStyle(_ style: ScrollEdgeEffectStyle?, for edges: Edge.Set) -> any View {
+        #if SKIP
+        return environment(\._scrollEdgeEffect, style == nil ? nil : ScrollEdgeEffect(style: style!, edges: edges), affectsEvaluate: false)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -438,35 +483,33 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func scrollIndicatorsFlash(onAppear: Bool) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func scrollIndicatorsFlash(trigger value: some Equatable) -> some View {
-        return self
-    }
-
-    public func scrollPosition(id: Binding<(some Hashable)?>, anchor: UnitPoint? = nil) -> some View {
+    /// Briefly shows a `List`'s scroll indicator when it appears.
+    // SKIP @bridge
+    public func scrollIndicatorsFlash(onAppear: Bool) -> any View {
         #if SKIP
-        guard anchor == nil else {
-            fatalError("scrollPosition(id:anchor:) is only supported on Android with nil anchor")
+        guard onAppear else {
+            return self
         }
-        return onPreferenceChange(ScrollPositionPreferenceKey.self) { newValue in
-            id.wrappedValue = newValue.id
-        }
+        return ModifiedContent(content: self, modifier: ScrollIndicatorsFlashModifier(trigger: "onAppear"))
         #else
         return self
         #endif
     }
 
+    /// Bridged trigger, compared with `==`.
     // SKIP @bridge
-    public func scrollPosition(getId: @escaping () -> AnyHashable?, setId: @escaping (AnyHashable?) -> Void) -> any View {
+    public func scrollIndicatorsFlash(bridgedTrigger: Any, unusedp: Any? = nil) -> any View {
         #if SKIP
-        return onPreferenceChange(ScrollPositionPreferenceKey.self) { newValue in
-            setId(newValue.id)
-        }
+        return ModifiedContent(content: self, modifier: ScrollIndicatorsFlashModifier(trigger: bridgedTrigger))
+        #else
+        return self
+        #endif
+    }
+
+    /// Briefly shows a `List`'s scroll indicator whenever `value` changes.
+    public func scrollIndicatorsFlash<V>(trigger value: V) -> any View where V : Equatable {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: ScrollIndicatorsFlashModifier(trigger: value as Any))
         #else
         return self
         #endif
@@ -493,6 +536,24 @@ extension View {
         return self
     }
 }
+
+#if SKIP
+/// Combines flash triggers, so stacked `scrollIndicatorsFlash` modifiers each flash the indicator.
+final class ScrollIndicatorsFlashModifier: RenderModifier {
+    init(trigger: Any) {
+        super.init()
+        self.action = { renderable, context in
+            let outer = EnvironmentValues.shared._scrollIndicatorsFlashTrigger
+            EnvironmentValues.shared.setValues {
+                $0.set_scrollIndicatorsFlashTrigger(outer == nil ? trigger : listOf(outer!, trigger))
+                return ComposeResult.ok
+            } in: {
+                renderable.Render(context: context)
+            }
+        }
+    }
+}
+#endif
 
 // MARK: ScrollTargetBehavior
 

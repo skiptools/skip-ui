@@ -4,7 +4,13 @@
 import Foundation
 #if SKIP
 import SkipModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -55,6 +61,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,11 +76,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
@@ -88,6 +97,7 @@ import androidx.navigation3.ui.defaultTransitionSpec
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlin.math.roundToInt
 #endif
 
 // SKIP @bridge
@@ -271,21 +281,28 @@ public struct TabView : View, Renderable {
         let tabViewSafeAreaState = rememberUpdatedState(safeArea)
         let density = LocalDensity.current
         let defaultBottomBarHeight = 80.dp
-        let bottomBarTopPx = remember {
-            // Default our initial value to the expected value, which helps avoid visual artifacts as we measure actual values and
-            // recompose with adjusted layouts
-            if let safeArea {
-                mutableStateOf(with(density) { safeArea.presentationBoundsPx.bottom - defaultBottomBarHeight.toPx() })
-            } else {
-                mutableStateOf(Float(0.0))
-            }
-        }
+        // A bottom tab bar floats over the content, which fills the tab view and insets itself by the space the bar
+        // covers. The bar keeps its measured height while hidden: scrollables go on reserving that space, so that hiding
+        // and showing only slide the bar. Default to the expected values, which helps avoid visual artifacts as we
+        // measure actual values
         let bottomBarHeightPx = remember { mutableStateOf(with(density) { defaultBottomBarHeight.toPx() }) }
+        let containerBottomPx = remember { mutableStateOf(safeArea?.presentationBoundsPx.bottom ?? Float(0.0)) }
         let tabNavLeadingEndPx = remember { mutableStateOf(Float(0.0)) }
 
         // Reduce the tab bar preferences outside the bar composable. Otherwise the reduced value may change
         // when the bottom bar recomposes
         let reducedTabBarPreferences = tabBarPreferences.value.reduced
+        // Content asks for the bar's visibility through `tabBarVisibility`, which only the bar reads, so that hiding and
+        // showing it never recomposes the tabs. The tab view only reads whether the bar is hidden from the start
+        let tabBarVisibility = remember { BarVisibility() }
+        let isTabBarHiddenFromStart = remember { derivedStateOf { tabBarVisibility.isHiddenFromStart } }.value
+        let isTabBarVisible = tabs.any({ $0 != nil }) && !isTabBarHiddenFromStart && reducedTabBarPreferences.visibility != Visibility.hidden
+        // Keep the content inset after a visible bar starts hiding. The bar slides over the content; removing its
+        // inset at the same time would resize scroll containers and move their section headers and rows.
+        let reservesTabBarSpace = tabs.any({ $0 != nil }) && (isTabBarVisible || tabBarVisibility.hasShown.value)
+        // Read by tab entries, whose content closures outlive this composition
+        let reservesTabBarSpaceState = rememberUpdatedState(reservesTabBarSpace)
+        let tabBarAnimation = Animation.current(isAnimating: false) ?? reducedTabBarPreferences.visibilityAnimation
 
         // When we layout, extend into the safe area if it is due to system bars, not into any app chrome. We extend
         // into the top bar too so that tab content can also extend into the top area without getting cut off during
@@ -295,7 +312,7 @@ public struct TabView : View, Renderable {
         IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: ignoresSafeAreaEdges, logTag: "TabView") { _, _ in
             ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
                 // Don't use a Scaffold: it clips content beyond its bounds and prevents .ignoresSafeArea modifiers from working
-                Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) {
+                Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize().onGloballyPositionedInWindow { containerBottomPx.value = $0.bottom }) {
                     let tabViewStyle = EnvironmentValues.shared._tabViewStyle
                     let layoutType: NavigationSuiteType
                     if tabViewStyle is SidebarAdaptableTabViewStyle {
@@ -306,265 +323,315 @@ public struct TabView : View, Renderable {
                     }
                     let layoutTypeState = rememberUpdatedState(layoutType)
                     let navigationSuiteScaffoldState = rememberNavigationSuiteScaffoldState()
-                    NavigationSuiteScaffoldLayout(
-                        navigationSuite: {
-                            guard tabs.any({ $0 != nil }) && reducedTabBarPreferences.visibility != Visibility.hidden else {
-                                SideEffect {
-                                    bottomBarTopPx.value = Float(0.0)
-                                    bottomBarHeightPx.value = Float(0.0)
-                                    tabNavLeadingEndPx.value = Float(0.0)
-                                }
-                                return
+                    let navigationSuite: @Composable () -> Void = {
+                        var tabBarModifier: Modifier
+                        if layoutType == NavigationSuiteType.NavigationBar {
+                            // Measure the size rather than the bounds, which shrink as the bar slides off screen
+                            tabBarModifier = Modifier.fillMaxWidth().onSizeChanged { size in
+                                bottomBarHeightPx.value = Float(size.height)
+                                tabNavLeadingEndPx.value = Float(0.0)
+                                tabBarVisibility.hasShown.value = true
                             }
-                            var tabBarModifier = (layoutType == NavigationSuiteType.NavigationBar ? Modifier.fillMaxWidth() : Modifier.fillMaxHeight().wrapContentWidth())
-                                .onGloballyPositionedInWindow { bounds in
-                                    let lt = layoutTypeState.value
-                                    if lt == NavigationSuiteType.NavigationBar {
-                                        bottomBarTopPx.value = bounds.top
-                                        bottomBarHeightPx.value = bounds.bottom - bounds.top
-                                        tabNavLeadingEndPx.value = Float(0.0)
-                                    } else if lt == NavigationSuiteType.NavigationRail {
-                                        bottomBarTopPx.value = Float(0.0)
-                                        bottomBarHeightPx.value = Float(0.0)
-                                        tabNavLeadingEndPx.value = bounds.right
-                                    } else {
-                                        bottomBarTopPx.value = Float(0.0)
-                                        bottomBarHeightPx.value = Float(0.0)
-                                        tabNavLeadingEndPx.value = Float(0.0)
-                                    }
-                                }
-                                .semantics { testTagsAsResourceId = true }.testTag("skip_ui_automation_tab_bar")
-                            let tint = EnvironmentValues.shared._tint
-                            let isSystemBackground = reducedTabBarPreferences.isSystemBackground == true
-                            let showScrolledBackground = reducedTabBarPreferences.backgroundVisibility == Visibility.visible || reducedTabBarPreferences.scrollableState?.canScrollForward == true
-                            let materialColorScheme: androidx.compose.material3.ColorScheme
-                            if showScrolledBackground, let customColorScheme = reducedTabBarPreferences.colorScheme?.asMaterialTheme() {
-                                materialColorScheme = customColorScheme
+                        } else {
+                            tabBarModifier = Modifier.fillMaxHeight().wrapContentWidth().onGloballyPositionedInWindow { bounds in
+                                bottomBarHeightPx.value = Float(0.0)
+                                tabNavLeadingEndPx.value = layoutTypeState.value == NavigationSuiteType.NavigationRail ? bounds.right : Float(0.0)
+                            }
+                        }
+                        tabBarModifier = tabBarModifier.semantics { testTagsAsResourceId = true }.testTag("skip_ui_automation_tab_bar")
+                        let tint = EnvironmentValues.shared._tint
+                        let isSystemBackground = reducedTabBarPreferences.isSystemBackground == true
+                        let showScrolledBackground = reducedTabBarPreferences.backgroundVisibility == Visibility.visible || reducedTabBarPreferences.scrollableState?.canScrollForward == true
+                        let materialColorScheme: androidx.compose.material3.ColorScheme
+                        if showScrolledBackground, let customColorScheme = reducedTabBarPreferences.colorScheme?.asMaterialTheme() {
+                            materialColorScheme = customColorScheme
+                        } else {
+                            materialColorScheme = MaterialTheme.colorScheme
+                        }
+                        MaterialTheme(colorScheme: materialColorScheme) {
+                            let indicatorColor: androidx.compose.ui.graphics.Color
+                            if let tint {
+                                indicatorColor = tint.asComposeColor().copy(alpha: Float(0.35))
                             } else {
-                                materialColorScheme = MaterialTheme.colorScheme
+                                indicatorColor = ColorScheme.fromMaterialTheme(colorScheme: materialColorScheme) == ColorScheme.dark ? androidx.compose.ui.graphics.Color.White.copy(alpha: Float(0.1)) : androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.1))
                             }
-                            MaterialTheme(colorScheme: materialColorScheme) {
-                                let indicatorColor: androidx.compose.ui.graphics.Color
-                                if let tint {
-                                    indicatorColor = tint.asComposeColor().copy(alpha: Float(0.35))
-                                } else {
-                                    indicatorColor = ColorScheme.fromMaterialTheme(colorScheme: materialColorScheme) == ColorScheme.dark ? androidx.compose.ui.graphics.Color.White.copy(alpha: Float(0.1)) : androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.1))
-                                }
-                                let tabBarBackgroundColor: androidx.compose.ui.graphics.Color
-                                let unscrolledTabBarBackgroundColor: androidx.compose.ui.graphics.Color
-                                let tabBarBackgroundForBrush: ShapeStyle?
-                                let tabBarItemColors: NavigationBarItemColors
-                                if reducedTabBarPreferences.backgroundVisibility == Visibility.hidden {
-                                    tabBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
-                                    unscrolledTabBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                            let tabBarBackgroundColor: androidx.compose.ui.graphics.Color
+                            let unscrolledTabBarBackgroundColor: androidx.compose.ui.graphics.Color
+                            let tabBarBackgroundForBrush: ShapeStyle?
+                            let tabBarItemColors: NavigationBarItemColors
+                            if reducedTabBarPreferences.backgroundVisibility == Visibility.hidden {
+                                tabBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                                unscrolledTabBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                                tabBarBackgroundForBrush = nil
+                                tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
+                            } else if let background = reducedTabBarPreferences.background {
+                                if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                                    tabBarBackgroundColor = color
+                                    unscrolledTabBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : color.copy(alpha: Float(0.0))
                                     tabBarBackgroundForBrush = nil
-                                    tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
-                                } else if let background = reducedTabBarPreferences.background {
-                                    if let color = background.asColor(opacity: 1.0, animationContext: nil) {
-                                        tabBarBackgroundColor = color
-                                        unscrolledTabBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : color.copy(alpha: Float(0.0))
-                                        tabBarBackgroundForBrush = nil
-                                    } else {
-                                        unscrolledTabBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
-                                        tabBarBackgroundColor = unscrolledTabBarBackgroundColor.copy(alpha: Float(0.0))
-                                        tabBarBackgroundForBrush = background
-                                    }
-                                    tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
                                 } else {
-                                    tabBarBackgroundColor = Color.systemBarBackground.colorImpl()
-                                    unscrolledTabBarBackgroundColor = isSystemBackground ? tabBarBackgroundColor : tabBarBackgroundColor.copy(alpha: Float(0.0))
-                                    tabBarBackgroundForBrush = nil
-                                    if tint == nil {
-                                        tabBarItemColors = NavigationBarItemDefaults.colors()
-                                    } else {
-                                        tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
-                                    }
+                                    unscrolledTabBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
+                                    tabBarBackgroundColor = unscrolledTabBarBackgroundColor.copy(alpha: Float(0.0))
+                                    tabBarBackgroundForBrush = background
                                 }
-                                if showScrolledBackground, let tabBarBackgroundForBrush {
-                                    if let tabBarBackgroundBrush = tabBarBackgroundForBrush.asBrush(opacity: 1.0, animationContext: nil) {
-                                        tabBarModifier = tabBarModifier.background(tabBarBackgroundBrush)
-                                    }
+                                tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
+                            } else {
+                                tabBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                                unscrolledTabBarBackgroundColor = isSystemBackground ? tabBarBackgroundColor : tabBarBackgroundColor.copy(alpha: Float(0.0))
+                                tabBarBackgroundForBrush = nil
+                                if tint == nil {
+                                    tabBarItemColors = NavigationBarItemDefaults.colors()
+                                } else {
+                                    tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
                                 }
+                            }
+                            if showScrolledBackground, let tabBarBackgroundForBrush {
+                                if let tabBarBackgroundBrush = tabBarBackgroundForBrush.asBrush(opacity: 1.0, animationContext: nil) {
+                                    tabBarModifier = tabBarModifier.background(tabBarBackgroundBrush)
+                                }
+                            }
 
-                                let currentRoute = String(describing: selectedTabIndex.value) // Note: forces recompose of this context on tab navigation
-                                let bottomPadding: Dp
+                            let currentRoute = String(describing: selectedTabIndex.value) // Note: forces recompose of this context on tab navigation
+                            let bottomPadding: Dp
+                            if layoutType == NavigationSuiteType.NavigationBar {
+                                bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(windowKeyboardInsets().getBottom(density))).toDp() }
+                            } else {
+                                bottomPadding = 0.dp
+                            }
+                            PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
+                                let tabsState = rememberUpdatedState(tabs)
+                                let containerColor = showScrolledBackground ? tabBarBackgroundColor : unscrolledTabBarBackgroundColor
+                                let onItemClick: (Int) -> Void = { tabIndex in
+                                    let route = String(describing: tabIndex)
+                                    if let selection, let tagValue = tagValue(route: route, in: tabRenderables) {
+                                        selection.wrappedValue = tagValue
+                                    } else {
+                                        selectedTabIndex.value = tabIndex
+                                    }
+                                }
+                                let itemIcon: @Composable (Int) -> Void = { tabIndex in
+                                    let tab = tabsState.value[tabIndex]
+                                    tab?.RenderImage(context: tabContext)
+                                }
+                                let itemLabel: @Composable (Int) -> Void = { tabIndex in
+                                    let tab = tabsState.value[tabIndex]
+                                    tab?.RenderTitle(context: tabContext)
+                                }
+                                var options = Material3NavigationBarOptions(modifier: context.modifier.then(tabBarModifier), containerColor: containerColor, contentColor: MaterialTheme.colorScheme.contentColorFor(containerColor), onItemClick: onItemClick, itemIcon: itemIcon, itemLabel: itemLabel, itemColors: tabBarItemColors)
+                                if let updateOptions = EnvironmentValues.shared._material3NavigationBar {
+                                    options = updateOptions(options)
+                                }
+                                let railItemColors = NavigationRailItemDefaults.colors(
+                                    selectedIconColor: options.itemColors.selectedIconColor,
+                                    selectedTextColor: options.itemColors.selectedTextColor,
+                                    indicatorColor: options.itemColors.selectedIndicatorColor,
+                                    unselectedIconColor: options.itemColors.unselectedIconColor,
+                                    unselectedTextColor: options.itemColors.unselectedTextColor,
+                                    disabledIconColor: options.itemColors.disabledIconColor,
+                                    disabledTextColor: options.itemColors.disabledTextColor
+                                )
                                 if layoutType == NavigationSuiteType.NavigationBar {
-                                    bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(windowKeyboardInsets().getBottom(density))).toDp() }
+                                    NavigationBar(modifier: options.modifier.semantics { testTagsAsResourceId = true }.testTag("skip_ui_automation_tab_bar"), containerColor: options.containerColor, contentColor: options.contentColor, tonalElevation: options.tonalElevation) {
+                                        for tabIndex in 0..<tabRenderables.size {
+                                            // A tab from a `false` conditional branch (e.g. `if x { Tab(...) }`)
+                                            // maps to a nil entry above; skip it so it does not render a blank,
+                                            // equal-width navigation item (phantom slot / uneven spacing).
+                                            if tabs[tabIndex] == nil || tabs[tabIndex]?.isHidden == true {
+                                                continue
+                                            }
+                                            let route = String(describing: tabIndex)
+                                            let label: (@Composable () -> Void)?
+                                            if let itemLabel = options.itemLabel {
+                                                label = { itemLabel(tabIndex) }
+                                            } else {
+                                                label = nil
+                                            }
+                                            NavigationBarItem(selected: route == currentRoute,
+                                                onClick: { options.onItemClick(tabIndex) },
+                                                icon: { options.itemIcon(tabIndex) },
+                                                modifier: options.itemModifier(tabIndex),
+                                                enabled: options.itemEnabled(tabIndex) && tabs[tabIndex]?.isDisabled != true,
+                                                label: label,
+                                                alwaysShowLabel: options.alwaysShowItemLabels,
+                                                colors: options.itemColors,
+                                                interactionSource: options.itemInteractionSource
+                                            )
+                                        }
+                                    }
                                 } else {
-                                    bottomPadding = 0.dp
-                                }
-                                PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
-                                    let tabsState = rememberUpdatedState(tabs)
-                                    let containerColor = showScrolledBackground ? tabBarBackgroundColor : unscrolledTabBarBackgroundColor
-                                    let onItemClick: (Int) -> Void = { tabIndex in
-                                        let route = String(describing: tabIndex)
-                                        if let selection, let tagValue = tagValue(route: route, in: tabRenderables) {
-                                            selection.wrappedValue = tagValue
-                                        } else {
-                                            selectedTabIndex.value = tabIndex
-                                        }
-                                    }
-                                    let itemIcon: @Composable (Int) -> Void = { tabIndex in
-                                        let tab = tabsState.value[tabIndex]
-                                        tab?.RenderImage(context: tabContext)
-                                    }
-                                    let itemLabel: @Composable (Int) -> Void = { tabIndex in
-                                        let tab = tabsState.value[tabIndex]
-                                        tab?.RenderTitle(context: tabContext)
-                                    }
-                                    var options = Material3NavigationBarOptions(modifier: context.modifier.then(tabBarModifier), containerColor: containerColor, contentColor: MaterialTheme.colorScheme.contentColorFor(containerColor), onItemClick: onItemClick, itemIcon: itemIcon, itemLabel: itemLabel, itemColors: tabBarItemColors)
-                                    if let updateOptions = EnvironmentValues.shared._material3NavigationBar {
-                                        options = updateOptions(options)
-                                    }
-                                    let railItemColors = NavigationRailItemDefaults.colors(
-                                        selectedIconColor: options.itemColors.selectedIconColor,
-                                        selectedTextColor: options.itemColors.selectedTextColor,
-                                        indicatorColor: options.itemColors.selectedIndicatorColor,
-                                        unselectedIconColor: options.itemColors.unselectedIconColor,
-                                        unselectedTextColor: options.itemColors.unselectedTextColor,
-                                        disabledIconColor: options.itemColors.disabledIconColor,
-                                        disabledTextColor: options.itemColors.disabledTextColor
-                                    )
-                                    if layoutType == NavigationSuiteType.NavigationBar {
-                                        NavigationBar(modifier: options.modifier.semantics { testTagsAsResourceId = true }.testTag("skip_ui_automation_tab_bar"), containerColor: options.containerColor, contentColor: options.contentColor, tonalElevation: options.tonalElevation) {
-                                            for tabIndex in 0..<tabRenderables.size {
-                                                // A tab from a `false` conditional branch (e.g. `if x { Tab(...) }`)
-                                                // maps to a nil entry above; skip it so it does not render a blank,
-                                                // equal-width navigation item (phantom slot / uneven spacing).
-                                                if tabs[tabIndex] == nil || tabs[tabIndex]?.isHidden == true {
-                                                    continue
-                                                }
-                                                let route = String(describing: tabIndex)
-                                                let label: (@Composable () -> Void)?
-                                                if let itemLabel = options.itemLabel {
-                                                    label = { itemLabel(tabIndex) }
-                                                } else {
-                                                    label = nil
-                                                }
-                                                NavigationBarItem(selected: route == currentRoute,
-                                                    onClick: { options.onItemClick(tabIndex) },
-                                                    icon: { options.itemIcon(tabIndex) },
-                                                    modifier: options.itemModifier(tabIndex),
-                                                    enabled: options.itemEnabled(tabIndex) && tabs[tabIndex]?.isDisabled != true,
-                                                    label: label,
-                                                    alwaysShowLabel: options.alwaysShowItemLabels,
-                                                    colors: options.itemColors,
-                                                    interactionSource: options.itemInteractionSource
-                                                )
+                                    NavigationRail(modifier: options.modifier, containerColor: options.containerColor, contentColor: options.contentColor) {
+                                        // Center the item group vertically (Material navigation rail guidance for tablets).
+                                        Spacer(modifier: Modifier.weight(Float(1.0)))
+                                        for tabIndex in 0..<tabRenderables.size {
+                                            // A tab from a `false` conditional branch (e.g. `if x { Tab(...) }`)
+                                            // maps to a nil entry above; skip it so it does not render a blank,
+                                            // equal-width navigation item (phantom slot / uneven spacing).
+                                            if tabs[tabIndex] == nil || tabs[tabIndex]?.isHidden == true {
+                                                continue
                                             }
-                                        }
-                                    } else {
-                                        NavigationRail(modifier: options.modifier, containerColor: options.containerColor, contentColor: options.contentColor) {
-                                            // Center the item group vertically (Material navigation rail guidance for tablets).
-                                            Spacer(modifier: Modifier.weight(Float(1.0)))
-                                            for tabIndex in 0..<tabRenderables.size {
-                                                // A tab from a `false` conditional branch (e.g. `if x { Tab(...) }`)
-                                                // maps to a nil entry above; skip it so it does not render a blank,
-                                                // equal-width navigation item (phantom slot / uneven spacing).
-                                                if tabs[tabIndex] == nil || tabs[tabIndex]?.isHidden == true {
-                                                    continue
-                                                }
-                                                let route = String(describing: tabIndex)
-                                                let label: (@Composable () -> Void)?
-                                                if let itemLabel = options.itemLabel {
-                                                    label = { itemLabel(tabIndex) }
-                                                } else {
-                                                    label = nil
-                                                }
-                                                NavigationRailItem(selected: route == currentRoute,
-                                                    onClick: { options.onItemClick(tabIndex) },
-                                                    icon: { options.itemIcon(tabIndex) },
-                                                    modifier: options.itemModifier(tabIndex),
-                                                    enabled: options.itemEnabled(tabIndex) && tabs[tabIndex]?.isDisabled != true,
-                                                    label: label,
-                                                    alwaysShowLabel: options.alwaysShowItemLabels,
-                                                    colors: railItemColors,
-                                                    interactionSource: options.itemInteractionSource
-                                                )
+                                            let route = String(describing: tabIndex)
+                                            let label: (@Composable () -> Void)?
+                                            if let itemLabel = options.itemLabel {
+                                                label = { itemLabel(tabIndex) }
+                                            } else {
+                                                label = nil
                                             }
-                                            Spacer(modifier: Modifier.weight(Float(1.0)))
+                                            NavigationRailItem(selected: route == currentRoute,
+                                                onClick: { options.onItemClick(tabIndex) },
+                                                icon: { options.itemIcon(tabIndex) },
+                                                modifier: options.itemModifier(tabIndex),
+                                                enabled: options.itemEnabled(tabIndex) && tabs[tabIndex]?.isDisabled != true,
+                                                label: label,
+                                                alwaysShowLabel: options.alwaysShowItemLabels,
+                                                colors: railItemColors,
+                                                interactionSource: options.itemInteractionSource
+                                            )
                                         }
+                                        Spacer(modifier: Modifier.weight(Float(1.0)))
                                     }
                                 }
                             }
-                        },
-                        navigationSuiteType: layoutType,
-                        state: navigationSuiteScaffoldState,
-                        primaryActionContent: {},
-                        content: {
-                            let entryContext = context.content()
-                            let activeStack = tabBackStacks[selectedTabIndex.value]
-                            let tabEntryProvider: (NavKey) -> NavEntry<NavKey> = { key in
-                                let tabKey = key as! SkipTabViewRouteKey
-                                return NavEntry(tabKey, content: { key in
-                                    let tabIndex = (key as! SkipTabViewRouteKey).index
-                                    // Inset manually where our container ignored the safe area, but we aren't showing a bar
-                                    let topPadding = ignoresSafeAreaEdges.contains(.top) ? windowSafeDrawingInsets().asPaddingValues().calculateTopPadding() : 0.dp
-                                    var bottomPadding = 0.dp
-                                    if bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) {
-                                        bottomPadding = max(0.dp, windowSafeDrawingInsets().asPaddingValues().calculateBottomPadding() - windowKeyboardInsets().asPaddingValues().calculateBottomPadding())
-                                    }
-                                    let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: bottomPadding)
-                                    let tabViewSafeArea = tabViewSafeAreaState.value
-                                    var contentSafeArea = tabViewSafeArea?.insetting(Edge.bottom, to: bottomBarTopPx.value)
-                                    if tabNavLeadingEndPx.value > Float(0.0) {
-                                        contentSafeArea = contentSafeArea?.insetting(Edge.leading, to: tabNavLeadingEndPx.value)
-                                    }
+                        }
+                    }
+                    let tabContent: @Composable () -> Void = {
+                        let entryContext = context.content()
+                        let activeStack = tabBackStacks[selectedTabIndex.value]
+                        let tabEntryProvider: (NavKey) -> NavEntry<NavKey> = { key in
+                            let tabKey = key as! SkipTabViewRouteKey
+                            return NavEntry(tabKey, content: { key in
+                                let tabIndex = (key as! SkipTabViewRouteKey).index
+                                // Inset manually where our container ignored the safe area, and by the space a shown bar covers
+                                let topPadding = ignoresSafeAreaEdges.contains(.top) ? windowSafeDrawingInsets().asPaddingValues().calculateTopPadding() : 0.dp
+                                let systemBottomPx = ignoresSafeAreaEdges.contains(.bottom) ? Float(max(0, windowSafeDrawingInsets().getBottom(density) - windowKeyboardInsets().getBottom(density))) : Float(0.0)
+                                let tabViewSafeArea = tabViewSafeAreaState.value
+                                var bottomPaddingPx = systemBottomPx
+                                var contentSafeArea = tabViewSafeArea
+                                if layoutTypeState.value == NavigationSuiteType.NavigationBar {
+                                    bottomPaddingPx = reservesTabBarSpaceState.value ? max(systemBottomPx, bottomBarHeightPx.value) : systemBottomPx
+                                    contentSafeArea = tabViewSafeArea?.insetting(Edge.bottom, to: containerBottomPx.value - bottomPaddingPx, isBar: true)
+                                }
+                                let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: with(density) { bottomPaddingPx.toDp() })
+                                if tabNavLeadingEndPx.value > Float(0.0) {
+                                    contentSafeArea = contentSafeArea?.insetting(Edge.leading, to: tabNavLeadingEndPx.value)
+                                }
 
-                                    // Special-case the first composition to avoid seeing the layout adjust. This is a common
-                                    // issue with nav stacks in particular, and they're common enough that we need to cater to them.
-                                    // Use an extra container to avoid causing the content itself to recompose
-                                    let hasComposed = remember { mutableStateOf(false) }
-                                    SideEffect { hasComposed.value = true }
-                                    let alpha = hasComposed.value ? Float(1.0) : Float(0.0)
-                                    Box(modifier: Modifier.alpha(alpha), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                        // This block is called multiple times on tab switch. Use stable arguments that will prevent our entry from
-                                        // recomposing when called with the same values
-                                        let arguments = TabEntryArguments(tabIndex: tabIndex, modifier: contentModifier, safeArea: contentSafeArea)
-                                        PreferenceValues.shared.collectPreferences([tabBarPreferencesCollector]) {
+                                // Special-case the first composition to avoid seeing the layout adjust. This is a common
+                                // issue with nav stacks in particular, and they're common enough that we need to cater to them.
+                                // Use an extra container to avoid causing the content itself to recompose
+                                let hasComposed = remember { mutableStateOf(false) }
+                                SideEffect { hasComposed.value = true }
+                                let alpha = hasComposed.value ? Float(1.0) : Float(0.0)
+                                Box(modifier: Modifier.alpha(alpha), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                    // This block is called multiple times on tab switch. Use stable arguments that will prevent our entry from
+                                    // recomposing when called with the same values
+                                    let arguments = TabEntryArguments(tabIndex: tabIndex, modifier: contentModifier, safeArea: contentSafeArea)
+                                    PreferenceValues.shared.collectPreferences([tabBarPreferencesCollector]) {
+                                        EnvironmentValues.shared.setValues {
+                                            $0.set_tabBarVisibility(tabBarVisibility)
+                                            return ComposeResult.ok
+                                        } in: {
                                             RenderEntry(with: arguments, context: entryContext)
                                         }
                                     }
-                                })
-                            }
-                            // Keep a stable SaveableStateHolder for each tab's backStack
-                            let decoratedEntrySlots = remember { arrayOfNulls<kotlin.collections.List<NavEntry<NavKey>>?>(100) }
-                            var tabIndex = 0
-                            while tabIndex < 100 {
-                                let ti = tabIndex
-                                key(ti) {
-                                    let tabDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator<NavKey>())
-                                    decoratedEntrySlots[ti] = rememberDecoratedNavEntries(
-                                        backStack: tabBackStacks[ti],
-                                        entryDecorators: tabDecorators,
-                                        entryProvider: tabEntryProvider
-                                    )
                                 }
-                                tabIndex += 1
-                            }
-                            let activeEntries = decoratedEntrySlots[selectedTabIndex.value]!
-                            let defaults = NavDisplayTransitionOptions.tabViewDefaults
-                            let transitions = EnvironmentValues.shared._tabViewTransitions?(defaults) ?? defaults
-                            NavDisplay(
-                                entries: activeEntries,
-                                modifier: Modifier.fillMaxSize(),
-                                onBack: {
-                                    if activeStack.size > 1 {
-                                        activeStack.removeLastOrNull()
-                                    }
-                                },
-                                transitionSpec: {
-                                    transitions.transitionSpec ?? defaultTransitionSpec<NavKey>()()
-                                },
-                                popTransitionSpec: {
-                                    transitions.popTransitionSpec ?? defaultPopTransitionSpec<NavKey>()()
-                                },
-                                predictivePopTransitionSpec: { edge in
-                                    transitions.predictivePopTransitionSpec ?? defaultPredictivePopTransitionSpec<NavKey>()(edge)
-                                }
-                            )
+                            })
                         }
-                    )
+                        // Keep a stable SaveableStateHolder for each tab's backStack
+                        let decoratedEntrySlots = remember { arrayOfNulls<kotlin.collections.List<NavEntry<NavKey>>?>(100) }
+                        var tabIndex = 0
+                        while tabIndex < 100 {
+                            let ti = tabIndex
+                            key(ti) {
+                                let tabDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator<NavKey>())
+                                decoratedEntrySlots[ti] = rememberDecoratedNavEntries(
+                                    backStack: tabBackStacks[ti],
+                                    entryDecorators: tabDecorators,
+                                    entryProvider: tabEntryProvider
+                                )
+                            }
+                            tabIndex += 1
+                        }
+                        let activeEntries = decoratedEntrySlots[selectedTabIndex.value]!
+                        let defaults = NavDisplayTransitionOptions.tabViewDefaults
+                        let transitions = EnvironmentValues.shared._tabViewTransitions?(defaults) ?? defaults
+                        NavDisplay(
+                            entries: activeEntries,
+                            modifier: Modifier.fillMaxSize(),
+                            onBack: {
+                                if activeStack.size > 1 {
+                                    activeStack.removeLastOrNull()
+                                }
+                            },
+                            transitionSpec: {
+                                transitions.transitionSpec ?? defaultTransitionSpec<NavKey>()()
+                            },
+                            popTransitionSpec: {
+                                transitions.popTransitionSpec ?? defaultPopTransitionSpec<NavKey>()()
+                            },
+                            predictivePopTransitionSpec: { edge in
+                                transitions.predictivePopTransitionSpec ?? defaultPredictivePopTransitionSpec<NavKey>()(edge)
+                            }
+                        )
+                    }
+                    if layoutType == NavigationSuiteType.NavigationBar {
+                        tabContent()
+                        let systemBottomPx = ignoresSafeAreaEdges.contains(.bottom) ? windowSafeDrawingInsets().getBottom(density) - windowKeyboardInsets().getBottom(density) : 0
+                        // The bar slides behind the system navigation bar, keeping that inset at the bottom of the window
+                        tabBarVisibility.heightPx = max(Float(0.0), bottomBarHeightPx.value - Float(systemBottomPx))
+                        tabBarVisibility.travelPx = tabBarVisibility.heightPx
+                        // Read the requested visibility in the bar's own scope
+                        let floatingTabBar: @Composable () -> Void = {
+                            let isPresented = isTabBarVisible && tabBarVisibility.visibility.value != Visibility.hidden
+                            let animation = tabBarVisibility.animation ?? tabBarAnimation
+                            tabBarVisibility.fraction = animatedBarFraction(isVisible: isPresented, animation: animation, label: "TabBar")
+                            let animationSpec = (animation ?? Animation.linear(duration: 0)).asAnimationSpec()
+                            // NavigationBar includes the system navigation inset in its measured height. Keep that inset
+                            // at the bottom of the window and slide only the app bar portion, or the bar leaves a gap
+                            // above the system safe area as it moves.
+                            let bottomInsetPx = max(0, systemBottomPx.toDouble().roundToInt())
+                            let offset: (androidx.compose.ui.unit.IntSize) -> IntOffset = { size in
+                                IntOffset(x: 0, y: max(0, size.height - bottomInsetPx))
+                            }
+                            let enter: EnterTransition
+                            let exit: ExitTransition
+                            if animationSpec is FiniteAnimationSpec {
+                                let spec = animationSpec as! FiniteAnimationSpec<IntOffset>
+                                enter = slideIn(animationSpec: spec, initialOffset: offset)
+                                exit = slideOut(animationSpec: spec, targetOffset: offset)
+                            } else {
+                                enter = slideIn(initialOffset: offset)
+                                exit = slideOut(targetOffset: offset)
+                            }
+                            // Showing and hiding with toolbarVisibility only slides the bar, in step with views attached
+                            // above it. The transitions slide it in and out as tabs come and go
+                            AnimatedVisibility(visible: isTabBarVisible, modifier: Modifier.fillMaxWidth().then(slidingAway(tabBarVisibility, edge: VerticalEdge.bottom)), enter: enter, exit: exit, label: "TabBar") {
+                                navigationSuite()
+                            }
+                        }
+                        Box(modifier: Modifier.align(androidx.compose.ui.Alignment.BottomCenter).fillMaxWidth()) {
+                            floatingTabBar()
+                        }
+                        // While the bar is hidden, keep content scrolled beneath it out of the system navigation bar. Drawn over
+                        // the bar, which slides behind it
+                        if isTabBarVisible && systemBottomPx > 0 {
+                            let scrimColor = reducedTabBarPreferences.isSystemBackground == true ? Color.systemBarBackground.colorImpl() : Color.background.colorImpl()
+                            HiddenBarScrim(bar: tabBarVisibility, height: with(density) { systemBottomPx.toDp() }, color: scrimColor, modifier: Modifier.align(androidx.compose.ui.Alignment.BottomCenter))
+                        }
+                    } else {
+                        NavigationSuiteScaffoldLayout(
+                            navigationSuite: {
+                                guard isTabBarVisible else {
+                                    SideEffect { tabNavLeadingEndPx.value = Float(0.0) }
+                                    return
+                                }
+                                navigationSuite()
+                            },
+                            navigationSuiteType: layoutType,
+                            state: navigationSuiteScaffoldState,
+                            primaryActionContent: {},
+                            content: tabContent
+                        )
+                    }
                 }
             }
         }
