@@ -67,7 +67,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.layout.AlignmentLine
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -405,7 +408,7 @@ public final class List : View, Renderable {
                         Self.RenderItemAnimation(
                             cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
-                            isDragging: reorderableState.draggingItemKey == keyValue,
+                            isDragging: keyValue != nil && reorderableState.draggingItemKey == keyValue,
                             isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
                             isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
@@ -747,7 +750,7 @@ public final class List : View, Renderable {
         let contentContext = context.content()
         let contentModifier = Self.contentModifier(level: level)
         let renderContainer: @Composable (ComposeContext) -> Void = { context in
-            Column(modifier: context.modifier) {
+            Layout(modifier: context.modifier, content: {
                 let placement = EnvironmentValues.shared._placement
                 EnvironmentValues.shared.setValues {
                     $0.set_placement(placement.union(ViewPlacement.listItem))
@@ -756,7 +759,26 @@ public final class List : View, Renderable {
                     Self.RenderItemContent(item: itemRenderable, context: contentContext, modifier: contentModifier)
                 }
                 if listItemModifier?.separator != Visibility.hidden {
-                    Self.RenderSeparator(level: level)
+                    androidx.compose.material3.Divider(color: Color.separator.colorImpl())
+                }
+            }) { measurables, constraints in
+                let hasSeparator = listItemModifier?.separator != Visibility.hidden
+                let separatorHeight = hasSeparator ? 1.dp.roundToPx() : 0
+                let maxHeight = constraints.hasBoundedHeight ? max(0, constraints.maxHeight - separatorHeight) : Constraints.Infinity
+                let row = measurables[0].measure(constraints.copy(minHeight: 0, maxHeight: maxHeight))
+                let isRtl = layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl
+                let inset = (Self.horizontalItemInset + level * Self.levelInset).dp.roundToPx()
+                let leadingGuide = row[ListRowSeparatorAlignment.line(guide: .listRowSeparatorLeading, isRtl: isRtl)]
+                let trailingGuide = row[ListRowSeparatorAlignment.line(guide: .listRowSeparatorTrailing, isRtl: isRtl)]
+                let leading = leadingGuide == AlignmentLine.Unspecified ? (isRtl ? row.width - inset : inset) : leadingGuide
+                let trailingInset = styling.style == .plain ? 0 : Self.horizontalItemInset.dp.roundToPx()
+                let trailing = trailingGuide == AlignmentLine.Unspecified ? (isRtl ? trailingInset : row.width - trailingInset) : trailingGuide
+                let left = max(0, min(row.width, isRtl ? trailing : leading))
+                let right = max(left, min(row.width, isRtl ? leading : trailing))
+                let separator = hasSeparator ? measurables[1].measure(Constraints.fixedWidth(right - left)) : nil
+                return layout(width: row.width, height: max(constraints.minHeight, row.height + (separator?.height ?? 0))) {
+                    row.placeRelative(0, 0)
+                    separator?.place(left, row.height)
                 }
             }
         }

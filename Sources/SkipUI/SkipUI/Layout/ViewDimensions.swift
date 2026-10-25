@@ -1,5 +1,96 @@
 // Copyright 2023–2026 Skip
 // SPDX-License-Identifier: MPL-2.0
+#if !SKIP_BRIDGE
+import Foundation
+#if SKIP
+import androidx.compose.ui.layout.AlignmentLine
+import androidx.compose.ui.layout.VerticalAlignmentLine
+import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.LayoutDirection
+import kotlin.collections.mapOf
+import kotlin.Pair
+import kotlin.math.roundToInt
+#endif
+
+/// A view's measured size and horizontal alignment guides, in points.
+public struct ViewDimensions: Equatable {
+    public let width: CGFloat
+    public let height: CGFloat
+    let separatorLeading: CGFloat?
+    let separatorTrailing: CGFloat?
+
+    init(width: CGFloat, height: CGFloat, separatorLeading: CGFloat? = nil, separatorTrailing: CGFloat? = nil) {
+        self.width = width
+        self.height = height
+        self.separatorLeading = separatorLeading
+        self.separatorTrailing = separatorTrailing
+    }
+
+    public subscript(guide: HorizontalAlignment) -> CGFloat {
+        switch guide {
+        case HorizontalAlignment.leading: return 0.0
+        case HorizontalAlignment.center: return width / 2.0
+        case HorizontalAlignment.trailing: return width
+        case HorizontalAlignment.listRowSeparatorLeading: return separatorLeading ?? 0.0
+        case HorizontalAlignment.listRowSeparatorTrailing: return separatorTrailing ?? width
+        default: return 0.0
+        }
+    }
+}
+
+extension View {
+    /// Sets a list row's leading or trailing separator guide.
+    public func alignmentGuide(_ g: HorizontalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> some View {
+        #if SKIP
+        precondition(g == HorizontalAlignment.listRowSeparatorLeading || g == HorizontalAlignment.listRowSeparatorTrailing, "Only list row separator alignment guides are supported")
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
+            let modifier = context.modifier.layout { measurable, constraints in
+                let placeable = measurable.measure(constraints)
+                let isRtl = layoutDirection == LayoutDirection.Rtl
+                let dimensions = ViewDimensions(width: Double(placeable.width) / Double(density), height: Double(placeable.height) / Double(density), separatorLeading: ListRowSeparatorAlignment.value(placeable: placeable, guide: HorizontalAlignment.listRowSeparatorLeading, isRtl: isRtl, density: Double(density)), separatorTrailing: ListRowSeparatorAlignment.value(placeable: placeable, guide: HorizontalAlignment.listRowSeparatorTrailing, isRtl: isRtl, density: Double(density)))
+                let offset = (computeValue(dimensions) * Double(density)).roundToInt()
+                let position = isRtl ? placeable.width - offset : offset
+                let line = ListRowSeparatorAlignment.line(guide: g, isRtl: isRtl)
+                return layout(width: placeable.width, height: placeable.height, alignmentLines: mapOf(Pair(line, position))) {
+                    placeable.placeRelative(0, 0)
+                }
+            }
+            renderable.Render(context: context.content(modifier: modifier))
+        })
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func alignmentGuide(bridgedGuide: String, computeValue: @escaping (CGFloat, CGFloat, CGFloat?, CGFloat?) -> CGFloat) -> any View {
+        return alignmentGuide(HorizontalAlignment(key: bridgedGuide)) { dimensions in
+            computeValue(dimensions.width, dimensions.height, dimensions.separatorLeading, dimensions.separatorTrailing)
+        }
+    }
+}
+
+#if SKIP
+/// Compose propagates these lines from nested row content without changing its layout.
+final class ListRowSeparatorAlignment {
+    private static let leading: VerticalAlignmentLine = VerticalAlignmentLine { old, new in min(old, new) }
+    private static let trailing: VerticalAlignmentLine = VerticalAlignmentLine { old, new in max(old, new) }
+    private static let leadingRtl: VerticalAlignmentLine = VerticalAlignmentLine { old, new in max(old, new) }
+    private static let trailingRtl: VerticalAlignmentLine = VerticalAlignmentLine { old, new in min(old, new) }
+
+    static func line(guide: HorizontalAlignment, isRtl: Bool) -> VerticalAlignmentLine {
+        return guide == HorizontalAlignment.listRowSeparatorLeading ? (isRtl ? leadingRtl : leading) : (isRtl ? trailingRtl : trailing)
+    }
+
+    static func value(placeable: Placeable, guide: HorizontalAlignment, isRtl: Bool, density: Double) -> CGFloat? {
+        let position = placeable[line(guide: guide, isRtl: isRtl)]
+        return position == AlignmentLine.Unspecified ? nil : Double(isRtl ? placeable.width - position : position) / density
+    }
+}
+#endif
+#endif
+
 /*
 import struct CoreGraphics.CGFloat
 
