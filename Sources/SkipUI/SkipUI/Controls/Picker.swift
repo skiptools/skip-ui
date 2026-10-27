@@ -409,7 +409,7 @@ struct PickerSelectionView<SelectionValue> : View {
                     .opacity(labelValue == selectionValue ? 1.0 : 0.0)
             }
         }
-        .buttonStyle(ButtonStyle.plain)
+        .buttonStyle(PlainButtonStyle())
         .asRenderable()
     }
 }
