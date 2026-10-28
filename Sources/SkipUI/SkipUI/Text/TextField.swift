@@ -183,7 +183,9 @@ public struct TextField : View, Renderable {
                 return OutlinedTextFieldDefaults.colors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, focusedBorderColor: clearColor, unfocusedBorderColor: clearColor, disabledBorderColor: clearColor, errorBorderColor: clearColor)
             }
         } else {
-            let borderColor = (outline ?? Color.primary.opacity(0.3)).colorImpl()
+            // 0.5, not 0.3 (Downbeat, 2026-10-28): at 0.3 a field's outline on a dark page
+            // measured 2:1 and the field all but vanished; 3:1 is the floor for a control.
+            let borderColor = (outline ?? Color.primary.opacity(0.5)).colorImpl()
             if let tint = EnvironmentValues.shared._tint {
                 let tintColor = tint.colorImpl()
                 return OutlinedTextFieldDefaults.colors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, cursorColor: tintColor, focusedBorderColor: tintColor, unfocusedBorderColor: borderColor, disabledBorderColor: Color.separator.colorImpl())
@@ -200,7 +202,9 @@ public struct TextField : View, Renderable {
         
         EnvironmentValues.shared.setValues {
             $0.set_material3Text { options in options.copy(modifier: options.modifier.fillMaxWidth()) }
-            $0.set_foregroundStyle(Color(colorImpl: { Color.primary.colorImpl().copy(alpha: ContentAlpha.disabled) }))
+            // Medium, not disabled (Downbeat, 2026-10-28): a placeholder is guidance to read,
+            // and at the disabled alpha it measured 2.9:1 on a dark field.
+            $0.set_foregroundStyle(Color(colorImpl: { Color.primary.colorImpl().copy(alpha: ContentAlpha.medium) }))
             return ComposeResult.ok
         } in: {
             prompt.Compose(context: context)
