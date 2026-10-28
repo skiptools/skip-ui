@@ -256,6 +256,67 @@ final class SkipUITests: SkipUITestCase {
         }
     }
 
+    func testCustomButtonStyles() throws {
+        try testUI(view: {
+            CustomButtonStyleTestView().accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            try check(rule, id: "label", hasText: "Counter: 0")
+            #if SKIP
+            // ButtonStyle: makeBody renders around the label and the tap fires the action
+            // The body's text is merged into the clickable button node, and the disabled button uses the same style
+            rule.onAllNodesWithTag("styled.body", useUnmergedTree: true)[0].assertIsDisplayed()
+            rule.onNodeWithTag("styled").performClick()
+            try check(rule, id: "label", hasText: "Counter: 1")
+
+            // PrimitiveButtonStyle whose Button(configuration) hands off to the outer .bordered style without recursing
+            rule.onNodeWithTag("primitive").performClick()
+            try check(rule, id: "label", hasText: "Counter: 11")
+
+            // Disabled custom-styled button doesn't fire
+            rule.onNodeWithTag("disabled").performClick()
+            try check(rule, id: "label", hasText: "Counter: 11")
+            #endif
+        })
+    }
+    struct CustomButtonStyleTestView: View {
+        @State var counter = 0
+        var body: some View {
+            VStack {
+                Text("Counter: \(counter)")
+                    .accessibilityIdentifier("label")
+                Button("Styled") { counter += 1 }
+                    .buttonStyle(TestButtonStyle())
+                    .accessibilityIdentifier("styled")
+                VStack {
+                    Button("Primitive") { counter += 10 }
+                        .buttonStyle(TestPrimitiveButtonStyle())
+                        .accessibilityIdentifier("primitive")
+                }
+                .buttonStyle(.bordered)
+                Button("Disabled") { counter += 100 }
+                    .buttonStyle(TestButtonStyle())
+                    .disabled(true)
+                    .accessibilityIdentifier("disabled")
+            }
+        }
+    }
+    struct TestButtonStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack {
+                configuration.label
+                Text(configuration.isPressed ? "pressed" : "idle")
+                    .accessibilityIdentifier("styled.body")
+            }
+            .padding()
+        }
+    }
+    struct TestPrimitiveButtonStyle: PrimitiveButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            Button(configuration)
+                .padding()
+        }
+    }
+
     func testSlider() throws {
         if isAndroid {
             throw XCTSkip("Test not working on Android emulator")
