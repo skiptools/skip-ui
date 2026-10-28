@@ -15,16 +15,11 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
@@ -104,19 +99,7 @@ public struct LazyVGrid: View, Renderable {
                 PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
 
                 // Observe scroll position changes and contribute them via preferences
-                let scrollPositionState = remember { mutableStateOf<ScrollPositionState?>(nil) }
-                let currentItemCollector = rememberUpdatedState(itemCollector.value)
-                LaunchedEffect(gridState) {
-                    snapshotFlow { gridState.firstVisibleItemIndex }
-                    .distinctUntilChanged()
-                    .collect { index in
-                        let id = currentItemCollector.value.id(for: index)
-                        scrollPositionState.value = ScrollPositionState(id: id)
-                    }
-                }
-                if let scrollPosition = scrollPositionState.value {
-                    PreferenceValues.shared.contribute(context: context, key: ScrollPositionPreferenceKey.self, value: scrollPosition)
-                }
+                ContributeScrollPosition(context: context, scrollState: gridState, itemCollector: itemCollector.value) { gridState.firstVisibleItemIndex }
 
                 EnvironmentValues.shared.setValues {
                     $0.set_scrollTargetBehavior(nil)
