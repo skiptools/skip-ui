@@ -70,6 +70,25 @@ public struct Text: View, Renderable, Equatable {
         modifiedView = textView
     }
 
+    /// Render attributed segments produced by native Swift without reparsing their text.
+    // SKIP @bridge
+    public init(attributedRuns: [AttributedTextRun]) {
+        let runs = attributedRuns.map { run in
+            var style = TextRunStyle()
+            style.font = run.font
+            style.foreground = run.color
+            style.fontWeight = run.bold ? .bold : nil
+            style.italic = run.italic
+            style.monospaced = run.code
+            style.underline = run.underline
+            style.strikethrough = run.strikethrough
+            style.baselineOffset = run.baselineOffset
+            return TextRun(content: _Text(verbatim: run.text), style: style, link: run.link)
+        }
+        textView = _Text(verbatim: attributedRuns.map { $0.text }.joined(), runs: runs)
+        modifiedView = textView
+    }
+
     public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = Bundle.main, comment: StaticString? = nil) {
         textView = _Text(key: key, tableName: tableName, bundle: bundle)
         modifiedView = textView
@@ -507,14 +526,15 @@ struct _Text: View, Renderable, Equatable {
             // into one AnnotatedString and fall through to the SAME shared `material3.Text` render the
             // Markdown path uses — so a bare concatenation lays out exactly like any other text.
             var runStrings: [String] = []
-            var runBaseSpans: [SpanStyle?] = []
-            var runColors: [androidx.compose.ui.graphics.Color?] = []
-            var runBrushes: [Brush?] = []
+            var runSpans: [SpanStyle] = []
+            let isPlaceholder = redaction.contains(RedactionReasons.placeholder)
+            let linkColor = EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl()
             for run in runs {
-                runStrings.append(run.content.localizedTextString())
+                let string = run.content.localizedTextString()
+                runStrings.append(styleInfo.isUppercased ? string.uppercased() : (styleInfo.isLowercased ? string.lowercased() : string))
                 // A `.font(...)` contributes the run's size/family; resolve it to a base span the
                 // builder can extend with the weight/italic/decoration overrides.
-                runBaseSpans.append(run.style.font?.asComposeTextStyle().toSpanStyle())
+                let baseSpan = run.style.font?.asComposeTextStyle().toSpanStyle()
                 var resolvedColor: androidx.compose.ui.graphics.Color? = nil
                 var resolvedBrush: Brush? = nil
                 if let shapeStyle = run.style.foreground {
@@ -524,23 +544,49 @@ struct _Text: View, Renderable, Equatable {
                         resolvedBrush = shapeStyle.asBrush(opacity: 1.0, animationContext: context)
                     }
                 }
-                runColors.append(resolvedColor)
-                runBrushes.append(resolvedBrush)
+                if resolvedColor == nil && resolvedBrush == nil && run.link != nil {
+                    resolvedColor = linkColor
+                }
+                if isPlaceholder, let color = resolvedColor {
+                    resolvedColor = color.copy(alpha: color.alpha * Float(Color.placeholderOpacity))
+                }
+                var span = runSpanStyle(style: run.style, baseSpan: baseSpan, color: resolvedColor, brush: resolvedBrush, isRedacted: isPlaceholder)
+                if run.style.baselineOffset != 0.0 {
+                    span = AttributedTextBaseline.apply(span: span, offset: run.style.baselineOffset, baseStyle: animatable.value)
+                }
+                runSpans.append(span)
             }
             let annotatedText = buildAnnotatedString {
-                appendRuns(to: self, runs: runs, strings: runStrings, baseSpans: runBaseSpans, resolvedColors: runColors, resolvedBrushes: runBrushes)
+                appendRuns(to: self, runs: runs, strings: runStrings, spans: runSpans)
             }
             options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { _ in })
         } else {
         let (locfmt, locnode, interpolations) = localizedTextInfo()
         if let locnode {
-            let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
             let isPlaceholder = redaction.contains(RedactionReasons.placeholder)
             var linkColor = EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl()
             if isPlaceholder {
                 linkColor = linkColor.copy(alpha: linkColor.alpha * Float(Color.placeholderOpacity))
             }
             let annotatedText = annotatedString(markdown: locnode, interpolations: interpolations, linkColor: linkColor, isUppercased: styleInfo.isUppercased, isLowercased: styleInfo.isLowercased, isRedacted: isPlaceholder)
+            options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { _ in })
+        } else {
+            var text: String
+            if let interpolations {
+                text = locfmt.format(*interpolations.toTypedArray())
+            } else {
+                text = locfmt
+            }
+            if styleInfo.isUppercased {
+                text = text.uppercased()
+            } else if styleInfo.isLowercased {
+                text = text.lowercased()
+            }
+            options = Material3TextOptions(text: text, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
+        }
+        }
+        if let annotatedText = options.annotatedText {
+            let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
             let links = annotatedText.getUrlAnnotations(start: 0, end: annotatedText.length)
             if !links.isEmpty() {
                 let currentText = rememberUpdatedState(annotatedText)
@@ -579,21 +625,7 @@ struct _Text: View, Renderable, Equatable {
                     }
                 }
             }
-            options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
-        } else {
-            var text: String
-            if let interpolations {
-                text = locfmt.format(*interpolations.toTypedArray())
-            } else {
-                text = locfmt
-            }
-            if styleInfo.isUppercased {
-                text = text.uppercased()
-            } else if styleInfo.isLowercased {
-                text = text.lowercased()
-            }
-            options = Material3TextOptions(text: text, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
-        }
+            options = options.copy(modifier: modifier, onTextLayout: { layoutResult.value = $0 })
         }
         if let tracking = textEnvironment.tracking {
             options = options.copy(letterSpacing: tracking.sp)
@@ -717,43 +749,49 @@ struct _Text: View, Renderable, Equatable {
         }
     }
 
-    /// Append the styled runs to `builder`. Non-composable: strings, font base spans, and colors are
-    /// pre-resolved in `Render`'s runs branch. Each run starts from its `.font(...)` base span and
-    /// the remaining modifiers (weight, italic, monospaced, decorations, foreground) override on top.
-    private func appendRuns(to builder: AnnotatedString.Builder, runs: [TextRun], strings: [String], baseSpans: [SpanStyle?], resolvedColors: [androidx.compose.ui.graphics.Color?], resolvedBrushes: [Brush?]) {
+    /// Resolve the inline styles before constructing the annotated string.
+    private func runSpanStyle(style: TextRunStyle, baseSpan: SpanStyle?, color: androidx.compose.ui.graphics.Color?, brush: Brush?, isRedacted: Bool) -> SpanStyle {
+        var decoration: TextDecoration? = nil
+        if style.underline, style.strikethrough {
+            decoration = TextDecoration.Underline + TextDecoration.LineThrough
+        } else if style.underline {
+            decoration = TextDecoration.Underline
+        } else if style.strikethrough {
+            decoration = TextDecoration.LineThrough
+        }
+        var span = baseSpan ?? SpanStyle()
+        if let weight = style.fontWeight {
+            span = span.copy(fontWeight: FontWeight((weight.value + 4) * 100))
+        }
+        if style.monospaced {
+            span = span.copy(fontFamily: FontFamily.Monospace)
+        }
+        if style.italic {
+            span = span.copy(fontStyle: FontStyle.Italic)
+        }
+        if let decoration {
+            span = span.copy(textDecoration: decoration)
+        }
+        if let brush {
+            span = span.copy(brush: brush)
+        } else if let color {
+            span = isRedacted ? span.copy(background: color) : span.copy(color: color)
+        }
+        return span
+    }
+
+    /// Append resolved spans and links without parsing the literal segment text.
+    // SKIP INSERT: @OptIn(ExperimentalTextApi::class)
+    private func appendRuns(to builder: AnnotatedString.Builder, runs: [TextRun], strings: [String], spans: [SpanStyle]) {
         for i in 0..<strings.count {
-            let style = runs[i].style
-            var decoration: TextDecoration? = nil
-            if style.underline, style.strikethrough {
-                decoration = TextDecoration.Underline + TextDecoration.LineThrough
-            } else if style.underline {
-                decoration = TextDecoration.Underline
-            } else if style.strikethrough {
-                decoration = TextDecoration.LineThrough
+            builder.pushStyle(spans[i])
+            if let link = runs[i].link {
+                builder.pushUrlAnnotation(UrlAnnotation(link))
             }
-            var span = baseSpans[i] ?? SpanStyle()
-            // `.fontWeight(_:)` / `.bold()` override the base font's weight; map the SwiftUI weight
-            // index (-3...5) to a Compose font weight (100...900).
-            if let weight = style.fontWeight {
-                span = span.copy(fontWeight: FontWeight((weight.value + 4) * 100))
-            }
-            if style.monospaced {
-                span = span.copy(fontFamily: FontFamily.Monospace)
-            }
-            if style.italic {
-                span = span.copy(fontStyle: FontStyle.Italic)
-            }
-            if let decoration {
-                span = span.copy(textDecoration: decoration)
-            }
-            if let brush = resolvedBrushes[i] {
-                // Gradient (or other non-color ShapeStyle) foreground.
-                span = span.copy(brush: brush)
-            } else if let color = resolvedColors[i] {
-                span = span.copy(color: color)
-            }
-            builder.pushStyle(span)
             builder.append(strings[i])
+            if runs[i].link != nil {
+                builder.pop()
+            }
             builder.pop()
         }
     }
@@ -770,6 +808,7 @@ struct _Text: View, Renderable, Equatable {
 struct TextRun: Equatable {
     let content: _Text
     var style: TextRunStyle
+    var link: String? = nil
 }
 
 /// Per-run styling captured from the `Text` styling modifiers, for `Text + Text` concatenation. Only
@@ -784,6 +823,7 @@ struct TextRunStyle: Equatable {
     var monospaced = false
     var underline = false
     var strikethrough = false
+    var baselineOffset = 0.0
 
     // Per-run style bitmask used by the bridge (`Text.init(bridgedRuns:…)`). Kept in sync with
     // SkipSwiftUI's Text run capture.
@@ -813,6 +853,7 @@ struct TextRunStyle: Equatable {
             && lhs.monospaced == rhs.monospaced
             && lhs.underline == rhs.underline
             && lhs.strikethrough == rhs.strikethrough
+            && lhs.baselineOffset == rhs.baselineOffset
     }
 }
 
