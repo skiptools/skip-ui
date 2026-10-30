@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCompositionContext
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertWidthIsEqualTo
@@ -323,6 +324,20 @@ class RenderingRegressionTests {
         assertTrue("Visible rows must not recompose when the first visible index changes: $recomposed", recomposed.isEmpty())
     }
 
+    /** Laying out row content before the row is placed crashes Compose ("LayoutNode N not found in RectList"). */
+    @Test fun listDoesNotLayOutRowContentBeforePlacingIt() {
+        var placementsForAlignment = 0
+        rule.setContent {
+            Box(Modifier.size(200.dp)) {
+                List(content = {
+                    ForEach(0 until 3) { _ -> ListRowPlacementProbe { placementsForAlignment++ } }
+                }).Compose()
+            }
+        }
+        rule.waitForIdle()
+        assertEquals("Row content must only be laid out when the row is placed", 0, placementsForAlignment)
+    }
+
     private fun assertNestedRowsRetainState(stack: (() -> View) -> View) {
         val reversed = mutableStateOf(false)
         val tokens = mutableMapOf<Pair<Int, Int>, Any>()
@@ -407,5 +422,18 @@ private class LazyRowCompositionProbe(
     @Composable override fun Render(context: ComposeContext) {
         SideEffect { compositions[index] = (compositions[index] ?: 0) + 1 }
         Box(Modifier.size(20.dp))
+    }
+}
+
+/** Counts placements done only to compute alignment lines, which Compose signals with null coordinates. */
+private class ListRowPlacementProbe(val onPlacementForAlignment: () -> Unit): View, Renderable {
+    @Composable override fun Render(context: ComposeContext) {
+        Layout(modifier = context.modifier, content = { Box(Modifier.size(20.dp)) }) { measurables, constraints ->
+            val placeable = measurables[0].measure(constraints)
+            layout(placeable.width, placeable.height) {
+                if (coordinates == null) onPlacementForAlignment()
+                placeable.place(0, 0)
+            }
+        }
     }
 }
