@@ -70,8 +70,9 @@ public struct LazyHGrid: View, Renderable {
             let coroutineScope = rememberCoroutineScope()
             let scrollToID = ScrollToIDAction(key: gridState) { id in
                 if let itemIndex = itemCollector.value.index(for: id) {
+                    let animated = Animation.scrollToIsAnimated
                     coroutineScope.launch {
-                        if Animation.isInWithAnimation {
+                        if animated {
                             gridState.animateScrollToItem(itemIndex)
                         } else {
                             gridState.scrollToItem(itemIndex)
