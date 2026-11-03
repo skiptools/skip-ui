@@ -104,6 +104,12 @@ class ContextMenuModifier: RenderModifier {
                 EnvironmentValues.shared.setValues {
                     placement.remove(ViewPlacement.toolbar)
                     $0.set_placement(placement)
+                    // The popup's rows are not the anchor's content: a row that fills the popup
+                    // must not turn the anchor's container into one that fills.
+                    $0.set_flexibleWidth(nil)
+                    $0.set_flexibleHeight(nil)
+                    $0.set_flexibleWidthModifier(nil)
+                    $0.set_flexibleHeightModifier(nil)
                     return ComposeResult.ok
                 } in: {
                     let renderables = nestedMenu.value?.content.Evaluate(context: contentContext, options: 0) ?? primaryMenuItems
