@@ -66,11 +66,15 @@ public struct Text: View, Renderable, Equatable {
     }
 
     public init(_ attributedContent: AttributedString) {
+        #if SKIP
+        self.init(attributedRuns: AttributedTextRun.runs(from: attributedContent))
+        #else
         textView = _Text(attributedString: attributedContent)
         modifiedView = textView
+        #endif
     }
 
-    /// Render attributed segments produced by native Swift without reparsing their text.
+    /// Render attributed segments without reparsing their text.
     // SKIP @bridge
     public init(attributedRuns: [AttributedTextRun]) {
         let runs = attributedRuns.map { run in
