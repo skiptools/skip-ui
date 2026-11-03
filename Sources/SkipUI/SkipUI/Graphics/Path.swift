@@ -7,7 +7,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Matrix
+import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.PathHitTester
 import androidx.compose.ui.graphics.PathOperation
+import androidx.compose.ui.graphics.PathSegment.Type.Move
+import androidx.compose.ui.graphics.PathSegment.Type.Line
+import androidx.compose.ui.graphics.PathSegment.Type.Quadratic
+import androidx.compose.ui.graphics.PathSegment.Type.Cubic
+import androidx.compose.ui.graphics.PathSegment.Type.Close
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -128,7 +135,44 @@ public struct Path : Shape, Equatable {
     }
 
     public func contains(_ p: CGPoint, eoFill: Bool = false) -> Bool {
+        #if SKIP
+        // Materialize closing edges, including implicit ones, so the hit tester sees
+        // every contour segment. Keep the stored path and its drawing fill type intact.
+        let hitPath = androidx.compose.ui.graphics.Path()
+        var contourStart: Offset? = nil
+        func closeContour() {
+            if let start = contourStart {
+                hitPath.lineTo(start.x, start.y)
+                hitPath.close()
+            }
+        }
+        let iterator = path.iterator()
+        while iterator.hasNext() {
+            let segment = iterator.next()
+            let points = segment.points
+            switch segment.type {
+            case Move:
+                closeContour()
+                contourStart = Offset(x: points[0], y: points[1])
+                hitPath.moveTo(points[0], points[1])
+            case Line:
+                hitPath.lineTo(points[2], points[3])
+            case Quadratic:
+                hitPath.quadraticBezierTo(points[2], points[3], points[4], points[5])
+            case Cubic:
+                hitPath.cubicTo(points[2], points[3], points[4], points[5], points[6], points[7])
+            case Close:
+                closeContour()
+            default:
+                break
+            }
+        }
+        closeContour()
+        hitPath.fillType = eoFill ? PathFillType.EvenOdd : PathFillType.NonZero
+        return PathHitTester(hitPath).contains(Offset(x: Float(p.x), y: Float(p.y)))
+        #else
         return boundingRect.contains(p)
+        #endif
     }
 
     // SKIP @bridge

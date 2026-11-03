@@ -20,9 +20,11 @@ settings:
                 - 'version("androidx-lifecycle-process", "2.10.0")'
                 - 'version("androidx-material3-adaptive", "1.2.0")'
                 - 'version("androidx-work", "2.11.1")'
+                - 'version("androidx-graphics-path", "1.1.0")'
 
                 # the version for these libraries is derived from the kotlin-bom declared is skip-model/Sources/SkipModel/Skip/skip.yml
                 - 'library("androidx-core-ktx", "androidx.core", "core-ktx").withoutVersion()'
+                - 'library("androidx-graphics-path", "androidx.graphics", "graphics-path").versionRef("androidx-graphics-path")'
                 - 'library("androidx-compose-ui", "androidx.compose.ui", "ui").withoutVersion()'
                 - 'library("androidx-compose-ui-tooling", "androidx.compose.ui", "ui-tooling").withoutVersion()'
                 - 'library("androidx-compose-animation", "androidx.compose.animation", "animation").withoutVersion()'
@@ -72,6 +74,8 @@ build:
       contents:
         - 'api(libs.androidx.core.ktx)'
         - 'api(libs.androidx.compose.ui)'
+        # Path iteration needs the host implementation for Robolectric.
+        - 'implementation(libs.androidx.graphics.path)'
         - 'api(libs.androidx.compose.ui.tooling)'
         - 'api(libs.androidx.compose.animation)'
         - 'api(libs.androidx.compose.material)'
