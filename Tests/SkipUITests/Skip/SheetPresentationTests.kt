@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -75,6 +76,12 @@ class SheetPresentationTests {
     }
 
     private fun install(fullScreen: Boolean = false) {
+        setSheetContent(fullScreen)
+        rule.waitForIdle()
+        assertTrue("The sheet header must be laid out", headerBounds.height > 0)
+    }
+
+    private fun setSheetContent(fullScreen: Boolean) {
         rule.setContent {
             MaterialTheme {
                 Box(Modifier.fillMaxSize().background(ComposeColor(0xFF24344B))) {
@@ -85,8 +92,6 @@ class SheetPresentationTests {
                 }
             }
         }
-        rule.waitForIdle()
-        assertTrue("The sheet header must be laid out", headerBounds.height > 0)
     }
 
     // Presentation background must be a direct modifier so it is known before the modal opens.
@@ -132,6 +137,27 @@ class SheetPresentationTests {
         rule.waitForIdle()
         Thread.sleep(80)
         assertTrue("Dark primary should resolve light in the same open sheet", android.graphics.Color.red(backgroundPixel()) > 180)
+    }
+
+    /**
+     * The topmost screen row, near the left edge, that shows the sheet surface (near-white); null if the
+     * sheet isn't drawn. The presenter behind the sheet is dark and dimmed by the scrim, so the first
+     * light row is the sheet's visible top edge, which is what a detent actually controls.
+     */
+    private fun topmostSheetRow(): Int? {
+        val image = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+        val x = 20.coerceAtMost(image.width - 1)
+        var result: Int? = null
+        for (y in 0 until image.height) {
+            val pixel = image.getPixel(x, y)
+            if (android.graphics.Color.red(pixel) > 235 && android.graphics.Color.green(pixel) > 235 &&
+                android.graphics.Color.blue(pixel) > 235) {
+                result = y
+                break
+            }
+        }
+        image.recycle()
+        return result
     }
 
     private fun backgroundPixel(): Int {
@@ -191,6 +217,45 @@ class SheetPresentationTests {
         install()
         rule.mainClock.autoAdvance = false
         checkTransitions(listOf(520.0, 260.0, 580.0, 320.0).map { PresentationDetent.height(it) })
+    }
+
+    /**
+     * The detent is a preference contributed by the presented content, and the content is only rendered
+     * once the presentation has been laid out. Until it arrives the detent falls back to `.large`, so the
+     * sheet must stay hidden rather than draw itself at that fallback height and then collapse to the real
+     * one. Once the sheet has been drawn it must not disappear again, and while it slides up from the
+     * bottom its visible top edge must never move back down.
+     */
+    @Test fun fixedHeightSheetOpensWithoutFlashingAtFallbackDetent() {
+        presented.value = false
+        detent.value = PresentationDetent.height(260.0)
+        setSheetContent(fullScreen = false)
+        rule.mainClock.autoAdvance = false
+        rule.runOnUiThread { presented.value = true }
+        val sheetTops = ArrayList<Int?>()
+        repeat(40) {
+            rule.mainClock.advanceTimeByFrame()
+            rule.waitForIdle()
+            sheetTops.add(topmostSheetRow())
+        }
+        rule.mainClock.autoAdvance = true
+        rule.waitForIdle()
+        Thread.sleep(300)
+        val settled = topmostSheetRow()
+        assertNotNull("The settled sheet must be drawn", settled)
+        val tolerance = (8 * rule.activity.resources.displayMetrics.density).toInt()
+        var previous: Int? = null
+        for ((frame, top) in sheetTops.withIndex()) {
+            val before = previous
+            if (before != null) {
+                assertNotNull("frame $frame: the sheet disappeared after it had been drawn. " +
+                    "Top edge per frame: $sheetTops", top)
+                assertTrue("frame $frame: the sheet's top edge moved down to y=$top from y=$before while " +
+                    "opening, so it was first shown at the fallback detent. Top edge per frame: $sheetTops",
+                    top!! <= before + tolerance)
+            }
+            if (top != null) previous = top
+        }
     }
 
     @Test fun standardDetentsKeepHeaderVisibleEveryFrame() {
