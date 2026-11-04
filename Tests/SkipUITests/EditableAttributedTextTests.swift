@@ -10,6 +10,23 @@ import XCTest
 
 /// Exercise the public SwiftUI spelling on Apple and through Skip Lite.
 final class EditableAttributedTextTests: XCTestCase {
+    func testCaseInsensitiveSearchHighlighting() {
+        let original = AttributedString("Search highlighting in Skip")
+        var text = original
+        let range = text.range(of: "skip", options: .caseInsensitive)!
+        text[range].foregroundColor = .accentColor
+        XCTAssertEqual(String(text[range].characters), "Skip")
+        XCTAssertEqual(text[range].foregroundColor, .accentColor)
+        XCTAssertNil(original[range].foregroundColor)
+        XCTAssertNil(text[text.range(of: "Search highlighting in ")!].foregroundColor)
+        #if SKIP
+        let runs: [AttributedTextRun] = AttributedTextRun.runs(from: text)
+        XCTAssertEqual(runs.last!.text, "Skip")
+        XCTAssertEqual(runs.last!.color, Color.accentColor)
+        XCTAssertNil(runs.first!.color)
+        #endif
+    }
+
     func testRangeStylingAndCopyIndependence() {
         let original = AttributedString("Hello world")
         var text = original
@@ -64,7 +81,7 @@ final class EditableAttributedTextTests: XCTestCase {
 /// are tested from Swift source all the way to Material's rendered text.
 func editableAttributedTextFixture() -> Text {
     var value = AttributedString("A 👩🏽‍💻 cafe\u{0301} Z")
-    let range = value.range(of: "👩🏽‍💻 cafe\u{0301}")!
+    let range = value.range(of: "👩🏽‍💻 CAFÉ", options: .caseInsensitive)!
     value[range].foregroundColor = .red
     value[range].font = .system(size: 24)
     value[range].underlineStyle = .single

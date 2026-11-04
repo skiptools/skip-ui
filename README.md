@@ -3749,6 +3749,19 @@ offsets, and the supported inline presentation intents are rendered. Underline
 and strikethrough values currently render as single solid lines; their pattern
 and color options are not rendered.
 
+Case-insensitive search ranges can be highlighted using the same API on both platforms:
+
+```swift
+var text = AttributedString("Search highlighting in Skip")
+if let range = text.range(of: "skip", options: .caseInsensitive) {
+    text[range].foregroundColor = .accentColor
+}
+Text(text)
+```
+
+SkipFoundation performs the search using Android ICU and returns a range in the
+original text. See its README for supported search options and platform differences.
+
 Infer ranges from `range(of:)` or `runs`. Lite does not implement generic attribute
 scopes or explicit `Range<AttributedString.Index>` slicing. See SkipFoundation's
 editable attributed strings documentation for the supported subset. This change
