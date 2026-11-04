@@ -3764,6 +3764,10 @@ original text. See its README for supported search options and platform differen
 
 Infer ranges from `range(of:)` or `runs`. Lite does not implement generic attribute
 scopes or explicit `Range<AttributedString.Index>` slicing. See SkipFoundation's
-editable attributed strings documentation for the supported subset. This change
-requires the companion SkipFoundation implementation before a release dependency
-can be selected; local validation uses SwiftPM editable dependencies.
+editable attributed strings documentation for the supported subset.
+
+This requires the editable attributed strings and ICU search merged in
+[SkipFoundation PR #143](https://github.com/skiptools/skip-foundation/pull/143).
+The package currently pins the canonical repository's merged commit
+`ba10460923b9e495bbd54ad494b8b0cb3dd7ba26`; replace it with a minimum release
+requirement once that commit is tagged. No fork or local dependency is required.
