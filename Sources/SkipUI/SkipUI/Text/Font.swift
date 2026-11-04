@@ -240,10 +240,12 @@ public struct Font : Hashable {
 
     public static func custom(_ name: String, size: CGFloat, relativeTo textStyle: Font.TextStyle) -> Font {
         #if SKIP
-        let systemFont = system(textStyle)
+        // `size` is the font's size at the default content-size category. Compose `sp`
+        // already follows the system font scale. Adding the text style's own size on
+        // top renders custom fonts at about twice the requested size.
+        let _ = textStyle
         return Font(fontImpl: {
-            let absoluteSize = systemFont.fontImpl().fontSize.value + size
-            androidx.compose.ui.text.TextStyle(fontFamily: Self.findNamedFont(name, ctx: LocalContext.current), fontSize: absoluteSize.sp)
+            androidx.compose.ui.text.TextStyle(fontFamily: Self.findNamedFont(name, ctx: LocalContext.current), fontSize: size.sp)
         })
         #else
         fatalError()
