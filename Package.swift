@@ -10,9 +10,7 @@ let package = Package(
     dependencies: [ 
         .package(url: "https://github.com/skiptools/skip.git", from: "1.9.6"),
         .package(url: "https://github.com/skiptools/skip-model.git", from: "1.7.7"),
-        // Requires editable attributed strings and ICU search from SkipFoundation PR #143.
-        // Replace this merged commit with a release requirement once it is tagged.
-        .package(url: "https://github.com/skiptools/skip-foundation.git", revision: "ba10460923b9e495bbd54ad494b8b0cb3dd7ba26"),
+        .package(url: "https://github.com/skiptools/skip-foundation.git", from: "1.4.9"),
     ],
     targets: [
         .target(name: "SkipUI", dependencies: [.product(name: "SkipModel", package: "skip-model"), .product(name: "SkipFoundation", package: "skip-foundation")], plugins: [.plugin(name: "skipstone", package: "skip")]),
