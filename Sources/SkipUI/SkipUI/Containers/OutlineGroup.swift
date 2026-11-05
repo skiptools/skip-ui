@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 /*
 /// A structure that computes views and disclosure groups on demand from an
 /// underlying collection of tree-structured, identified data.

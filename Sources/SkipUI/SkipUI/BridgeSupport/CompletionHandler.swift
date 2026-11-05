@@ -1,5 +1,4 @@
 // Copyright 2025–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 
 /// Generic completion handler to take the place of passing a completion closure to a bridged closure, as we

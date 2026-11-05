@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 /*
 /// An interface for a stored variable that updates an external property of a
 /// view.

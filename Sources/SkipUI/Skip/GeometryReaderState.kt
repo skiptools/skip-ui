@@ -1,5 +1,4 @@
 // Copyright 2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 package skip.ui
 
 import androidx.compose.runtime.Composable

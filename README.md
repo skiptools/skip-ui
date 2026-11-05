@@ -3722,11 +3722,6 @@ Still other modifiers don't affect rendering at all, but perform side effects or
 
 Like other SwiftUI components, modifiers use `#if SKIP ... #else ...` to stub the Swift implementation and keep SkipUI buildable in Xcode.
 
-## License
-
-This software is licensed under the 
-[Mozilla Public License 2.0](https://www.mozilla.org/MPL/).
-
 ## Editable attributed text
 
 With the matching SkipFoundation editable-attributed-string support, Lite code

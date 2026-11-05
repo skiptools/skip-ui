@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 /*
 /// A collection wrapper that iterates over the indices and identifiers of a
 /// collection together.

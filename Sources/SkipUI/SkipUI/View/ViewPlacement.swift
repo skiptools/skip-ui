@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if SKIP
 
 /// Allow views to specialize based on their placement.

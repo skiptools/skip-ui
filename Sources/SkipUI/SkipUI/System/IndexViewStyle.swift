@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 /*
 /// Defines the implementation of all `IndexView` instances within a view
 /// hierarchy.
