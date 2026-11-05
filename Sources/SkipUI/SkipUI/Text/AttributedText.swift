@@ -3,7 +3,7 @@
 #if !SKIP_BRIDGE
 import Foundation
 
-/// One attributed text segment exchanged with native Swift. Text, rather than offsets,
+/// One attributed text segment shared by native and transpiled clients. Text, rather than offsets,
 /// keeps Swift string indices independent of Kotlin's UTF-16 indices.
 // SKIP @bridgeMembers
 public struct AttributedTextRun: Equatable {
@@ -42,11 +42,33 @@ public struct AttributedTextRun: Equatable {
         self.baselineOffset = baselineOffset
     }
 
+    #if SKIP
+    /// Snapshot the current attributes after any range edits. Segment text keeps
+    /// the renderer independent of the attributed value's index representation.
+    static func runs(from content: AttributedString) -> [AttributedTextRun] {
+        content.runs.map { run in
+            let intent: InlinePresentationIntent = run.inlinePresentationIntent ?? []
+            return AttributedTextRun(
+                text: String(content[run.range].characters),
+                bold: intent.contains(.stronglyEmphasized),
+                italic: intent.contains(.emphasized),
+                code: intent.contains(.code),
+                strikethrough: intent.contains(.strikethrough) || run.strikethroughStyle != nil,
+                underline: run.underlineStyle != nil,
+                link: run.link?.absoluteString,
+                font: run.font,
+                color: run.foregroundColor,
+                baselineOffset: run.baselineOffset ?? 0.0
+            )
+        }
+    }
+    #endif
+
     /// Parse inline Markdown with the CommonMark engine already used by SkipFoundation,
     /// preserving whitespace before native Swift assembles the attributed value.
     public static func markdownRuns(_ markdown: String) -> [AttributedTextRun] {
         #if SKIP
-        return InlineMarkdown.runs(source: markdown)
+        return runs(from: try! AttributedString(markdown: markdown))
         #else
         return [AttributedTextRun(text: markdown)]
         #endif

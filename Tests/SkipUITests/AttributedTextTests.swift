@@ -66,7 +66,7 @@ final class AttributedTextTests: XCTestCase {
     func testLineEndingsAreNormalizedWithoutLosingWhitespace() {
         let runs = AttributedTextRun.markdownRuns("👩🏽‍💻  \r\n**one\r\n  two**  \rnext  ")
         XCTAssertEqual(runs.map { $0.text }.joined(), "👩🏽‍💻  \none\n  two  \nnext  ")
-        XCTAssertTrue(runs.first { $0.text == "one" }!.bold)
+        XCTAssertEqual(runs.filter { $0.bold }.map { $0.text }.joined(), "one\n  two")
         XCTAssertEqual(AttributedTextRun.markdownRuns("`one\r\n two`").map { $0.text }.joined(), "one  two")
     }
     #endif
