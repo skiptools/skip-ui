@@ -100,7 +100,7 @@ public struct AndroidCompositionBoundary: View, Renderable {
                     }
                     storage.inputs = inputs
                     storage.content = preparedProjection ?? content()
-                    composeView.setContent {
+                    AndroidCompositionBoundarySetContent(view: composeView) {
                         storage.content.Compose(context: childContext)
                     }
                 }

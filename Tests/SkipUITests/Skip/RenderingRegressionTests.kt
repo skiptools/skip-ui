@@ -289,6 +289,21 @@ class RenderingRegressionTests {
         rule.onNodeWithTag("boundary").assertHeightIsEqualTo(20.dp)
     }
 
+    @Test fun boundaryPassesMinimumConstraintsToContent() {
+        rule.setContent {
+            val parent = rememberCompositionContext()
+            Box(Modifier.size(200.dp), propagateMinConstraints = true) {
+                AndroidView(factory = { context ->
+                    AndroidCompositionBoundaryComposeView(context, parent) {
+                        Box(Modifier.testTag("constrained-child"))
+                    }
+                })
+            }
+        }
+        rule.onNodeWithTag("constrained-child").assertWidthIsEqualTo(200.dp)
+        rule.onNodeWithTag("constrained-child").assertHeightIsEqualTo(200.dp)
+    }
+
     @Test fun nestedForEachRetainsInnerRowStateInZStack() {
         assertNestedRowsRetainState { content -> ZStack(content = content) }
     }

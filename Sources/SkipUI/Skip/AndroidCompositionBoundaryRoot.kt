@@ -4,10 +4,15 @@ package skip.ui
 
 import android.content.Context
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionContext
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
+import androidx.core.view.ViewCompat
 
 /**
  * Creates a ComposeView whose composition inherits from the current Compose tree.
@@ -30,6 +35,17 @@ fun AndroidCompositionBoundaryComposeView(
         )
         setParentCompositionContext(parentCompositionContext)
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-        setContent(content)
+        ViewCompat.setNestedScrollingEnabled(this, true)
+        AndroidCompositionBoundarySetContent(this, content)
+    }
+}
+
+/** Keeps child scroll/fling handoff connected to AndroidView's parent on every content update. */
+internal fun AndroidCompositionBoundarySetContent(view: ComposeView, content: @Composable () -> Unit) {
+    view.setContent {
+        // Preserve the host's constraints, including minimum sizes, without forcing it to fill.
+        Box(Modifier.nestedScroll(rememberNestedScrollInteropConnection()), propagateMinConstraints = true) {
+            content()
+        }
     }
 }
