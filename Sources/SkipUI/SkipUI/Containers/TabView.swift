@@ -13,6 +13,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -40,6 +42,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Badge
@@ -291,6 +295,7 @@ public struct TabView : View, Renderable {
                 // Don't use a Scaffold: it clips content beyond its bounds and prevents .ignoresSafeArea modifiers from working
                 Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) {
                     let tabViewStyle = EnvironmentValues.shared._tabViewStyle
+                    let windowConfiguration = LocalConfiguration.current
                     let layoutType: NavigationSuiteType
                     if tabViewStyle is SidebarAdaptableTabViewStyle {
                         // DOWNBEAT: upright, the bottom bar. Material's adaptive choice
@@ -299,8 +304,7 @@ public struct TabView : View, Renderable {
                         // the left pane but be normal material placement". Decided here,
                         // not by switching styles in the app, because a TabView that
                         // moves in the tree rebuilds every tab's NavigationStack.
-                        let configuration = LocalConfiguration.current
-                        if configuration.screenHeightDp > configuration.screenWidthDp {
+                        if windowConfiguration.screenHeightDp > windowConfiguration.screenWidthDp {
                             layoutType = NavigationSuiteType.NavigationBar
                         } else {
                             layoutType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
@@ -309,6 +313,12 @@ public struct TabView : View, Renderable {
                         // `.automatic` (DefaultTabViewStyle), `.tabBarOnly`, and unset style all use a bottom tab bar only.
                         layoutType = NavigationSuiteType.NavigationBar
                     }
+                    // DOWNBEAT: a wide window on its side gets a DRAWER — labelled rows under
+                    // the app's name, as the iPad's sidebar (Carl, 2026-11-09: "the android
+                    // landscape left panel should behave like ios"). Laid out as the rail is
+                    // (the scaffold insets the content by its real width); a phone on its
+                    // side, under 1000dp, keeps the rail.
+                    let usesDrawer = layoutType == NavigationSuiteType.NavigationRail && windowConfiguration.screenWidthDp >= 1000
                     let layoutTypeState = rememberUpdatedState(layoutType)
                     let navigationSuiteScaffoldState = rememberNavigationSuiteScaffoldState()
                     // HIDE THE BAR WHILE THE CONTENT SCROLLS DOWN — see
@@ -464,6 +474,41 @@ public struct TabView : View, Renderable {
                                                     alwaysShowLabel: options.alwaysShowItemLabels,
                                                     colors: options.itemColors,
                                                     interactionSource: options.itemInteractionSource
+                                                )
+                                            }
+                                        }
+                                    } else if usesDrawer {
+                                        let drawerItemColors = NavigationDrawerItemDefaults.colors(
+                                            selectedContainerColor: options.itemColors.selectedIndicatorColor,
+                                            unselectedContainerColor: androidx.compose.ui.graphics.Color.Transparent,
+                                            selectedIconColor: options.itemColors.selectedIconColor,
+                                            unselectedIconColor: options.itemColors.unselectedIconColor,
+                                            selectedTextColor: options.itemColors.selectedTextColor,
+                                            unselectedTextColor: options.itemColors.unselectedTextColor
+                                        )
+                                        Column(modifier: options.modifier.width(240.dp).background(options.containerColor).padding(horizontal: 12.dp)) {
+                                            // Clear of the status bar: its inset is already consumed here.
+                                            Spacer(modifier: Modifier.height(48.dp))
+                                            androidx.compose.material3.Text("Downbeat",
+                                                style: MaterialTheme.typography.titleLarge,
+                                                color: MaterialTheme.colorScheme.onSurface,
+                                                modifier: Modifier.padding(start: 16.dp, bottom: 16.dp))
+                                            for tabIndex in 0..<tabRenderables.size {
+                                                if tabs[tabIndex] == nil || tabs[tabIndex]?.isHidden == true {
+                                                    continue
+                                                }
+                                                let route = String(describing: tabIndex)
+                                                NavigationDrawerItem(
+                                                    label: {
+                                                        if let itemLabel = options.itemLabel {
+                                                            itemLabel(tabIndex)
+                                                        }
+                                                    },
+                                                    selected: route == currentRoute,
+                                                    onClick: { options.onItemClick(tabIndex) },
+                                                    icon: { options.itemIcon(tabIndex) },
+                                                    modifier: options.itemModifier(tabIndex).padding(vertical: 2.dp),
+                                                    colors: drawerItemColors
                                                 )
                                             }
                                         }
