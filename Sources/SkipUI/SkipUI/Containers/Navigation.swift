@@ -156,6 +156,9 @@ public struct NavigationStack : View, Renderable {
         let reducedDestinationLayoutHints = destinationLayoutHints.value.reduced
         let mergedDestinations = mergeNavigationDestinationsWithLayoutHints(reducedDestinations, layoutHints: reducedDestinationLayoutHints)
         let navBackStack = rememberNavBackStack(SkipNavigationStackRootKey.root)
+        // DOWNBEAT: a push or a pop brings a scroll-hidden tab bar back (TabBarScrollHiding).
+        let navDepth = navBackStack.size
+        LaunchedEffect(navDepth) { tabBarRevealTick.value += 1 }
         let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navBackStack: navBackStack, destinations: mergedDestinations, destinationKeyTransformer: destinationKeyTransformer)) }
         navigator.value.didCompose(navBackStack: navBackStack, destinations: mergedDestinations, path: path, navigationPath: navigationPath, keyboardController: LocalSoftwareKeyboardController.current)
 

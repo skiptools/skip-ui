@@ -3,7 +3,9 @@
 #if SKIP
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldState
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -39,6 +41,16 @@ import kotlinx.coroutines.launch
 /// half-pixel settle at the end of a fling, must not flap an animated bar.
 /// Crossing the threshold in one direction resets the count, so a reversal takes
 /// a deliberate movement rather than one stray frame.
+/// Bumped by every NavigationStack when it pushes or pops; `TabView` shows the bar
+/// again when it changes (DOWNBEAT, 2026-11-09).
+///
+/// A conversation scrolls itself to its last message on open, which Compose reports
+/// as user input, so the bar hid; back on a list too short to scroll, nothing could
+/// bring it back (Carl: "when i hit back from the messages … i dont see any tab
+/// menu"). A new screen, or the one you return to, starts with the bar — whether a
+/// screen HAS a bar is still its own `.toolbar(_:for: .tabBar)`.
+let tabBarRevealTick: MutableState<Int> = mutableStateOf(0)
+
 struct TabBarHidingNestedScrollConnection: NestedScrollConnection {
     let state: NavigationSuiteScaffoldState
     let scope: CoroutineScope

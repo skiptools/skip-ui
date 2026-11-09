@@ -5,6 +5,7 @@ import Foundation
 #if SKIP
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -321,6 +322,9 @@ public struct TabView : View, Renderable {
                     let usesDrawer = layoutType == NavigationSuiteType.NavigationRail && windowConfiguration.screenWidthDp >= 1000
                     let layoutTypeState = rememberUpdatedState(layoutType)
                     let navigationSuiteScaffoldState = rememberNavigationSuiteScaffoldState()
+                    // DOWNBEAT: back after a push or pop, or on another tab (TabBarScrollHiding).
+                    let revealTick = tabBarRevealTick.value
+                    LaunchedEffect(revealTick, selectedTabIndex.value) { navigationSuiteScaffoldState.show() }
                     // HIDE THE BAR WHILE THE CONTENT SCROLLS DOWN — see
                     // `TabBarHidingNestedScrollConnection`. The scaffold state
                     // has always been here and nothing ever drove it.
