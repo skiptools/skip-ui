@@ -4,6 +4,7 @@
 import Foundation
 #if SKIP
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -292,7 +293,18 @@ public struct TabView : View, Renderable {
                     let tabViewStyle = EnvironmentValues.shared._tabViewStyle
                     let layoutType: NavigationSuiteType
                     if tabViewStyle is SidebarAdaptableTabViewStyle {
-                        layoutType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
+                        // DOWNBEAT: upright, the bottom bar. Material's adaptive choice
+                        // gives a tablet held upright (~800dp, "medium") the rail; Carl,
+                        // 2026-11-09: "on android portrait the tabs menu should not be in
+                        // the left pane but be normal material placement". Decided here,
+                        // not by switching styles in the app, because a TabView that
+                        // moves in the tree rebuilds every tab's NavigationStack.
+                        let configuration = LocalConfiguration.current
+                        if configuration.screenHeightDp > configuration.screenWidthDp {
+                            layoutType = NavigationSuiteType.NavigationBar
+                        } else {
+                            layoutType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
+                        }
                     } else {
                         // `.automatic` (DefaultTabViewStyle), `.tabBarOnly`, and unset style all use a bottom tab bar only.
                         layoutType = NavigationSuiteType.NavigationBar
