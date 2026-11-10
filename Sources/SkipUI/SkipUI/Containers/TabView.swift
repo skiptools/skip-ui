@@ -327,8 +327,10 @@ public struct TabView : View, Renderable {
                     // (the scaffold insets the content by its real width); a phone on its
                     // side, under 1000dp, keeps the rail.
                     let usesDrawer = layoutType == NavigationSuiteType.NavigationRail && windowConfiguration.screenWidthDp >= 1000
-                    // Collapsed to the rail by its button; kept across rotations and restarts of the view.
-                    let drawerCollapsed = rememberSaveable { mutableStateOf(false) }
+                    // COLLAPSED BY DEFAULT — Material's expanded navigation rail starts as the rail
+                    // and opens with ☰ (Carl, 2026-11-10: "make it collapsed by default"). The
+                    // choice is kept across rotations and restarts of the view.
+                    let drawerCollapsed = rememberSaveable { mutableStateOf(true) }
                     let layoutTypeState = rememberUpdatedState(layoutType)
                     let navigationSuiteScaffoldState = rememberNavigationSuiteScaffoldState()
                     // DOWNBEAT: back after a push or pop, or on another tab (TabBarScrollHiding).
@@ -574,7 +576,8 @@ public struct TabView : View, Renderable {
                                                 NavigationRailItem(selected: route == currentRoute,
                                                     onClick: { options.onItemClick(tabIndex) },
                                                     icon: { options.itemIcon(tabIndex) },
-                                                    modifier: options.itemModifier(tabIndex),
+                                                    // DOWNBEAT: more room between the rows (Carl, 2026-11-10).
+                                                    modifier: options.itemModifier(tabIndex).padding(vertical: 10.dp),
                                                     enabled: options.itemEnabled(tabIndex) && tabs[tabIndex]?.isDisabled != true,
                                                     label: label,
                                                     alwaysShowLabel: options.alwaysShowItemLabels,
