@@ -38,6 +38,17 @@ public enum ColorScheme : Int, CaseIterable, Hashable {
         if let primary = Color.assetAccentColor(colorScheme: isDarkMode ? ColorScheme.dark : ColorScheme.light) {
             colorScheme = colorScheme.copy(primary: primary)
         }
+        // DOWNBEAT: the page is #181818 (DownbeatTheme.background, 2026-11-10), edge to
+        // edge. Dynamic colour tints the dark surfaces from the wallpaper (#121318 here),
+        // which showed as a blue-black frame around the app's grey: in the margins, under
+        // the top bar and the status bar. The page surfaces and the tint raised bars mix
+        // in are set to it; the higher containers (sheets, menus) keep their own.
+        if isDarkMode {
+            let page = androidx.compose.ui.graphics.Color(red: Float(0.094), green: Float(0.094), blue: Float(0.094), alpha: Float(1.0))
+            colorScheme = colorScheme.copy(background: page, surface: page, surfaceTint: page,
+                                           surfaceContainerLowest: page, surfaceContainerLow: page,
+                                           surfaceContainer: page)
+        }
         guard let customization = EnvironmentValues.shared._material3ColorScheme else {
             return colorScheme
         }
