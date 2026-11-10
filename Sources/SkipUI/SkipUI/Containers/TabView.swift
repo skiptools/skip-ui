@@ -333,7 +333,10 @@ public struct TabView : View, Renderable {
                     let navigationSuiteScaffoldState = rememberNavigationSuiteScaffoldState()
                     // DOWNBEAT: back after a push or pop, or on another tab (TabBarScrollHiding).
                     let revealTick = tabBarRevealTick.value
-                    LaunchedEffect(revealTick, selectedTabIndex.value) { navigationSuiteScaffoldState.show() }
+                    // And on a rotation: a bar hidden by scrolling upright left the rail and the
+                    // drawer hidden on its side, their space kept and nothing drawn in it (Carl,
+                    // 2026-11-10: "the left pane is gone on android").
+                    LaunchedEffect(revealTick, selectedTabIndex.value, layoutType) { navigationSuiteScaffoldState.show() }
                     // HIDE THE BAR WHILE THE CONTENT SCROLLS DOWN — see
                     // `TabBarHidingNestedScrollConnection`. The scaffold state
                     // has always been here and nothing ever drove it.
