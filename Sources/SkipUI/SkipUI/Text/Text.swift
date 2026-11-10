@@ -506,7 +506,10 @@ struct _Text: View, Renderable, Equatable {
                     case .middle:
                         return singleLine ? TextOverflow.MiddleEllipsis : TextOverflow.Ellipsis
                     default:
-                        return TextOverflow.Clip
+                        // DOWNBEAT: SwiftUI's default is .tail — a limited line ends in "…".
+                        // Clip cut titles off mid-letter (Carl, 2026-11-10: "add ... to
+                        // truncated titles"); `truncationMode` isn't bridged to Fuse apps.
+                        return TextOverflow.Ellipsis
                     }
                 }()
             )
