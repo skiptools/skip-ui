@@ -1509,25 +1509,24 @@ extension View {
         #endif
     }
 
+    /// Starts native work and cancels it when its identity changes or the view is removed.
+    /// The bridged action installs `onCancel` synchronously before returning.
     // SKIP @bridge
     public func task(id value: Any, bridgedAction: @escaping (CompletionHandler) -> Void) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: SideEffectModifier { _ in
             let actionState = rememberUpdatedState(bridgedAction)
             DisposableEffect(value) {
-                let task = Task {
-                    kotlinx.coroutines.suspendCancellableCoroutine { continuation in
-                        let completionHandler = CompletionHandler({
-                            do { continuation.resume(Unit, nil) } catch {}
-                        })
-                        continuation.invokeOnCancellation { _ in
-                            completionHandler.onCancel?()
-                        }
-                        actionState.value(completionHandler)
-                    }
-                }
+                // The bridge starts its own Swift Task. A second, suspended Skip Task
+                // would not forward cooperative cancellation to a Kotlin continuation.
+                // Effect setup and disposal are serialized, so the callback is installed
+                // before disposal can request cancellation, even for immediate removal.
+                let completionHandler = CompletionHandler({})
+                actionState.value(completionHandler)
                 onDispose {
-                    task.cancel()
+                    let onCancel = completionHandler.onCancel
+                    completionHandler.onCancel = nil
+                    onCancel?()
                 }
             }
             return ComposeResult.ok
