@@ -5,6 +5,13 @@ import Foundation
 #if SKIP
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.material.icons.filled.MenuOpen
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -320,6 +327,8 @@ public struct TabView : View, Renderable {
                     // (the scaffold insets the content by its real width); a phone on its
                     // side, under 1000dp, keeps the rail.
                     let usesDrawer = layoutType == NavigationSuiteType.NavigationRail && windowConfiguration.screenWidthDp >= 1000
+                    // Collapsed to the rail by its button; kept across rotations and restarts of the view.
+                    let drawerCollapsed = rememberSaveable { mutableStateOf(false) }
                     let layoutTypeState = rememberUpdatedState(layoutType)
                     let navigationSuiteScaffoldState = rememberNavigationSuiteScaffoldState()
                     // DOWNBEAT: back after a push or pop, or on another tab (TabBarScrollHiding).
@@ -481,7 +490,12 @@ public struct TabView : View, Renderable {
                                                 )
                                             }
                                         }
-                                    } else if usesDrawer {
+                                    } else if usesDrawer && !drawerCollapsed.value {
+                                        // DOWNBEAT: the iPad sidebar's measure (Carl, 2026-11-09: "i
+                                        // prefer the spacing from the ipad landscape") — a floating
+                                        // rounded panel inset from the edges, the name larger, rows
+                                        // 52dp tall in a larger type, and a button to collapse it to
+                                        // the rail.
                                         let drawerItemColors = NavigationDrawerItemDefaults.colors(
                                             selectedContainerColor: options.itemColors.selectedIndicatorColor,
                                             unselectedContainerColor: androidx.compose.ui.graphics.Color.Transparent,
@@ -490,34 +504,54 @@ public struct TabView : View, Renderable {
                                             selectedTextColor: options.itemColors.selectedTextColor,
                                             unselectedTextColor: options.itemColors.unselectedTextColor
                                         )
-                                        Column(modifier: options.modifier.width(240.dp).background(options.containerColor).padding(horizontal: 12.dp)) {
-                                            // Clear of the status bar: its inset is already consumed here.
-                                            Spacer(modifier: Modifier.height(48.dp))
-                                            androidx.compose.material3.Text("Downbeat",
-                                                style: MaterialTheme.typography.titleLarge,
-                                                color: MaterialTheme.colorScheme.onSurface,
-                                                modifier: Modifier.padding(start: 16.dp, bottom: 16.dp))
-                                            for tabIndex in 0..<tabRenderables.size {
-                                                if tabs[tabIndex] == nil || tabs[tabIndex]?.isHidden == true {
-                                                    continue
+                                        Box(modifier: options.modifier.width(276.dp).padding(start: 12.dp, top: 36.dp, bottom: 12.dp)) {
+                                            Column(modifier: Modifier.fillMaxHeight().fillMaxWidth()
+                                                .clip(RoundedCornerShape(24.dp))
+                                                .background(androidx.compose.ui.graphics.Color.White.copy(alpha: Float(0.07)))
+                                                .padding(horizontal: 12.dp)) {
+                                                Row(modifier: Modifier.fillMaxWidth().padding(top: 6.dp)) {
+                                                    Spacer(modifier: Modifier.weight(Float(1.0)))
+                                                    IconButton(onClick: { drawerCollapsed.value = true }) {
+                                                        Icon(Icons.Filled.MenuOpen, contentDescription: "Hide sidebar",
+                                                             tint: MaterialTheme.colorScheme.onSurfaceVariant)
+                                                    }
                                                 }
-                                                let route = String(describing: tabIndex)
-                                                NavigationDrawerItem(
-                                                    label: {
-                                                        if let itemLabel = options.itemLabel {
-                                                            itemLabel(tabIndex)
+                                                androidx.compose.material3.Text("Downbeat",
+                                                    style: MaterialTheme.typography.headlineSmall,
+                                                    color: MaterialTheme.colorScheme.onSurface,
+                                                    modifier: Modifier.padding(start: 16.dp, top: 4.dp, bottom: 20.dp))
+                                                ProvideTextStyle(MaterialTheme.typography.titleMedium) {
+                                                    for tabIndex in 0..<tabRenderables.size {
+                                                        if tabs[tabIndex] == nil || tabs[tabIndex]?.isHidden == true {
+                                                            continue
                                                         }
-                                                    },
-                                                    selected: route == currentRoute,
-                                                    onClick: { options.onItemClick(tabIndex) },
-                                                    icon: { options.itemIcon(tabIndex) },
-                                                    modifier: options.itemModifier(tabIndex).padding(vertical: 2.dp),
-                                                    colors: drawerItemColors
-                                                )
+                                                        let route = String(describing: tabIndex)
+                                                        NavigationDrawerItem(
+                                                            label: {
+                                                                if let itemLabel = options.itemLabel {
+                                                                    itemLabel(tabIndex)
+                                                                }
+                                                            },
+                                                            selected: route == currentRoute,
+                                                            onClick: { options.onItemClick(tabIndex) },
+                                                            icon: { options.itemIcon(tabIndex) },
+                                                            modifier: options.itemModifier(tabIndex).height(52.dp),
+                                                            colors: drawerItemColors
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                     } else {
-                                        NavigationRail(modifier: options.modifier, containerColor: options.containerColor, contentColor: options.contentColor) {
+                                        NavigationRail(modifier: options.modifier, containerColor: options.containerColor, contentColor: options.contentColor, header: {
+                                            // DOWNBEAT: a collapsed drawer opens again from here.
+                                            if usesDrawer {
+                                                IconButton(onClick: { drawerCollapsed.value = false }) {
+                                                    Icon(Icons.Filled.Menu, contentDescription: "Show sidebar",
+                                                         tint: MaterialTheme.colorScheme.onSurfaceVariant)
+                                                }
+                                            }
+                                        }) {
                                             // Center the item group vertically (Material navigation rail guidance for tablets).
                                             Spacer(modifier: Modifier.weight(Float(1.0)))
                                             for tabIndex in 0..<tabRenderables.size {
