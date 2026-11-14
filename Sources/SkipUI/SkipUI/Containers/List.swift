@@ -48,6 +48,9 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.SwipeToDismissBoxDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
@@ -1059,7 +1062,13 @@ public final class List : View, Renderable {
                     drawRect(color: dragTint)
                 }
             }
-            content(itemModifier)
+            // DOWNBEAT: the row's reorder state, for a drag HANDLE inside it — an app applies
+            // `Modifier.detectReorder(LocalReorderableListState.current)` to a grip, so the drag
+            // starts at once from the grip (Material's reorder handle), beside the long press.
+            // SKIP INSERT: val providedReorder = LocalReorderableListState provides reorderableState
+            CompositionLocalProvider(providedReorder) {
+                content(itemModifier)
+            }
         }
     }
 
@@ -1967,3 +1976,10 @@ extension List {
  */
 #endif
 #endif
+
+#if SKIP
+/// DOWNBEAT: the reorder state of the list row being composed (nil outside a reorderable row).
+/// See `RenderReorderableItem`.
+public let LocalReorderableListState: ProvidableCompositionLocal<ReorderableLazyListState?> = compositionLocalOf { nil as ReorderableLazyListState? }
+#endif
+
