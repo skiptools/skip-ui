@@ -246,7 +246,9 @@ public struct NavigationStack : View, Renderable {
         let title: Text
         let titleDisplayPreference: ToolbarTitleDisplayMode?
         if let layoutHints = entryLayoutHints {
-            let hasTitleFromHints = layoutHints.expectedTitle != NavigationTitlePreferenceKey.defaultValue
+            // The bridged `navigationStackLayoutHints` defaults its title to `Text(verbatim: "")`, which is not equal
+            // to the `Text("")` sentinel, so an omitted title has to be recognised in both spellings.
+            let hasTitleFromHints = layoutHints.expectedTitle != NavigationTitlePreferenceKey.defaultValue && layoutHints.expectedTitle != Text(verbatim: "")
             hasTitle = hasTitleFromPreferences || hasTitleFromHints
             title = hasTitleFromPreferences ? arguments.title : (hasTitleFromHints ? layoutHints.expectedTitle : arguments.title)
             titleDisplayPreference = arguments.toolbarPreferences.titleDisplayMode ?? layoutHints.expectedTitleDisplayMode
@@ -260,7 +262,10 @@ public struct NavigationStack : View, Renderable {
         let bottomBarPreferences = arguments.toolbarPreferences.bottomBar
         let presentationTopPx = arguments.safeArea?.presentationBoundsPx.top ?? Float(0.0)
         let isInitialRootPreferencePass = remember { mutableStateOf(arguments.isRoot) }
-        let reservesInitialRootTopBar = isInitialRootPreferencePass.value && arguments.isRoot && !hasTitle && (topBarPreferences?.visibility ?? Visibility.automatic) == Visibility.automatic
+        // Reserve a top bar on the first pass only when guessing. Layout hints are the app saying what to expect, so
+        // hints without a title mean "no top bar": reserving one anyway flashes an empty bar for a frame every time a
+        // titleless root stack is composed afresh, e.g. tab content keyed per tab.
+        let reservesInitialRootTopBar = isInitialRootPreferencePass.value && arguments.isRoot && entryLayoutHints == nil && !hasTitle && (topBarPreferences?.visibility ?? Visibility.automatic) == Visibility.automatic
         let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, hasTitle: hasTitle || reservesInitialRootTopBar, preference: titleDisplayPreference)
         let isInlineTitleDisplayMode = useInlineTitleDisplayMode(for: effectiveTitleDisplayMode, safeArea: arguments.safeArea)
 
