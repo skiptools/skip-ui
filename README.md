@@ -1842,6 +1842,10 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>.listRowInsets</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>.listRowSeparator</code></td>
     </tr>
     <tr>
