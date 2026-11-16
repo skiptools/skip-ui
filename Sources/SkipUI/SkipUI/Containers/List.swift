@@ -213,7 +213,7 @@ public final class List : View, Renderable {
         }
 
         var modifier = context.modifier
-        if styling.style != .plain {
+        if styling.style != .plain && styling.style != .grouped {
             modifier = modifier.padding(start: Self.horizontalInset.dp, end: Self.horizontalInset.dp)
         }
         modifier = modifier.fillMaxSize()
@@ -221,8 +221,8 @@ public final class List : View, Renderable {
         let searchableState = EnvironmentValues.shared._searchableState
         let isSearchable = searchableState?.isOnNavigationStack == false
 
-        let hasHeader = styling.style != ListStyle.plain || (!isSearchable && arguments.headerSafeAreaHeight.value > 0)
-        let hasFooter = styling.style != ListStyle.plain || arguments.footerSafeAreaHeight.value > 0
+        let hasHeader = styling.style != .plain || (!isSearchable && arguments.headerSafeAreaHeight.value > 0)
+        let hasFooter = styling.style != .plain || arguments.footerSafeAreaHeight.value > 0
 
         // Remember the factory because we use it in the remembered reorderable state
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
@@ -257,7 +257,7 @@ public final class List : View, Renderable {
             }
         }
         PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
-        let isSystemBackground = styling.style != ListStyle.plain && styling.backgroundVisibility != Visibility.hidden
+        let isSystemBackground = styling.style != .plain && styling.style != .inset && styling.backgroundVisibility != Visibility.hidden
         // We contribute top bar preferences even without knowing we're safe area-adjacent for multiple reasons:
         // - When there is a search bar we may not be adjacent to the top safe area, but we should act like it
         // - An expanding nav bar can causes issues detecting safe area adjacency
@@ -382,8 +382,8 @@ public final class List : View, Renderable {
                         Self.RenderItemAnimation(
                             cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
-                            isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(itemIndex),
-                            isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(itemIndex),
+                            isFirstInSection: styling.style != .plain && styling.style != .grouped && itemCollector.value.isFirstInSection(itemIndex),
+                            isLastInSection: styling.style != .plain && styling.style != .grouped && itemCollector.value.isLastInSection(itemIndex),
                             suppressAnimation: suppressTextInputAnimation,
                             animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                         ) { itemModifier, decorationModifier in
@@ -412,8 +412,8 @@ public final class List : View, Renderable {
                             cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
                             isDragging: keyValue != nil && reorderableState.draggingItemKey == keyValue,
-                            isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
-                            isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
+                            isFirstInSection: styling.style != .plain && styling.style != .grouped && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
+                            isLastInSection: styling.style != .plain && styling.style != .grouped && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
                             animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                         ) { itemModifier, decorationModifier in
@@ -441,8 +441,8 @@ public final class List : View, Renderable {
                             cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
                             isDragging: reorderableState.draggingItemKey == keyValue,
-                            isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
-                            isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
+                            isFirstInSection: styling.style != .plain && styling.style != .grouped && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
+                            isLastInSection: styling.style != .plain && styling.style != .grouped && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
                             animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                         ) { itemModifier, decorationModifier in
@@ -470,8 +470,8 @@ public final class List : View, Renderable {
                             cornerRadius: styling.cornerRadius,
                             forceUnanimatedItems: forceUnanimatedItems,
                             isDragging: reorderableState.draggingItemKey == keyValue,
-                            isFirstInSection: styling.style != .plain && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
-                            isLastInSection: styling.style != .plain && itemCollector.value.isLastInSection(startItemIndex + offset + index),
+                            isFirstInSection: styling.style != .plain && styling.style != .grouped && itemCollector.value.isFirstInSection(startItemIndex + offset + index),
+                            isLastInSection: styling.style != .plain && styling.style != .grouped && itemCollector.value.isLastInSection(startItemIndex + offset + index),
                             suppressAnimation: suppressTextInputAnimation,
                             animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                         ) { itemModifier, decorationModifier in
@@ -664,8 +664,15 @@ public final class List : View, Renderable {
     /// Minimum width for a single reveal button; grows to fit longer labels.
     private static let swipeButtonMinWidth: Dp = 80.dp
 
-    static func contentModifier(level: Int) -> Modifier {
-        return Modifier.padding(start: (horizontalItemInset + level * levelInset).dp, end: horizontalItemInset.dp, top: verticalItemInset.dp, bottom: verticalItemInset.dp).fillMaxWidth().requiredHeightIn(min: minimumItemHeight.dp)
+    /// The padding and minimum height of a row's content. `insets` replaces the default insets.
+    static func contentModifier(level: Int, insets: EdgeInsets? = nil) -> Modifier {
+        let top = insets?.top ?? verticalItemInset
+        let bottom = insets?.bottom ?? verticalItemInset
+        let leading = insets?.leading ?? horizontalItemInset
+        let trailing = insets?.trailing ?? horizontalItemInset
+        // The minimum applies to the whole row, as on iOS, so shrinking the insets does not shrink the row
+        let minimumContentHeight = max(0.0, minimumItemHeight + verticalItemInset * 2 - top - bottom)
+        return Modifier.padding(start: (leading + level * levelInset).dp, end: trailing.dp, top: top.dp, bottom: bottom.dp).fillMaxWidth().requiredHeightIn(min: minimumContentHeight.dp)
     }
 
     @Composable static func RenderSeparator(level: Int) {
@@ -743,17 +750,19 @@ public final class List : View, Renderable {
 
         let itemRenderable = itemTransformer?(content) ?? content
         let listItemModifier = ListItemModifier.combined(for: itemRenderable)
+        let rowBackground = listItemModifier.background
         var itemModifier: Modifier = Modifier
-        if listItemModifier?.background == nil {
-            itemModifier = itemModifier.background(BackgroundColor(styling: styling.withStyle(ListStyle.plain), isItem: isItem))
+        if rowBackground == nil {
+            itemModifier = itemModifier.background(BackgroundColor(styling: styling, isItem: isItem))
         }
 
         // The given modifiers include elevation shadow for dragging, etc that need to go before the others
         let containerContext = context.content(modifier: modifier.then(itemModifier).then(context.modifier))
         let contentContext = context.content()
-        let contentModifier = Self.contentModifier(level: level)
+        let rowInsets = listItemModifier.insets
+        let contentModifier = Self.contentModifier(level: level, insets: rowInsets)
         let renderContainer: @Composable (ComposeContext) -> Void = { context in
-            let hasSeparator = listItemModifier?.separator != Visibility.hidden
+            let hasSeparator = listItemModifier.separator != Visibility.hidden
             let separatorColor = Color.separator.colorImpl()
             let separatorBounds = remember { mutableStateOf(IntRect.Zero) }
             let separatorModifier = hasSeparator ? Modifier.drawBehind {
@@ -781,11 +790,12 @@ public final class List : View, Renderable {
                     // row's content before the row itself is placed, which can crash Compose when a lazy list measures
                     // rows during scrolling ("LayoutNode N not found in RectList")
                     let isRtl = layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl
-                    let inset = (Self.horizontalItemInset + level * Self.levelInset).dp.roundToPx()
+                    // By default the separator starts at the row content's leading edge, like iOS
+                    let inset = ((rowInsets?.leading ?? Self.horizontalItemInset) + level * Self.levelInset).dp.roundToPx()
                     let leadingGuide = row[ListRowSeparatorAlignment.line(guide: .listRowSeparatorLeading, isRtl: isRtl)]
                     let trailingGuide = row[ListRowSeparatorAlignment.line(guide: .listRowSeparatorTrailing, isRtl: isRtl)]
                     let leading = leadingGuide == AlignmentLine.Unspecified ? (isRtl ? row.width - inset : inset) : leadingGuide
-                    let trailingInset = styling.style == .plain ? 0 : Self.horizontalItemInset.dp.roundToPx()
+                    let trailingInset = styling.style != .plain && styling.style != .grouped ? Self.horizontalItemInset.dp.roundToPx() : 0
                     let trailing = trailingGuide == AlignmentLine.Unspecified ? (isRtl ? trailingInset : row.width - trailingInset) : trailingGuide
                     let left = max(0, min(row.width, isRtl ? trailing : leading))
                     let right = max(left, min(row.width, isRtl ? leading : trailing))
@@ -794,9 +804,10 @@ public final class List : View, Renderable {
             }
         }
 
-        if let background = listItemModifier?.background {
+        if let rowBackground {
+            // The background fills the whole row, including its insets and separator, and is clipped with the section's corners
             TargetViewLayout(context: containerContext, isOverlay: false, alignment: Alignment.center, target: renderContainer, dependent: {
-                background.Compose(context: $0)
+                rowBackground.Compose(context: $0)
             })
         } else {
             renderContainer(containerContext)
@@ -1446,20 +1457,20 @@ public final class List : View, Renderable {
     }
 
     @Composable private func RenderSearchField(state: SearchableState, context: ComposeContext, styling: ListStyling, safeAreaHeight: Dp) {
-        var modifier = Modifier.background(BackgroundColor(styling: styling, isItem: false))
-        if styling.style == ListStyle.plain {
-            modifier = modifier.padding(top: Self.verticalInset.dp + safeAreaHeight, start: Self.horizontalInset.dp, end: Self.horizontalInset.dp, bottom: Self.verticalInset.dp)
-        } else {
-            modifier = modifier.padding(top: Self.verticalInset.dp + safeAreaHeight)
-        }
-        modifier = modifier.fillMaxWidth()
+        // Inset styles already pad the whole list horizontally, and non-plain styles follow the field with a header spacer
+        let horizontalPadding = styling.style != .plain && styling.style != .grouped ? 0.0 : Self.horizontalInset
+        let bottomPadding = styling.style == .plain ? Self.verticalInset : 0.0
+        let modifier = Modifier.background(BackgroundColor(styling: styling, isItem: false))
+            .padding(start: horizontalPadding.dp, top: Self.verticalInset.dp + safeAreaHeight, end: horizontalPadding.dp, bottom: bottomPadding.dp)
+            .fillMaxWidth()
         SearchField(state: state, context: context.content(modifier: modifier))
     }
 
+    /// The list's background color, or a row's background color when `isItem` is true.
     @Composable private func BackgroundColor(styling: ListStyling, isItem: Bool) -> androidx.compose.ui.graphics.Color {
         if !isItem && styling.backgroundVisibility == Visibility.hidden {
             return Color.clear.colorImpl()
-        } else if styling.style == ListStyle.plain {
+        } else if isItem || styling.style == .plain || styling.style == .inset {
             return Color.background.colorImpl()
         } else {
             return Color.systemBarBackground.colorImpl()
@@ -1513,14 +1524,12 @@ public func List<Data, ObjectType>(_ data: Binding<Data>, id: (ObjectType) -> An
 }
 #endif
 
+/// A list's appearance. `.automatic` and `.sidebar` render as `.insetGrouped`, which is the iOS default.
+// SKIP INSERT: @Stable // Immutable, so Compose can skip row functions that take it
 struct ListStyling: Equatable {
     let style: ListStyle
     let backgroundVisibility: Visibility
     let cornerRadius: CGFloat
-
-    func withStyle(_ style: ListStyle) -> ListStyling {
-        return ListStyling(style: style, backgroundVisibility: backgroundVisibility, cornerRadius: cornerRadius)
-    }
 }
 
 #if SKIP
@@ -1531,6 +1540,9 @@ struct ListStyling: Equatable {
 }
 #endif
 
+/// The behavior and appearance of a list.
+///
+/// Raw values match the `identifier` of each SkipSwiftUI list style, which bridges them.
 public struct ListStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 
@@ -1538,20 +1550,22 @@ public struct ListStyle: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
+    /// The platform default, which is `.insetGrouped`.
     public static let automatic = ListStyle(rawValue: 0) // For bridging
 
-    @available(*, unavailable)
+    /// An inset grouped list. Sections do not collapse.
     public static let sidebar = ListStyle(rawValue: 1) // For bridging
 
-    @available(*, unavailable)
+    /// Rows inset from the list's edges in rounded sections, on the grouped background.
     public static let insetGrouped = ListStyle(rawValue: 2) // For bridging
 
-    @available(*, unavailable)
+    /// Full-width rows on the grouped background.
     public static let grouped = ListStyle(rawValue: 3) // For bridging
 
-    @available(*, unavailable)
+    /// Rows inset from the list's edges in rounded sections, on the plain background.
     public static let inset = ListStyle(rawValue: 4) // For bridging
 
+    /// Full-width rows with pinned section headers.
     public static let plain = ListStyle(rawValue: 5) // For bridging
 }
 
@@ -1646,9 +1660,20 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
+    /// Replaces the row's default insets. Pass `nil` to use the default insets.
+    ///
+    /// The row keeps its minimum height, so small insets do not shrink a short row.
     public func listRowInsets(_ insets: EdgeInsets?) -> some View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: ListItemModifier(insets: insets))
+        #else
         return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func listRowInsets(bridgedTop: Double, bridgedLeading: Double, bridgedBottom: Double, bridgedTrailing: Double) -> any View {
+        return listRowInsets(EdgeInsets(top: bridgedTop, leading: bridgedLeading, bottom: bridgedBottom, trailing: bridgedTrailing))
     }
 
     // SKIP @bridge
@@ -1673,27 +1698,33 @@ extension View {
 }
 
 #if SKIP
+/// Carries a row's `listRowBackground`, `listRowSeparator`, and `listRowInsets` values. Immutable.
 final class ListItemModifier: RenderModifier {
     let background: View?
     let separator: Visibility?
+    let insets: EdgeInsets?
 
-    init(background: View? = nil, separator: Visibility? = nil) {
+    init(background: View? = nil, separator: Visibility? = nil, insets: EdgeInsets? = nil) {
         self.background = background
         self.separator = separator
+        self.insets = insets
         super.init()
     }
 
+    /// Merges the row's list item modifiers. The outermost value of each property wins.
     static func combined(for renderable: Renderable) -> ListItemModifier {
         var background: View? = nil
         var separator: Visibility? = nil
+        var insets: EdgeInsets? = nil
         renderable.forEachModifier {
             if let listItemModifier = $0 as? ListItemModifier {
                 background = background ?? listItemModifier.background
                 separator = separator ?? listItemModifier.separator
+                insets = insets ?? listItemModifier.insets
             }
             return nil
         }
-        return ListItemModifier(background: background, separator: separator)
+        return ListItemModifier(background: background, separator: separator, insets: insets)
     }
 }
 #endif
