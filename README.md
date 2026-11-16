@@ -3224,6 +3224,24 @@ The closure receives the modified view's measured width and height in points. `V
 
 Rows without explicit guides retain their existing separator insets. These guides only position separators; they do not change row content placement or separator visibility. Other alignment guides, custom `AlignmentID`s, baseline guides, and explicit-guide subscripts are not currently supported.
 
+#### Collapsible Sections
+
+In a `.sidebar` list, section headers show a chevron, and tapping one collapses and expands its section. Sections without a header do not collapse. To control a section's expansion yourself, use `Section(isExpanded:)`. As on iOS, its header toggles the binding only in a `.sidebar` list; in other styles, the binding alone shows and hides the section:
+
+```swift
+@State var isExpanded = true
+
+List {
+    Section("Favorites", isExpanded: $isExpanded) {
+        Text("Row 1")
+        Text("Row 2")
+    }
+}
+.listStyle(.sidebar)
+```
+
+Collapsed sections hide their rows and footer. Changes animate only inside `withAnimation`, which tapping a header uses.
+
 #### List Limitations
 
 - Compose requires that every `id` value in a `List` is unique. This applies even if your list consists of multiple `Sections` or uses multiple `ForEach` components to define its content.
