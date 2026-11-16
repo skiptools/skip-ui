@@ -200,10 +200,12 @@ public struct Text: View, Renderable, Equatable {
         if let environmentFont = EnvironmentValues.shared.font {
             font = environmentFont
         } else if let sectionHeaderStyle = EnvironmentValues.shared._listSectionHeaderStyle {
-            font = Font.callout
             if sectionHeaderStyle == .plain {
-                font = font.bold()
+                font = Font.callout.bold()
+            } else if sectionHeaderStyle == .sidebar {
+                font = Font.headline
             } else {
+                font = Font.callout
                 isUppercased = true
             }
         } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
@@ -231,8 +233,9 @@ public struct Text: View, Renderable, Equatable {
             } else {
                 textBrush = foregroundStyle.asBrush(opacity: 1.0, animationContext: context)
             }
-        } else if EnvironmentValues.shared._listSectionHeaderStyle != nil {
-            textColor = Color.secondary.colorImpl()
+        } else if let sectionHeaderStyle = EnvironmentValues.shared._listSectionHeaderStyle {
+            // Sidebar headers read as titles of their collapsible sections
+            textColor = sectionHeaderStyle == .sidebar ? Color.primary.colorImpl() : Color.secondary.colorImpl()
         } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
             textColor = Color.secondary.colorImpl()
         } else {

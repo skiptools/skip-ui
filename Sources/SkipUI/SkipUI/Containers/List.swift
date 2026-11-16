@@ -2,6 +2,11 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
@@ -47,6 +52,9 @@ import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
@@ -65,6 +73,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -80,6 +89,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -224,6 +234,9 @@ public final class List : View, Renderable {
         let hasHeader = styling.style != .plain || (!isSearchable && arguments.headerSafeAreaHeight.value > 0)
         let hasFooter = styling.style != .plain || arguments.footerSafeAreaHeight.value > 0
 
+        // Keys of the sidebar sections the user has collapsed
+        let collapsedSectionKeys = remember { mutableStateOf(Set<String>()) }
+
         // Remember the factory because we use it in the remembered reorderable state
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
         let moveTrigger = remember { mutableStateOf(0) }
@@ -366,6 +379,7 @@ public final class List : View, Renderable {
 
             var implicitSectionIndex = 0
             var currentSectionKey: String? = nil
+            var currentSectionExpansion: ListSectionExpansion? = nil // Set while producing a collapsible section
             var startItemIndex = hasHeader ? 1 : 0 // Header inset
             if isSearchable {
                 startItemIndex += 1 // Search field
@@ -375,6 +389,7 @@ public final class List : View, Renderable {
                 startItemIndex: startItemIndex,
                 item: { renderable, level in
                     let itemIndex = startItemIndex + itemCollector.value.count
+                    let expansion = currentSectionExpansion
                     item(key: itemKey(renderable, level)) {
                         let textInputFocused = remember { mutableStateOf(false) }
                         let suppressTextInputAnimation = remember { mutableStateOf(false) }
@@ -387,17 +402,20 @@ public final class List : View, Renderable {
                             suppressAnimation: suppressTextInputAnimation,
                             animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                         ) { itemModifier, decorationModifier in
-                            EnvironmentValues.shared.setValues {
-                                $0.set_listItemTextInputFocused(textInputFocused)
-                                return ComposeResult.ok
-                            } in: {
-                                RenderItem(content: rowContent(renderable, isLast: itemCollector.value.isLastInSection(itemIndex), styling: styling), level: level, context: itemContext, modifier: itemModifier.then(decorationModifier), styling: styling)
+                            RenderCollapsible(expansion: expansion, modifier: itemModifier) { rowModifier in
+                                EnvironmentValues.shared.setValues {
+                                    $0.set_listItemTextInputFocused(textInputFocused)
+                                    return ComposeResult.ok
+                                } in: {
+                                    RenderItem(content: rowContent(renderable, isLast: itemCollector.value.isLastInSection(itemIndex), styling: styling), level: level, context: itemContext, modifier: rowModifier.then(decorationModifier), styling: styling)
+                                }
                             }
                         }
                     }
                 },
                 indexedItems: { range, identifier, offset, onDelete, onMove, level, factory in
                     let count = range.endExclusive - range.start
+                    let expansion = currentSectionExpansion
                     let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!(range.start + itemCollector.value.remapIndex($0, from: offset))) }
                     items(count: count, key: key) { index in
                         let keyValue = key?(index) // Key closure already remaps index
@@ -417,16 +435,19 @@ public final class List : View, Renderable {
                             suppressAnimation: suppressTextInputAnimation,
                             animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                         ) { itemModifier, decorationModifier in
-                            EnvironmentValues.shared.setValues {
-                                $0.set_listItemTextInputFocused(textInputFocused)
-                                return ComposeResult.ok
-                            } in: {
-                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, decorationModifier: decorationModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                            RenderCollapsible(expansion: expansion, modifier: itemModifier) { rowModifier in
+                                EnvironmentValues.shared.setValues {
+                                    $0.set_listItemTextInputFocused(textInputFocused)
+                                    return ComposeResult.ok
+                                } in: {
+                                    RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: rowModifier, decorationModifier: decorationModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                                }
                             }
                         }
                     }
                 },
                 objectItems: { objects, identifier, offset, onDelete, onMove, level, factory in
+                    let expansion = currentSectionExpansion
                     let key: (Int) -> String = { composeBundleString(for: identifier(objects[itemCollector.value.remapIndex($0, from: offset)])) }
                     items(count: objects.count, key: key) { index in
                         let keyValue = key(index) // Key closure already remaps index
@@ -446,16 +467,19 @@ public final class List : View, Renderable {
                             suppressAnimation: suppressTextInputAnimation,
                             animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                         ) { itemModifier, decorationModifier in
-                            EnvironmentValues.shared.setValues {
-                                $0.set_listItemTextInputFocused(textInputFocused)
-                                return ComposeResult.ok
-                            } in: {
-                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, decorationModifier: decorationModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                            RenderCollapsible(expansion: expansion, modifier: itemModifier) { rowModifier in
+                                EnvironmentValues.shared.setValues {
+                                    $0.set_listItemTextInputFocused(textInputFocused)
+                                    return ComposeResult.ok
+                                } in: {
+                                    RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: rowModifier, decorationModifier: decorationModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                                }
                             }
                         }
                     }
                 },
                 objectBindingItems: { objectsBinding, identifier, offset, editActions, onDelete, onMove, level, factory in
+                    let expansion = currentSectionExpansion
                     let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[itemCollector.value.remapIndex($0, from: offset)])) }
                     items(count: objectsBinding.wrappedValue.count, key: key) { index in
                         let keyValue = key(index) // Key closure already remaps index
@@ -475,11 +499,13 @@ public final class List : View, Renderable {
                             suppressAnimation: suppressTextInputAnimation,
                             animatedModifier: (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                         ) { itemModifier, decorationModifier in
-                            EnvironmentValues.shared.setValues {
-                                $0.set_listItemTextInputFocused(textInputFocused)
-                                return ComposeResult.ok
-                            } in: {
-                                RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, decorationModifier: decorationModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                            RenderCollapsible(expansion: expansion, modifier: itemModifier) { rowModifier in
+                                EnvironmentValues.shared.setValues {
+                                    $0.set_listItemTextInputFocused(textInputFocused)
+                                    return ComposeResult.ok
+                                } in: {
+                                    RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: rowModifier, decorationModifier: decorationModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
+                                }
                             }
                         }
                     }
@@ -491,6 +517,14 @@ public final class List : View, Renderable {
                         implicitSectionIndex += 1
                     }
                     currentSectionKey = sectionKey
+                    // A Section(isExpanded:) binding collapses its section in any style. As on iOS, only sidebar headers
+                    // toggle their section, so a sidebar section needs a header to collapse without a binding.
+                    let binding = itemCollector.value.sectionExpansion
+                    // TODO: iOS shows no chevron on a sidebar Section without isExpanded that follows a Section(isExpanded:),
+                    // so that section does not collapse there. Here it still shows the chevron and collapses.
+                    let hasToggle = styling.style == .sidebar && content.size > 0
+                    currentSectionExpansion = (binding != nil || hasToggle) ? ListSectionExpansion(key: sectionKey, binding: binding, collapsedKeys: collapsedSectionKeys) : nil
+                    let headerExpansion = hasToggle ? currentSectionExpansion : nil
                     let headerRenderables = content.size == 0 ? listOf(EmptyView()) : content
                     let firstRenderable = (renderables.firstOrNull() as? LazySectionHeader)?.content.firstOrNull()
                     let isTop = firstRenderable === headerRenderables.firstOrNull()
@@ -499,7 +533,7 @@ public final class List : View, Renderable {
                         let renderable = headerRenderables[renderableIndex]
                         if styling.style == .plain {
                             stickyHeader { _ in
-                                RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
+                                RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop, expansion: headerExpansion)
                             }
                         } else {
                             if !isTop && renderableIndex == 0 {
@@ -524,7 +558,7 @@ public final class List : View, Renderable {
                                 } else {
                                     itemModifier = (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                                 }
-                                RenderSectionHeader(content: renderable, context: itemContext, modifier: itemModifier, styling: styling, isTop: isTop)
+                                RenderSectionHeader(content: renderable, context: itemContext, modifier: itemModifier, styling: styling, isTop: isTop, expansion: headerExpansion)
                             }
                         }
                         renderedCount = renderedCount + 1
@@ -537,6 +571,8 @@ public final class List : View, Renderable {
                         implicitSectionIndex += 1
                         currentSectionKey = sectionKey
                     }
+                    let expansion = currentSectionExpansion
+                    currentSectionExpansion = nil
                     let footerRenderables = content.size == 0 ? listOf(EmptyView()) : content
                     var renderedCount = 0
                     for renderableIndex in 0..<footerRenderables.size {
@@ -548,7 +584,9 @@ public final class List : View, Renderable {
                             } else {
                                 itemModifier = (rearmingItems.value ? Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil) : Modifier.animateItem(fadeOutSpec: nil))
                             }
-                            RenderSectionFooter(content: renderable, context: itemContext, modifier: itemModifier, styling: styling)
+                            RenderCollapsible(expansion: expansion, modifier: itemModifier) { footerModifier in
+                                RenderSectionFooter(content: renderable, context: itemContext, modifier: footerModifier, styling: styling)
+                            }
                         }
                         renderedCount = renderedCount + 1
                     }
@@ -1371,7 +1409,8 @@ public final class List : View, Renderable {
         }
     }
 
-    @Composable private func RenderSectionHeader(content: Renderable, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isTop: Bool) {
+    /// - Parameter expansion: Makes the header toggle its section with a chevron, or nil if the header does not toggle.
+    @Composable private func RenderSectionHeader(content: Renderable, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isTop: Bool, expansion: ListSectionExpansion? = nil) {
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
         let containerModifier = modifier.fillMaxWidth()
             .heightIn(min: styling.style == .plain ? 0.dp : Self.verticalItemInset.dp)
@@ -1390,9 +1429,46 @@ public final class List : View, Renderable {
                     $0.set_listSectionHeaderStyle(styling.style)
                     return ComposeResult.ok
                 } in: {
-                    content.Render(context: context.content(modifier: contentModifier))
+                    if let expansion {
+                        RenderCollapsibleSectionHeader(content: content, context: context, modifier: contentModifier, expansion: expansion)
+                    } else {
+                        content.Render(context: context.content(modifier: contentModifier))
+                    }
                 }
             }
+        }
+    }
+
+    /// Render a header that toggles its section, with a trailing chevron that turns down while expanded, as on iOS.
+    @Composable private func RenderCollapsibleSectionHeader(content: Renderable, context: ComposeContext, modifier: Modifier, expansion: ListSectionExpansion) {
+        let contentContext = context.content()
+        let rotationAngle = Float(expansion.isExpanded ? 90 : 0).asAnimatable(context: contentContext)
+        let isRTL = LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
+        let tint = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
+        let toggleModifier = Modifier.clickable(role: Role.Button) {
+            withAnimation { expansion.toggle() }
+        }
+        Row(modifier: toggleModifier.then(modifier), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+            Box(modifier: Modifier.padding(end: 8.dp).weight(Float(1.0))) {
+                content.Render(context: contentContext)
+            }
+            Icon(modifier = Modifier.rotate(rotationAngle.value), imageVector: isRTL ? Icons.Outlined.KeyboardArrowLeft : Icons.Outlined.KeyboardArrowRight, contentDescription: nil, tint: tint)
+        }
+    }
+
+    /// Render a section's row or footer, which collapses with its section.
+    ///
+    /// Collapsed rows stay in the lazy list with no height, so item indices, scrolling to an ID, and moves are unaffected.
+    /// - Parameter modifier: The lazy item's placement modifier, which must stay on the item's root layout.
+    @Composable private func RenderCollapsible(expansion: ListSectionExpansion?, modifier: Modifier, content: @Composable (Modifier) -> Void) {
+        guard let expansion else {
+            content(modifier)
+            return
+        }
+        // Expand and collapse only within an animation, as on iOS
+        let isAnimated = Animation.current(isAnimating: false) != nil
+        AnimatedVisibility(visible: expansion.isExpanded, modifier: modifier, enter: isAnimated ? expandVertically() : EnterTransition.None, exit: isAnimated ? shrinkVertically() : ExitTransition.None) {
+            content(Modifier)
         }
     }
 
@@ -1524,7 +1600,7 @@ public func List<Data, ObjectType>(_ data: Binding<Data>, id: (ObjectType) -> An
 }
 #endif
 
-/// A list's appearance. `.automatic` and `.sidebar` render as `.insetGrouped`, which is the iOS default.
+/// A list's appearance. `.automatic` and `.sidebar` render as `.insetGrouped`, which is the iOS default, and `.sidebar` sections collapse.
 // SKIP INSERT: @Stable // Immutable, so Compose can skip row functions that take it
 struct ListStyling: Equatable {
     let style: ListStyle
@@ -1533,6 +1609,35 @@ struct ListStyling: Equatable {
 }
 
 #if SKIP
+/// How a collapsible list section expands: through its `Section(isExpanded:)` binding, or through the list's sidebar state.
+struct ListSectionExpansion {
+    let key: String
+    let binding: Binding<Bool>?
+    let collapsedKeys: MutableState<Set<String>>
+
+    /// Reading this in a composable observes the section's expansion.
+    var isExpanded: Bool {
+        if let binding {
+            return binding.wrappedValue
+        }
+        return !collapsedKeys.value.contains(key)
+    }
+
+    func toggle() {
+        if let binding {
+            binding.wrappedValue = !binding.wrappedValue
+            return
+        }
+        var keys = collapsedKeys.value
+        if keys.contains(key) {
+            keys.remove(key)
+        } else {
+            keys.insert(key)
+        }
+        collapsedKeys.value = keys
+    }
+}
+
 @Stable struct ListArguments: Equatable {
     let headerSafeAreaHeight: Dp
     let footerSafeAreaHeight: Dp
@@ -1553,7 +1658,7 @@ public struct ListStyle: RawRepresentable, Equatable {
     /// The platform default, which is `.insetGrouped`.
     public static let automatic = ListStyle(rawValue: 0) // For bridging
 
-    /// An inset grouped list. Sections do not collapse.
+    /// An inset grouped list whose section headers collapse and expand their sections.
     public static let sidebar = ListStyle(rawValue: 1) // For bridging
 
     /// Rows inset from the list's edges in rounded sections, on the grouped background.

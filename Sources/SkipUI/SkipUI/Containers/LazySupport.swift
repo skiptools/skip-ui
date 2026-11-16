@@ -77,9 +77,12 @@ final class LazyLevelRenderable: Renderable, LazyItemFactory {
 /// Add to lazy items to render a section header.
 final class LazySectionHeader: Renderable, LazyItemFactory {
     let content: kotlin.collections.List<Renderable>
+    /// The section's `Section(isExpanded:)` binding, if any.
+    let isExpanded: Binding<Bool>?
 
-    init(content: kotlin.collections.List<Renderable>) {
+    init(content: kotlin.collections.List<Renderable>, isExpanded: Binding<Bool>? = nil) {
         self.content = content
+        self.isExpanded = isExpanded
     }
 
     @Composable override func Render(context: ComposeContext) {
@@ -88,7 +91,9 @@ final class LazySectionHeader: Renderable, LazyItemFactory {
 
     override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
         let modified = content.map { ModifiedContent.apply(modifiers: modifiers, to: $0) }
+        collector.sectionExpansion = isExpanded
         collector.sectionHeader(modified, LazyItemCollector.sectionIdentity(from: modifiers))
+        collector.sectionExpansion = nil
     }
 }
 
@@ -128,6 +133,8 @@ public final class LazyItemCollector {
     private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Binding<RandomAccessCollection<Any>>, Int, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _, _ in }
     private(set) var sectionHeader: (kotlin.collections.List<Renderable>, Any?) -> Int = { _, _ in 0 }
     private(set) var sectionFooter: (kotlin.collections.List<Renderable>, Any?) -> Int = { _, _ in 0 }
+    /// The `Section(isExpanded:)` binding of the section header being produced, for the `sectionHeader` factory to read.
+    var sectionExpansion: Binding<Bool>?
     private var currentSectionItemCount: Int? = nil
     private let emptyItemIndices = mutableStateMapOf<Int, Bool>()
     private var currentSectionFirstItemIndex: Int? = nil
