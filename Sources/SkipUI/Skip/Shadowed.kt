@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 package skip.ui
 
 import androidx.compose.foundation.layout.padding
@@ -16,6 +15,7 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import kotlin.math.ceil
@@ -28,7 +28,9 @@ import kotlin.math.ceil
     val blurRadiusPx = ceil(with(density) { blurRadius.toPx() }).toInt()
 
     val contentContext = context.content()
+    // The shadow is a second copy of the content: keep it out of the accessibility tree.
     val shadowContext = context.content(modifier = Modifier
+        .clearAndSetSemantics {}
         .drawWithContent {
             val matrix = shadowColorMatrix(color)
             val filter = ColorFilter.colorMatrix(matrix)

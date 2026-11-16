@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 /*
 /// A placeholder used to construct an inline modifier, transition, or other
 /// helper type.

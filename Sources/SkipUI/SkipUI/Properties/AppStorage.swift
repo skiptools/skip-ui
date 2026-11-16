@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 import Foundation
 import SkipModel
@@ -29,6 +28,9 @@ public final class AppStorage<Value>: StateTracker {
         get {
             #if SKIP
             if let _wrappedValueState {
+                if let transaction = lastWriteTransaction {
+                    StateTracking.recordRead(transaction)
+                }
                 return _wrappedValueState.value
             }
             #endif
@@ -36,6 +38,7 @@ public final class AppStorage<Value>: StateTracker {
         }
         set {
             #if SKIP
+            lastWriteTransaction = StateTracking.currentTransaction
             // Changing the store value should trigger our listener to update our own state
             if let serializer {
                 currentStore.set(serializer(newValue), forKey: key)
@@ -52,6 +55,7 @@ public final class AppStorage<Value>: StateTracker {
     private var _wrappedValue: Value
     #if SKIP
     private var _wrappedValueState: MutableState<Value>?
+    private var lastWriteTransaction: StateMutationTransaction?
     #endif
 
     public var projectedValue: Binding<Value> {
@@ -90,6 +94,9 @@ public final class AppStorage<Value>: StateTracker {
                 value = object as? Value
             }
             if let value {
+                // UserDefaults notifies all wrappers for this key in the write scope.
+                // A plain write clears the previous animation transaction.
+                lastWriteTransaction = StateTracking.currentTransaction
                 _wrappedValue = value
                 _wrappedValueState?.value = value
             }

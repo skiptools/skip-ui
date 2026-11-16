@@ -1,5 +1,4 @@
 // Copyright 2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 import Foundation
 import SwiftUI
 import XCTest
@@ -233,6 +232,17 @@ final class TransactionTests: XCTestCase {
         StateTracking.recordRead(Transaction(animation: .easeOut(duration: 1)))
         Animation.primeBridgedProvenance(nil)
         XCTAssertNil(StateTracking.captureLastReadAndClear(), "prime(nil) must clear any stale cursor")
+        #endif
+    }
+
+    /// A nil prime after an animated prime still means this modifier was not animated.
+    func testPrimeBridgedProvenanceNilClearsPendingPrime() throws {
+        #if !SKIP
+        throw XCTSkip("primeBridgedProvenance is Android-only")
+        #else
+        Animation.primeBridgedProvenance(.linear(duration: 1))
+        Animation.primeBridgedProvenance(nil)
+        XCTAssertNil(StateTracking.captureLastReadAndClear(), "prime(nil) must clear a pending animated prime")
         #endif
     }
 

@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
@@ -7,6 +6,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.VisualTransformation
 #endif
@@ -49,9 +51,15 @@ public struct TextEditor : View, Renderable {
         let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
         let colors = TextField.colors(styleInfo: styleInfo, outline: Color.clear)
         let visualTransformation = VisualTransformation.None
+        var modifier = context.modifier.fillSize()
+        if let listItemTextInputFocused = EnvironmentValues.shared._listItemTextInputFocused {
+            modifier = modifier.onFocusChanged {
+                listItemTextInputFocused.value = $0.hasFocus
+            }
+        }
         OutlinedTextField(value: text.wrappedValue, onValueChange: {
             text.wrappedValue = $0
-        }, modifier: context.modifier.fillSize(), textStyle: animatable.value, enabled: EnvironmentValues.shared.isEnabled, singleLine: false, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, colors: colors, visualTransformation: visualTransformation)
+        }, modifier: modifier, textStyle: animatable.value, enabled: EnvironmentValues.shared.isEnabled, singleLine: false, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, colors: colors, visualTransformation: visualTransformation)
     }
     #else
     public var body: some View {

@@ -1,10 +1,11 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 #if SKIP
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 #endif
 
 extension View {
@@ -12,10 +13,13 @@ extension View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             let focusRequester = remember { FocusRequester() }
+            let focusManager = LocalFocusManager.current
+            let isFocused = remember { mutableStateOf(false) }
             var context = context
             context.modifier = context.modifier
                 .focusRequester(focusRequester)
                 .onFocusChanged {
+                    isFocused.value = $0.hasFocus
                     if $0.hasFocus {
                         binding.wrappedValue = value
                     } else if binding.wrappedValue == value {
@@ -27,7 +31,13 @@ extension View {
                     }
                 }
             if value == binding.wrappedValue {
-                SideEffect { focusRequester.requestFocus() }
+                SideEffect {
+                    if !isFocused.value {
+                        focusRequester.requestFocus()
+                    }
+                }
+            } else if isFocused.value {
+                SideEffect { focusManager.clearFocus() }
             }
             renderable.Render(context: context)
         })

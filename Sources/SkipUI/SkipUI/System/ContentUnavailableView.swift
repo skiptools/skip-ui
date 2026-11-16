@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 /*
 /// An interface, consisting of a label and additional content, that you
 /// display when the content of your app is unavailable to users.

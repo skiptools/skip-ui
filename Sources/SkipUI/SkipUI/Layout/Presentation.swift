@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
@@ -15,11 +14,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -42,12 +40,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -58,6 +58,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -97,18 +99,46 @@ private let AlertDialogMaxWidth: Dp = 560.dp
 
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     let isPresentedValue = isPresented.get()
-    if isPresentedValue || sheetState.isVisible {
+    let presentingKeyboardController = LocalSoftwareKeyboardController.current
+    let restoreKeyboard = remember { mutableStateOf(false) }
+    let keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    let windowFocused = LocalWindowInfo.current.isWindowFocused
+    let presentationVisible = isPresentedValue || sheetState.isVisible
+    LaunchedEffect(presentationVisible, windowFocused) {
+        if !presentationVisible && windowFocused && restoreKeyboard.value {
+            restoreKeyboard.value = false
+            presentingKeyboardController?.show()
+        }
+    }
+    if isPresentedValue {
+        LaunchedEffect(true) {
+            // Preserve the presenting field's focus and restore its keyboard after dismissal.
+            restoreKeyboard.value = keyboardVisible
+            presentingKeyboardController?.hide()
+        }
+    }
+    if presentationVisible {
         // Don't fully evaluate content until we set up the presented environment. For now we just want
         // to get at the modifiers to look for `BackDismissDisabled`
         let contentRenderables = ComposeBuilder.from(content).Evaluate(context: context, options: EvaluateOptions(isKeepNonModified: true).value)
         let topInset = remember { mutableStateOf(0.dp) }
-        let topInsetPx = with(LocalDensity.current) { topInset.value.toPx() }
+        // Preferences such as the detent are contributed by the presented content in a SideEffect, and the
+        // content is only rendered once the presentation has been laid out. Until then the detent falls
+        // back to `.large`, which would draw the sheet at nearly full height for several frames before
+        // it collapses to its real detent. Keep the sheet transparent until the content has rendered and
+        // contributed its preferences.
+        let isFirstPassComplete = remember { mutableStateOf(false) }
+        let sheetAlpha = (isFullScreen || isFirstPassComplete.value) ? Float(1.0) : Float(0.0)
+        let density = LocalDensity.current
         let handleHeight = isFullScreen ? 0.dp : 8.dp
         let handleHeightPx = with(LocalDensity.current) { handleHeight.toPx() }
         let handlePadding = isFullScreen ? 0.dp : 10.dp
         let handlePaddingPx = with(LocalDensity.current) { handlePadding.toPx() }
         let sheetMaxWidth = isFullScreen ? Dp.Unspecified : BottomSheetDefaults.SheetMaxWidth
         let shape = GenericShape { size, _ in
+            // The modal content resolves window insets later in composition. Read here,
+            // when constructing the outline, so clipping and content use the same inset.
+            let topInsetPx = with(density) { topInset.value.toPx() }
             let y = topInsetPx - handleHeightPx - handlePaddingPx
             addRect(Rect(offset = Offset(x: Float(0.0), y: y), size: Size(width: size.width, height: size.height - y)))
         }
@@ -117,11 +147,14 @@ private let AlertDialogMaxWidth: Dp = 560.dp
         // and only the first composition of `ModalBottomSheetProperties` is taken into account. So we require the
         // modifier directly on the content view
         let backDismissDisabled = isBackDismissDisabled(on: contentRenderables)
+        let presentationColor = contentRenderables.firstNotNullOfOrNull { renderable in
+            renderable.forEachModifier { ($0 as? PresentationBackgroundColorModifier)?.color }
+        }
         let onDismissRequest = {
             isPresented.set(false)
         }
         let properties = ModalBottomSheetProperties(shouldDismissOnBackPress: !backDismissDisabled)
-        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
+        ModalBottomSheet(onDismissRequest: onDismissRequest, modifier: Modifier.alpha(sheetAlpha), sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: presentationColor != nil ? androidx.compose.ui.graphics.Color.Transparent : androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
             
             SyncSystemBarsWithTheme()
             
@@ -152,12 +185,16 @@ private let AlertDialogMaxWidth: Dp = 560.dp
                 case .medium:
                     inset = screenHeight / 2
                 case let .height(h):
-                    inset = screenHeight - h.dp
+                    // A fixed detent describes usable content height, excluding system bars.
+                    // The bottom inset is consumed by PresentationRoot or the spacer below it.
+                    let bottomBarHeight = max(0.dp, WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() - windowKeyboardInsets().asPaddingValues().calculateBottomPadding())
+                    let topBarHeight = windowSafeDrawingInsets().asPaddingValues().calculateTopPadding()
+                    inset = max(topBarHeight + (24 * sheetDepth).dp + 44.dp, screenHeight - h.dp - bottomBarHeight)
                 case let .fraction(f):
                     inset = screenHeight * Float(1 - f)
                 default:
                     // We have to delay access to WindowInsets until inside the ModalBottomSheet composable to get accurate values
-                    let topBarHeight = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                    let topBarHeight = windowSafeDrawingInsets().asPaddingValues().calculateTopPadding()
                     // Add 44 for draggable area in case content is not draggable
                     inset = topBarHeight + (24 * sheetDepth).dp + 44.dp
                 }
@@ -178,7 +215,7 @@ private let AlertDialogMaxWidth: Dp = 560.dp
             } else if !isEdgeToEdge {
                 systemBarEdges.remove(.top)
                 systemBarEdges.remove(.bottom)
-                let inset = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                let inset = windowSafeDrawingInsets().asPaddingValues().calculateTopPadding()
                 topInset.value = inset
                 // Push the presentation root content area below the top bar
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
@@ -193,7 +230,7 @@ private let AlertDialogMaxWidth: Dp = 560.dp
                 let stateSaver = remember { ComposeStateSaver() }
                 let presentationContext = context.content(stateSaver: stateSaver)
                 // Place inside of ModalBottomSheet, which renders content async
-                PresentationRoot(context: presentationContext, absoluteSystemBarEdges: systemBarEdges) { context in
+                PresentationRoot(backgroundColor: presentationColor, context: presentationContext, absoluteSystemBarEdges: systemBarEdges) { context in
                     EnvironmentValues.shared.setValues {
                         if !isFullScreen {
                             $0.set_sheetDepth(sheetDepth + 1)
@@ -207,11 +244,18 @@ private let AlertDialogMaxWidth: Dp = 560.dp
                             }
                         }
                     }
+                    // PresentationRoot only renders its content once the presentation has been laid out, so
+                    // the content - and the detent preference it contributes in a SideEffect - arrives
+                    // some frames after the sheet itself. This effect is positioned after the content's
+                    // effects, so the real detent and the reveal land in the same recomposition.
+                    SideEffect {
+                        isFirstPassComplete.value = true
+                    }
                 }
             }
             if !isEdgeToEdge {
                 // Move the presentation root content area above the bottom bar
-                let inset = max(0.dp, WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                let inset = max(0.dp, WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() - windowKeyboardInsets().asPaddingValues().calculateBottomPadding())
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
             }
         }
@@ -1250,6 +1294,18 @@ extension View {
         return self
     }
 
+    /// Sets a Color-only presentation background, including clear and partially opaque colors.
+    /// Apply directly to the root view returned by the sheet or fullScreenCover content closure.
+    /// Other ShapeStyles and custom background views are unsupported.
+    // SKIP @bridge
+    public func presentationBackground(_ color: Color) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: PresentationBackgroundColorModifier(color: color))
+        #else
+        return self
+        #endif
+    }
+
     @available(*, unavailable)
     public func presentationBackground(_ style: any ShapeStyle) -> some View {
         return self
@@ -1323,6 +1379,16 @@ final class PresentationModifier: SideEffectModifier {
             }
             return ComposeResult.ok
         }
+    }
+}
+
+/// Carries the presentation color before the modal's first composition, avoiding an opaque first frame.
+final class PresentationBackgroundColorModifier: RenderModifier {
+    let color: Color
+
+    init(color: Color) {
+        self.color = color
+        super.init()
     }
 }
 

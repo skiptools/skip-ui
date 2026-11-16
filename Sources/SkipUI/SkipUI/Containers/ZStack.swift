@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.animation.AnimatedContent
@@ -135,6 +134,9 @@ public struct ZStack : View, Renderable {
     /// unique within a single composition (no Compose "key already used" crash) yet stable
     /// across recompositions whenever the child set is stable.
     private func childKey(for renderable: Renderable, index: Int, occurrences: MutableMap<Any, Int>) -> Any {
+        if let forEachKey = ForEachIdentityModifier.key(for: renderable) {
+            return forEachKey
+        }
         let identity: Any = TagModifier.on(content: renderable, role: .id)?.value
             ?? TagModifier.on(content: renderable, role: .tag)?.value
             ?? index

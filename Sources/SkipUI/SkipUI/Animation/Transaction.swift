@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 #if SKIP
 import SkipModel
@@ -18,6 +17,10 @@ public final class Transaction: StateMutationTransaction {
     public var disablesAnimations: Bool
     public var isContinuous: Bool
     public var tracksVelocity: Bool
+
+    /// Experiment: acknowledge a native provenance capture only after Compose applies it.
+    /// This belongs to one materialized modifier, not the transaction's copyable value fields.
+    var bridgedCompositionApplied: (() -> Void)? = nil
 
     /// Storage for custom values written via `withTransaction(_:_:_:)` keypath form. The key is
     /// the fully-qualified `TransactionKey` type name.

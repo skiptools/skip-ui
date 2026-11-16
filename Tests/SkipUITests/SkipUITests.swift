@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 import Foundation
 import Observation
 import OSLog
@@ -84,6 +83,8 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.click
@@ -101,6 +102,7 @@ import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.moveTo
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -115,6 +117,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextInputSelection
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.performGesture
+import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.up
 import androidx.compose.ui.text.AnnotatedString
@@ -249,6 +252,67 @@ final class SkipUITests: SkipUITestCase {
                 .accessibilityIdentifier("button")
                 .buttonStyle(.bordered) // Required to use Compose Button
             }
+        }
+    }
+
+    func testCustomButtonStyles() throws {
+        try testUI(view: {
+            CustomButtonStyleTestView().accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            try check(rule, id: "label", hasText: "Counter: 0")
+            #if SKIP
+            // ButtonStyle: makeBody renders around the label and the tap fires the action
+            // The body's text is merged into the clickable button node, and the disabled button uses the same style
+            rule.onAllNodesWithTag("styled.body", useUnmergedTree: true)[0].assertIsDisplayed()
+            rule.onNodeWithTag("styled").performClick()
+            try check(rule, id: "label", hasText: "Counter: 1")
+
+            // PrimitiveButtonStyle whose Button(configuration) hands off to the outer .bordered style without recursing
+            rule.onNodeWithTag("primitive").performClick()
+            try check(rule, id: "label", hasText: "Counter: 11")
+
+            // Disabled custom-styled button doesn't fire
+            rule.onNodeWithTag("disabled").performClick()
+            try check(rule, id: "label", hasText: "Counter: 11")
+            #endif
+        })
+    }
+    struct CustomButtonStyleTestView: View {
+        @State var counter = 0
+        var body: some View {
+            VStack {
+                Text("Counter: \(counter)")
+                    .accessibilityIdentifier("label")
+                Button("Styled") { counter += 1 }
+                    .buttonStyle(TestButtonStyle())
+                    .accessibilityIdentifier("styled")
+                VStack {
+                    Button("Primitive") { counter += 10 }
+                        .buttonStyle(TestPrimitiveButtonStyle())
+                        .accessibilityIdentifier("primitive")
+                }
+                .buttonStyle(.bordered)
+                Button("Disabled") { counter += 100 }
+                    .buttonStyle(TestButtonStyle())
+                    .disabled(true)
+                    .accessibilityIdentifier("disabled")
+            }
+        }
+    }
+    struct TestButtonStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack {
+                configuration.label
+                Text(configuration.isPressed ? "pressed" : "idle")
+                    .accessibilityIdentifier("styled.body")
+            }
+            .padding()
+        }
+    }
+    struct TestPrimitiveButtonStyle: PrimitiveButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            Button(configuration)
+                .padding()
         }
     }
 
@@ -451,6 +515,30 @@ final class SkipUITests: SkipUITestCase {
         }
     }
 
+    func testRefreshableScrollViewTakesPullBelowShortContent() throws {
+        #if !SKIP
+        throw XCTSkip("Pull to refresh is a Compose behavior")
+        #else
+        let refreshCount = mutableStateOf(0)
+        try testUI(view: {
+            ScrollView {
+                Text("Short")
+                    .accessibilityIdentifier("refresh.content")
+            }
+            .refreshable { refreshCount.value += 1 }
+            .frame(height: 400)
+            .accessibilityIdentifier("refresh.container")
+        }, eval: { rule in
+            let container = rule.onNodeWithTag("refresh.container").fetchSemanticsNode().boundsInRoot
+            let content = rule.onNodeWithTag("refresh.content").fetchSemanticsNode().boundsInRoot
+            XCTAssertLessThan(content.bottom, container.top + container.height / 4, "The pull would start on the content")
+            rule.onNodeWithTag("refresh.container").performTouchInput { swipeDown(startY: centerY / 2, endY: bottom) }
+            rule.waitForIdle()
+            XCTAssertEqual(refreshCount.value, 1, "A pull starting below the content did not refresh")
+        })
+        #endif
+    }
+
     func testConditionalTabDoesNotRenderBlankNavigationItem() throws {
         #if !SKIP
         throw XCTSkip("TabView navigation item count is a Compose behavior")
@@ -517,6 +605,30 @@ final class SkipUITests: SkipUITestCase {
         }
     }
 
+    func testShadowCopyIsHiddenFromAccessibility() throws {
+        #if !SKIP
+        throw XCTSkip("Compose semantics")
+        #else
+        try testUI(view: {
+            Text("Shadowed").shadow(radius: 4)
+        }, eval: { rule in
+            rule.onAllNodesWithText("Shadowed").assertCountEquals(1)
+        })
+        #endif
+    }
+
+    func testShadowCopyOfButtonIsHiddenFromAccessibility() throws {
+        #if !SKIP
+        throw XCTSkip("Compose semantics")
+        #else
+        try testUI(view: {
+            Button("Tap") { }.shadow(radius: 4, y: 8)
+        }, eval: { rule in
+            rule.onAllNodes(hasClickAction()).assertCountEquals(1)
+        })
+        #endif
+    }
+
     func testMenuAccessibilityIdentifier() throws {
         try testUI(view: {
             MenuTestView().accessibilityIdentifier("test-view")
@@ -568,6 +680,122 @@ final class SkipUITests: SkipUITestCase {
         }
     }
   
+    func testMenuDisabledItems() throws {
+        try testUI(view: {
+            MenuDisabledItemsTestView().accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            try check(rule, id: "status", hasText: "initial")
+            #if SKIP
+            rule.onNodeWithTag("menu.label").performClick()
+
+            rule.onNodeWithTag("menu.item.disabled").assertIsDisplayed()
+            rule.onNodeWithTag("menu.item.disabled").assertIsNotEnabled()
+            rule.onNodeWithTag("menu.item.disabled").performClick()
+            try check(rule, id: "status", hasText: "initial")
+
+            rule.onNodeWithTag("menu.item.disabledLabel").assertIsDisplayed()
+            rule.onNodeWithTag("menu.item.disabledLabel").assertIsNotEnabled()
+            rule.onNodeWithTag("menu.item.disabledLabel").performClick()
+            try check(rule, id: "status", hasText: "initial")
+
+            rule.onNodeWithTag("menu.item.inDisabledSection").assertIsDisplayed()
+            rule.onNodeWithTag("menu.item.inDisabledSection").assertIsNotEnabled()
+            rule.onNodeWithTag("menu.item.inDisabledSection").performClick()
+            try check(rule, id: "status", hasText: "initial")
+
+            // As in SwiftUI, a disabled nested menu still opens, but its items are disabled
+            rule.onNodeWithTag("menu.item.disabledMenu").assertIsEnabled()
+            rule.onNodeWithTag("menu.item.disabledMenu").performClick()
+            rule.mainClock.advanceTimeBy(500) // replaceMenu delays before presenting the nested menu
+            rule.waitForIdle()
+            rule.onNodeWithTag("menu.item.nested").assertIsDisplayed()
+            rule.onNodeWithTag("menu.item.nested").assertIsNotEnabled()
+            rule.onNodeWithTag("menu.item.nested").performClick()
+            try check(rule, id: "status", hasText: "initial")
+            #endif
+        })
+    }
+
+    func testMenuEnabledItem() throws {
+        try testUI(view: {
+            MenuDisabledItemsTestView().accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            try check(rule, id: "status", hasText: "initial")
+            #if SKIP
+            rule.onNodeWithTag("menu.label").performClick()
+            rule.onNodeWithTag("menu.item.enabled").assertIsEnabled()
+            rule.onNodeWithTag("menu.item.enabled").performClick()
+            try check(rule, id: "status", hasText: "enabled")
+
+            rule.mainClock.advanceTimeBy(500) // let the menu finish closing
+            rule.onNodeWithTag("menu.label").performClick()
+            rule.onNodeWithTag("menu.item.enabledMenu").performClick()
+            rule.mainClock.advanceTimeBy(500) // replaceMenu delays before presenting the nested menu
+            rule.waitForIdle()
+            rule.onNodeWithTag("menu.item.enabledNested").assertIsEnabled()
+            rule.onNodeWithTag("menu.item.enabledNested").performClick()
+            try check(rule, id: "status", hasText: "enabledNested")
+            #endif
+        })
+    }
+
+    struct MenuDisabledItemsTestView: View {
+        @State var status: String = "initial"
+
+        var body: some View {
+            VStack {
+                Text(verbatim: status)
+                    .accessibilityIdentifier("status")
+                Menu {
+                    Button("Disabled item") {
+                        status = "disabled"
+                    }
+                    .disabled(true)
+                    .accessibilityIdentifier("menu.item.disabled")
+
+                    Button(action: { status = "disabledLabel" }) {
+                        Label("Disabled label item", systemImage: "heart.fill")
+                    }
+                    .disabled(true)
+                    .accessibilityIdentifier("menu.item.disabledLabel")
+
+                    Menu("Disabled nested menu") {
+                        Button("Nested item") {
+                            status = "nested"
+                        }
+                        .accessibilityIdentifier("menu.item.nested")
+                    }
+                    .disabled(true)
+                    .accessibilityIdentifier("menu.item.disabledMenu")
+
+                    Section("Disabled section") {
+                        Button("Item in disabled section") {
+                            status = "section"
+                        }
+                        .accessibilityIdentifier("menu.item.inDisabledSection")
+                    }
+                    .disabled(true)
+
+                    Button("Enabled item") {
+                        status = "enabled"
+                    }
+                    .accessibilityIdentifier("menu.item.enabled")
+
+                    Menu("Enabled nested menu") {
+                        Button("Enabled nested item") {
+                            status = "enabledNested"
+                        }
+                        .accessibilityIdentifier("menu.item.enabledNested")
+                    }
+                    .accessibilityIdentifier("menu.item.enabledMenu")
+                } label: {
+                    Text(verbatim: "Open menu")
+                }
+                .accessibilityIdentifier("menu.label")
+            }
+        }
+    }
+
     func testSheetWithScrollableContentDismissesOnDownwardOverscroll() throws {
         #if !SKIP
         throw XCTSkip("sheet overscroll dismissal is a Compose behavior")

@@ -14,7 +14,7 @@ let package = Package(
         .library(name: "MyProduct", targets: ["MyTarget"]),
     ],
     dependencies: [
-        .package(url: "https://source.skip.dev/skip-ui.git", from: "1.0.0"),
+        .package(url: "https://github.com/skiptools/skip-ui.git", from: "1.0.0"),
     ],
     targets: [
         .target(name: "MyTarget", dependencies: [
@@ -35,7 +35,7 @@ SkipUI is used directly by [Skip Lite](https://skip.dev/docs/modes/#lite) transp
 
 ## Dependencies
 
-SkipUI depends on the [skip](https://source.skip.dev/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
+SkipUI depends on the [skip](https://github.com/skiptools/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
 
 SkipUI is part of the core *Core Skip Frameworks* and is not intended to be imported directly.
 The module is transparently adopted by importing SwiftUI in compiled Swift, and through the translation of `import SwiftUI` into `import skip.ui.*` for transpiled code.
@@ -585,6 +585,67 @@ public struct Material3RippleOptions {
 }
 ```
 
+## Android Rendering Performance
+
+SkipUI provides Android-only modifiers for avoiding repeated work in expensive view subtrees. Both modifiers below return the original view on non-Android platforms.
+
+### Reusing Equal Content
+
+Use `.androidEquatable()` on an `Equatable` view to reuse its evaluated Android content while the view value remains equal:
+
+```swift
+struct ContactRow: View, Equatable {
+    let contact: Contact
+
+    var body: some View {
+        HStack {
+            Text(contact.name)
+            Spacer()
+            Text(contact.status)
+        }
+    }
+}
+
+ContactRow(contact: contact)
+    .androidEquatable()
+```
+
+For a view that is not itself `Equatable`, pass an explicit value to `.androidEquatable(recomposeOverride:)`:
+
+```swift
+ContactRow(contact: contact, onSelect: onSelect)
+    .androidEquatable(
+        recomposeOverride: ContactRowInputs(
+            contact: contact,
+            isSelected: isSelected
+        )
+    )
+```
+
+Think of `recomposeOverride` as a cache key. When a parent recomposes and the key is unchanged, SkipUI reuses the child's evaluated content instead of evaluating its body again. When the key changes, SkipUI evaluates the child again. Include every value that can affect the child's body, including relevant environment and hoisted state values.
+
+State read inside the optimized child's body is not an automatic invalidation input. If a child must update from state, hoist that state above the optimized view and include its value in `recomposeOverride`. Modifiers applied after `.androidEquatable(...)` remain outside the cached content and can continue to receive updated values and actions.
+
+This is an explicit Android optimization rather than the standard SwiftUI `.equatable()` modifier. Use it only after identifying repeated body evaluation as meaningful work.
+
+### Retained Composition Boundaries
+
+For a subtree that needs its own retained Compose identity and lifecycle, use `.androidCompositionBoundary(id:inputs:)`:
+
+```swift
+PlayerSurface(player: player)
+    .androidCompositionBoundary(
+        id: player.id.uuidString,
+        inputs: String(player.renderRevision)
+    )
+```
+
+Keeping `id` stable preserves the hosted composition and its state. Changing `inputs` updates the content inside the existing host. Changing `id` disposes the old host and creates a new one. Treat `inputs` as a revision token and change it whenever any value used to build the retained content changes; content remains unchanged while both `id` and `inputs` are unchanged.
+
+The boundary inherits the current Compose composition locals, including SkipUI environment values. It is a composition and lifecycle boundary, not a layout boundary: modifiers and constraints outside the boundary continue to measure the same retained host and child. A size change therefore remeasures native-backed content without recreating or re-bridging it. If native content must keep fixed bounds, make that an explicit surrounding-layout decision rather than relying on the composition boundary.
+
+An Android composition boundary creates a separate Compose host, so it is heavier than `.androidEquatable(...)`. Prefer equality reuse for ordinary views and collection rows. Use a composition boundary when the subtree specifically needs retained hosting or lifecycle isolation.
+
 ## Supported SwiftUI
 
 The following table summarizes SkipUI's SwiftUI support on Android. Anything not listed here is likely not supported. Note that in your iOS-only code - i.e. code within `#if !os(Android)` blocks - you can use any SwiftUI you want.
@@ -740,12 +801,14 @@ Support levels:
           <details>
               <summary><code>DisclosureGroup</code> (<a href="https://skip.dev/docs/components/disclosuregroup/">example</a>)</summary>
               <ul>
+                  <li><code>init(@ViewBuilder content: @escaping () -> any View, @ViewBuilder label: () -> any View)</code></li>
                   <li><code>init(isExpanded: Binding&lt;Bool&gt;, @ViewBuilder content: @escaping () -> any View, @ViewBuilder label: () -> any View)</code></li>
+                  <li><code>init(_ titleKey: LocalizedStringKey, @ViewBuilder content: @escaping () -> any View)</code></li>
+                  <li><code>init(_ titleResource: LocalizedStringResource, @ViewBuilder content: @escaping () -> any View)</code></li>
                   <li><code>init(_ titleKey: LocalizedStringKey, isExpanded: Binding&lt;Bool&gt;, @ViewBuilder content: @escaping () -> any View)</code></li>
-                    <li><code>init(_ titleResource: LocalizedStringResource, isExpanded: Binding&lt;Bool&gt;, @ViewBuilder content: @escaping () -> any View)</code></li>
+                  <li><code>init(_ titleResource: LocalizedStringResource, isExpanded: Binding&lt;Bool&gt;, @ViewBuilder content: @escaping () -> any View)</code></li>
+                  <li><code>init(_ label: String, @ViewBuilder content: @escaping () -> any View)</code></li>
                   <li><code>init(_ label: String, isExpanded: Binding&lt;Bool&gt;, @ViewBuilder content: @escaping () -> any View)</code></li>
-                  <li>Does not animate when used as a <code>List</code> or <code>Form</code> item</li>
-                  <li>Always animates when **not** used as a <code>List</code> or <code>Form</code> item</li>
               </ul>
           </details>      
        </td>
@@ -1264,6 +1327,7 @@ Support levels:
               <summary><code>Text</code> (<a href="https://skip.dev/docs/components/text/">example</a>)</summary>
               <ul>
                   <li><code>Text(...) + Text(...)</code> is not supported</li>
+                  <li>Editable <code>Text(AttributedString)</code> supports fonts, foreground colors, links, single solid underlines and strikethroughs, baseline offsets, and inline Markdown intents. See <a href="#editable-attributed-text">Editable attributed text</a>.</li>
                   <li>For formatters, only <code>Text.DateStyle.date</code> and <code>Text.DateStyle.time</code> are supported</li>
               </ul>
           </details>      
@@ -1416,6 +1480,18 @@ Support levels:
    <tr>
       <td>✅</td>
       <td><code>.alert</code></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>.alignmentGuide</code></summary>
+              <ul>
+                  <li>Supports <code>.listRowSeparatorLeading</code> and <code>.listRowSeparatorTrailing</code> only</li>
+                  <li>See <a href="#list-row-separator-alignment">List Row Separator Alignment</a></li>
+              </ul>
+          </details>
+      </td>
     </tr>
     <tr>
       <td>✅</td>
@@ -2118,6 +2194,7 @@ Support levels:
               <summary><code>.searchable</code> (<a href="https://skip.dev/docs/components/searchable/">example</a>)</summary>
               <ul>
                 <li><code>func searchable(text: Binding&lt;String>, prompt: Text? = nil) -> some View</code></li>
+                <li><code>func searchable(text: Binding&lt;String>, isPresented: Binding&lt;Bool>, prompt: Text? = nil) -> some View</code></li>
                 <li><code>func searchable(text: Binding&lt;String>, prompt: String) -> some View</code></li>
               </ul>
           </details>      
@@ -2511,6 +2588,7 @@ Support levels:
                   <li><code>var delegate: (any UNUserNotificationCenterDelegate)?</code></li>
                   <li><code>func add(_ request: UNNotificationRequest) async throws</code></li>
                   <li>The `add` function ignores all repeat options and and simply delivers the notification either immediately or after the next trigger date is reached.</li>
+                  <li>As on iOS, adding a request replaces the pending request with the same identifier.</li>
                   <li><code>func pendingNotificationRequests() async -> [UNNotificationRequest]</code></li>
                   <li><code>func removePendingNotificationRequests(withIdentifiers identifiers: [String])</code></li>
                   <li><code>func removeAllPendingNotificationRequests()</code></li>
@@ -2549,6 +2627,8 @@ The following properties are currently animatable:
 - `.rotationEffect`
 - `.scaleEffect`
 - `.stroke` color
+
+Only values changed by a matching `withAnimation` or animated `Transaction` use that animation. A concurrent plain state write snaps to its new value, and a plain write to a value with an in-progress animation cancels that animation and snaps to the new target.
 
 All of SwiftUI's built-in transitions are supported on Android. To use transitions or to animate views being added or removed in general, however, you **must** assign a unique `.id` value to every view in the parent `HStack`, `VStack`, or `ZStack`:
 
@@ -2679,6 +2759,8 @@ ForEach([person1, person2, person3], id: \.fullName) { person in
 ```
 
 **Important**: When the body of your `ForEach` contains multiple top-level views (e.g. a full row of a `VGrid`), or any single view that expands to additional views (like a `Section` or a nested `ForEach`), SkipUI must "unroll" the loop in order to supply all its views individually to Compose. This means that the `ForEach` will be entirely iterated up front, though the views it produces won't yet be rendered.
+
+SkipUI uses each element's `ForEach` identifier as its Android composition identity, including when an unrolled `ForEach` is rendered in an `HStack`, `VStack`, or `ZStack`. Use stable, unique identifiers so retained state and optimized content continue to follow the same element when the collection is inserted into, removed from, or reordered.
 
 ### Gestures
 
@@ -3120,6 +3202,24 @@ List($people, id: \.fullName, editActions: .all) { $person in
 
 You can also enable editing by using a `ForEach` with the `.onDelete` and `.onMove` modifiers. Make sure your `ForEach` also supplies an `id` for each item.
 
+#### List Row Separator Alignment
+
+Use SwiftUI's horizontal separator guides to customize a list row's separator:
+
+```swift
+Text("Title")
+    .alignmentGuide(.listRowSeparatorLeading) { dimensions in
+        dimensions[.leading] + 12
+    }
+    .alignmentGuide(.listRowSeparatorTrailing) { dimensions in
+        dimensions[.trailing] - 12
+    }
+```
+
+The closure receives the modified view's measured width and height in points. `ViewDimensions` supports `.leading`, `.center`, `.trailing`, and the two separator guides. Positions are relative to the view's leading edge and mirror in right-to-left layouts. Guides on nested row content propagate through layout containers, so a guide on a label beside an icon can align the separator with that label. Modifier order matters: padding outside a guide shifts its position with the content.
+
+Rows without explicit guides retain their existing separator insets. These guides only position separators; they do not change row content placement or separator visibility. Other alignment guides, custom `AlignmentID`s, baseline guides, and explicit-guide subscripts are not currently supported.
+
 #### List Limitations
 
 - Compose requires that every `id` value in a `List` is unique. This applies even if your list consists of multiple `Sections` or uses multiple `ForEach` components to define its content.
@@ -3323,6 +3423,28 @@ struct CustomNavigationAnimationSpecModifier : ContentModifier {
 ```
 #### Modals
 
+Fixed `.height(...)` presentation detents describe usable content height; the bottom system-bar
+inset is added separately, and oversized heights are capped at the large-sheet boundary. For
+content-sized sheets, measure the natural content height and provide a single height detent.
+Android currently selects only one entry from a set of detents rather than supporting resizing
+between multiple detents.
+
+Android supports the **Color-only** form of `.presentationBackground(_:)`, including clear and
+partially opaque colors. Apply it directly to the root view returned by the `.sheet` or
+`.fullScreenCover` content closure:
+
+```swift
+SomeContentView()
+    .sheet(isPresented: $isSheetPresented) {
+        SheetContentView()
+            .presentationBackground(Color.clear)
+    }
+```
+
+`Color.clear` reveals the presenting view wherever the sheet content is transparent. Other shape
+styles, such as materials and gradients, and custom background views remain unsupported. The
+default background is unchanged when the modifier is absent.
+
 Skip supports standard modal presentations. Android apps typically allow users to dismiss modals with the Android back button. Skip allows you to selectively disable this behavior with the Android-only `backDismissDisabled(_ isDisabled: Bool = true)` SwiftUI modifier. If you use this modifier, you **must** put it on the top-level view embedded in your `.sheet` or `.fullScreenCover`, as in the following example:
 
 ```swift
@@ -3451,7 +3573,7 @@ The most common way to test SkipUI's support for a SwiftUI component is through 
 
 ### SkipLite Code Transformations
 
-SkipUI does not work in isolation. When used from Skip Lite transpiled Swift, it depends on transformations the [skip](https://source.skip.dev/skip) plugin makes to SwiftUI code. And while Skip generally strives to write Kotlin that is similar to hand-crafted code, these SwiftUI transformations are not something you'd want to write yourself. Before discussing SkipUI's implementation, let's explore them.
+SkipUI does not work in isolation. When used from Skip Lite transpiled Swift, it depends on transformations the [skip](https://github.com/skiptools/skip) plugin makes to SwiftUI code. And while Skip generally strives to write Kotlin that is similar to hand-crafted code, these SwiftUI transformations are not something you'd want to write yourself. Before discussing SkipUI's implementation, let's explore them.
 
 Both SwiftUI and Compose are declarative UI frameworks. Both have mechanisms to track state and automatically re-render when state changes. SwiftUI models user interface elements with `View` objects, however, while Compose models them with `@Composable` functions. The Skip transpiler must therefore translate your code defining a `View` graph into `@Composable` function calls. This involves two primary transformations:
 
@@ -3600,7 +3722,47 @@ Still other modifiers don't affect rendering at all, but perform side effects or
 
 Like other SwiftUI components, modifiers use `#if SKIP ... #else ...` to stub the Swift implementation and keep SkipUI buildable in Xcode.
 
-## License
+## Editable attributed text
 
-This software is licensed under the 
-[Mozilla Public License 2.0](https://www.mozilla.org/MPL/).
+With the matching SkipFoundation editable-attributed-string support, Lite code
+can use the same range-editing syntax as SwiftUI:
+
+```swift
+var text = AttributedString("Hello world")
+if let range = text.range(of: "world") {
+    text[range].font = .headline
+    text[range].foregroundColor = .orange
+    text[range].underlineStyle = .single
+}
+Text(text)
+```
+
+The same properties are available on `AttributeContainer` and readable on runs.
+`Text` snapshots the current attributes into the shared run renderer, including
+edits made after Markdown parsing. Fonts, foreground colors, links, baseline
+offsets, and the supported inline presentation intents are rendered. Underline
+and strikethrough values currently render as single solid lines; their pattern
+and color options are not rendered.
+
+Case-insensitive search ranges can be highlighted using the same API on both platforms:
+
+```swift
+var text = AttributedString("Search highlighting in Skip")
+if let range = text.range(of: "skip", options: .caseInsensitive) {
+    text[range].foregroundColor = .accentColor
+}
+Text(text)
+```
+
+SkipFoundation performs the search using Android ICU and returns a range in the
+original text. See its README for supported search options and platform differences.
+
+Infer ranges from `range(of:)` or `runs`. Lite does not implement generic attribute
+scopes or explicit `Range<AttributedString.Index>` slicing. See SkipFoundation's
+editable attributed strings documentation for the supported subset.
+
+This requires SkipFoundation 1.4.9 or later for editable attributed strings and
+ICU search, merged in
+[SkipFoundation PR #143](https://github.com/skiptools/skip-foundation/pull/143).
+The package declares this minimum release requirement. No fork or local dependency
+is required.

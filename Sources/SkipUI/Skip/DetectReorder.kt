@@ -1,5 +1,3 @@
-// SPDX-License-Identifier: MPL-2.0
-//
 // This file uses code publised with the following header:
 //
 /*

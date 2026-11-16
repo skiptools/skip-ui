@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
@@ -138,7 +137,7 @@ public struct AsyncImage : View, Renderable {
                     #else
                     return Self.defaultPlaceholder()
                     #endif
-                case .failure(let error):
+                case .failure:
                     return Self.defaultPlaceholder()
                 case .success(let image):
                     return image

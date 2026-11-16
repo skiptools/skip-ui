@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 import SwiftUI
 import XCTest
 import OSLog
@@ -50,6 +49,82 @@ final class LayoutTests: XCSnapshotTestCase {
                 Color.white.frame(width: 4.0, height: 4.0)
             }
         }), """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
+    }
+
+    func testFixedSizeVerticalScrollViewTakesContentHeight() throws {
+        XCTAssertEqual(try pixmap(content: ZStack {
+            Color.black.frame(width: 12.0, height: 12.0)
+            ScrollView {
+                Color.white.frame(width: 4.0, height: 4.0)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(width: 12.0, height: 12.0)), """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
+    }
+
+    func testFixedSizeVerticalScrollViewInStackLeavesFreeHeightToSpacer() throws {
+        XCTAssertEqual(try pixmap(content: ZStack {
+            Color.black.frame(width: 12.0, height: 12.0)
+            VStack(spacing: 0.0) {
+                ScrollView {
+                    Color.white.frame(width: 4.0, height: 4.0)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                Color.white.frame(width: 8.0, height: 2.0)
+                Spacer(minLength: 0.0)
+            }
+        }
+        .frame(width: 12.0, height: 12.0)), """
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . .                 . .
+        . .                 . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
+    }
+
+    func testFixedSizeHorizontalScrollViewTakesContentWidth() throws {
+        XCTAssertEqual(try pixmap(content: ZStack {
+            Color.black.frame(width: 12.0, height: 12.0)
+            ScrollView(.horizontal) {
+                Color.white.frame(width: 4.0, height: 4.0)
+            }
+            .fixedSize(horizontal: true, vertical: false)
+        }
+        .frame(width: 12.0, height: 12.0)), """
         . . . . . . . . . . . .
         . . . . . . . . . . . .
         . . . . . . . . . . . .
