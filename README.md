@@ -570,6 +570,61 @@ struct MyContentModifier : ContentModifier {
 }
 ```
 
+### Material 3 wavy progress indicators
+
+On Android, `ProgressView` normally uses Material 3 `LoadingIndicator`, `LinearProgressIndicator`, and `CircularProgressIndicator`. To use the expressive wavy indicators ([`LinearWavyProgressIndicator`](https://developer.android.com/reference/kotlin/androidx/compose/material3/LinearWavyProgressIndicator), [`CircularWavyProgressIndicator`](https://developer.android.com/reference/kotlin/androidx/compose/material3/CircularWavyProgressIndicator.composable)), apply the `.material3WavyProgress()` modifier.
+
+```swift
+extension View {
+    public func material3WavyProgress(wavy: Bool = true, amplitude: ((Double?) -> Double)? = nil, wavelength: Double? = nil, waveSpeed: Double? = nil) -> any View
+    /// Convenience overload: constant amplitude for every progress value (same as `{ _ in amplitude }`).
+    public func material3WavyProgress(wavy: Bool = true, amplitude fixedAmplitude: Double, wavelength: Double? = nil, waveSpeed: Double? = nil) -> any View
+}
+
+public struct Material3WavyProgressConfiguration: Equatable {
+    public var isEnabled: Bool
+    public var amplitude: ((Double?) -> Double)?
+    public var wavelength: Double?
+    public var waveSpeed: Double?
+}
+```
+
+In Skip Fuse, use it like this:
+
+```swift
+ProgressView(value: 0.4)
+    #if os(Android)
+    .composeModifier { Material3WavyProgressModifier() }
+    #endif
+
+...
+
+#if SKIP
+struct Material3WavyProgressModifier: ContentModifier {
+    func modify(view: any View) -> any View {
+        view.material3WavyProgress()
+    }
+}
+#endif
+```
+
+In Skip Lite, use it like this:
+
+```swift
+ProgressView(value: 0.4)
+    #if SKIP
+    .material3WavyProgress()
+    #endif
+```
+
+Values are stored in the SwiftUI environment and affect descendant `ProgressView` instances, similar to the other `.material3` modifiers above, so you can use `.material3WavyProgress()` at the top level of your app and make all of your progress indicators wavy.
+
+You can configure the amplitude, wavelength, and wavespeed of wavy progress indicators.
+
+* The default amplitude is 1.0. 0.0 represents no amplitude, and 1.0 represents an amplitude that will take the full height of the progress indicator. You can pass a closure to set the amplitude based on the current measured progress from 0.0 to 1.0 (`nil` for indeterminate progress).
+* The default wavelength comes from [`WavyProgressIndicatorDefaults`](https://developer.android.com/reference/kotlin/androidx/compose/material3/WavyProgressIndicatorDefaults).
+* The default wavespeed (measured in DP per second) is equal to the wavelength, rendering an animation that moves the wave at one wavelength per second.
+
 ### Material Effects
 
 Compose applies an automatic "ripple" effect to components on tap. You can customize the color and alpha of this effect with the `material3Ripple` modifier. To disable the effect altogether, return `nil` from your modifier closure.
