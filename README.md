@@ -1842,6 +1842,10 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>.listRowInsets</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>.listRowSeparator</code></td>
     </tr>
     <tr>
@@ -3219,6 +3223,24 @@ Text("Title")
 The closure receives the modified view's measured width and height in points. `ViewDimensions` supports `.leading`, `.center`, `.trailing`, and the two separator guides. Positions are relative to the view's leading edge and mirror in right-to-left layouts. Guides on nested row content propagate through layout containers, so a guide on a label beside an icon can align the separator with that label. Modifier order matters: padding outside a guide shifts its position with the content.
 
 Rows without explicit guides retain their existing separator insets. These guides only position separators; they do not change row content placement or separator visibility. Other alignment guides, custom `AlignmentID`s, baseline guides, and explicit-guide subscripts are not currently supported.
+
+#### Collapsible Sections
+
+In a `.sidebar` list, section headers show a chevron, and tapping one collapses and expands its section. Sections without a header do not collapse. To control a section's expansion yourself, use `Section(isExpanded:)`. As on iOS, its header toggles the binding only in a `.sidebar` list; in other styles, the binding alone shows and hides the section:
+
+```swift
+@State var isExpanded = true
+
+List {
+    Section("Favorites", isExpanded: $isExpanded) {
+        Text("Row 1")
+        Text("Row 2")
+    }
+}
+.listStyle(.sidebar)
+```
+
+Collapsed sections hide their rows and footer. Changes animate only inside `withAnimation`, which tapping a header uses.
 
 #### List Limitations
 
