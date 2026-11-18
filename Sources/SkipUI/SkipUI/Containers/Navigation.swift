@@ -913,6 +913,10 @@ private func mergeNavigationDestinationsWithLayoutHints(_ destinations: Navigati
     private var navigationPath: Binding<NavigationPath>?
 
     private var backStackState: [String: BackStackState] = [:]
+    // Shared by all entries. Navigation3 can keep an entry's saved state after we prune its BackStackState, then
+    // restore it when the same value is pushed again. A per-entry saver would be new and empty at that point, so
+    // every rememberSaveable in the entry would restore null. Keys are unique and values are held weakly by key.
+    private let stateSaver = ComposeStateSaver()
     final class BackStackState {
         let id: String
         let route: String
@@ -1030,7 +1034,7 @@ private func mergeNavigationDestinationsWithLayoutHints(_ destinations: Navigati
         guard navBackStack.size >= 1, navBackStack.firstOrNull() is SkipNavigationStackRootKey else {
             return nil
         }
-        let rootState = BackStackState(id: rootId, route: Self.rootRoute)
+        let rootState = BackStackState(id: rootId, route: Self.rootRoute, stateSaver: stateSaver)
         backStackState[rootId] = rootState
         return rootState
     }
@@ -1199,7 +1203,7 @@ private func mergeNavigationDestinationsWithLayoutHints(_ destinations: Navigati
         let entryId = stableEntryId(forKey: pushKey)
         var state = backStackState[entryId]
         if state == nil {
-            state = BackStackState(id: entryId, route: route, destination: destination, targetValue: targetValue, layoutHints: layoutHints)
+            state = BackStackState(id: entryId, route: route, destination: destination, targetValue: targetValue, layoutHints: layoutHints, stateSaver: stateSaver)
             backStackState[entryId] = state
         }
         if let binding {
