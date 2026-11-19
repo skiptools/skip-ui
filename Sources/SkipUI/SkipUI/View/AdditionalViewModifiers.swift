@@ -1661,7 +1661,7 @@ final class DisabledModifier: EnvironmentModifier {
         self.disabled = disabled
         super.init()
         self.action = {
-            $0.setisEnabled(!disabled)
+            $0.setisEnabled($0.isEnabled && !disabled)
             return ComposeResult.ok
         }
     }
