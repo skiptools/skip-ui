@@ -274,6 +274,11 @@ final class SkipUITests: SkipUITestCase {
             // Disabled custom-styled button doesn't fire
             rule.onNodeWithTag("disabled").performClick()
             try check(rule, id: "label", hasText: "Counter: 11")
+
+            let nestedButton = rule.onNodeWithTag("disabled.inherited")
+            nestedButton.assertIsNotEnabled()
+            nestedButton.performClick()
+            try check(rule, id: "label", hasText: "Counter: 11")
             #endif
         })
     }
@@ -296,6 +301,13 @@ final class SkipUITests: SkipUITestCase {
                     .buttonStyle(TestButtonStyle())
                     .disabled(true)
                     .accessibilityIdentifier("disabled")
+                VStack {
+                    Button("Disabled by parent") { counter += 100 }
+                        .buttonStyle(TestButtonStyle())
+                        .disabled(false)
+                        .accessibilityIdentifier("disabled.inherited")
+                }
+                .disabled(true)
             }
         }
     }
