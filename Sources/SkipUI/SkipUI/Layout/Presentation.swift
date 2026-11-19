@@ -121,6 +121,8 @@ private let AlertDialogMaxWidth: Dp = 560.dp
         // Don't fully evaluate content until we set up the presented environment. For now we just want
         // to get at the modifiers to look for `BackDismissDisabled`
         let contentRenderables = ComposeBuilder.from(content).Evaluate(context: context, options: EvaluateOptions(isKeepNonModified: true).value)
+        // Content reads `isPresented` through this state, so it flips to false while the sheet animates out
+        let isPresentedState = rememberUpdatedState(isPresentedValue)
         let topInset = remember { mutableStateOf(0.dp) }
         // Preferences such as the detent are contributed by the presented content in a SideEffect, and the
         // content is only rendered once the presentation has been laid out. Until then the detent falls
@@ -236,6 +238,7 @@ private let AlertDialogMaxWidth: Dp = 560.dp
                             $0.set_sheetDepth(sheetDepth + 1)
                         }
                         $0.setdismiss(DismissAction(action: { isPresented.set(false) }))
+                        $0.set_isPresented(isPresentedState)
                         return ComposeResult.ok
                     } in: {
                         PreferenceValues.shared.collectPreferences([interactiveDismissDisabledCollector, detentPreferencesCollector, dragIndicatorPreferencesCollector]) {
