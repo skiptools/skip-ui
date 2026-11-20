@@ -34,6 +34,13 @@ class ContextMenuModifier: RenderModifier {
             RenderContextMenu(content: content, context: context, menuItems: self.menuItems)
         }
     }
+
+    @Composable override func shouldRenderListItem(content: Renderable, context: ComposeContext) -> (Bool, (() -> Void)?) {
+        // A list item puts its action (e.g. a Button's) on the whole row, outside of this context menu. Key input
+        // (TV remote, keyboard) only reaches the focused row and its ancestors, so the menu could not be opened from
+        // the keyboard. Render the content normally instead, so that the menu wraps the focusable element.
+        return (false, nil)
+    }
 }
 
 @Composable func RenderContextMenu(content: Renderable, context: ComposeContext, menuItems: ComposeBuilder) {
