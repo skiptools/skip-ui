@@ -8,6 +8,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -33,6 +39,8 @@ class ContextMenuModifier: RenderModifier {
 @Composable func RenderContextMenu(content: Renderable, context: ComposeContext, menuItems: ComposeBuilder) {
     let haptic = LocalHapticFeedback.current
     let isMenuExpanded = remember { mutableStateOf(false) }
+    // Set when a select key (D-pad center / Enter) has been held past the long-press timeout
+    let isSelectKeyLongPressed = remember { mutableStateOf(false) }
     let nestedMenu = remember { mutableStateOf<Menu?>(nil) }
     let coroutineScope = rememberCoroutineScope()
     let contentContext = context.content()
@@ -87,6 +95,41 @@ class ContextMenuModifier: RenderModifier {
                     }
                 }
             }
+            // Keyboard / remote input (e.g. Android TV): holding the select key or pressing the Menu key opens the menu.
+            .onKeyEvent { keyEvent in
+                if isSelectKey(keyEvent.key) {
+                    // The focused child (e.g. a Button) ignores repeated key downs and lets them bubble up here.
+                    // A repeat means the key has been held past the long-press timeout.
+                    if keyEvent.type == KeyEventType.KeyDown && keyEvent.nativeKeyEvent.repeatCount > 0 {
+                        isSelectKeyLongPressed.value = true
+                        return true
+                    }
+                    return false
+                }
+                if keyEvent.key == Key.Menu {
+                    if keyEvent.type == KeyEventType.KeyUp {
+                        isMenuExpanded.value = true
+                    }
+                    return true
+                }
+                return false
+            }
+            .onPreviewKeyEvent { keyEvent in
+                guard isSelectKey(keyEvent.key) else {
+                    return false
+                }
+                if keyEvent.type == KeyEventType.KeyDown && keyEvent.nativeKeyEvent.repeatCount == 0 {
+                    isSelectKeyLongPressed.value = false
+                } else if keyEvent.type == KeyEventType.KeyUp && isSelectKeyLongPressed.value {
+                    // Open on release rather than while held: once the menu has focus, further repeats would land on
+                    // its first item, which would then be clicked on release. Consuming the key up also keeps the
+                    // focused child from being clicked; it cancels its pending press when the menu takes focus.
+                    isSelectKeyLongPressed.value = false
+                    isMenuExpanded.value = true
+                    return true
+                }
+                return false
+            }
         } else {
             interactionModifier = modifier
         }
@@ -111,5 +154,8 @@ class ContextMenuModifier: RenderModifier {
             }
         }
     }
+}
+private func isSelectKey(_ key: Key) -> Bool {
+    return key == Key.DirectionCenter || key == Key.Enter || key == Key.NumPadEnter
 }
 #endif
