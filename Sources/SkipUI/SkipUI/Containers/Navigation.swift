@@ -30,6 +30,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.MutableThreePaneScaffoldState
+import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
+import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
+import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirectiveWithTwoPanesOnMediumWidth
+import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
+import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
+import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.outlined.KeyboardArrowRight
@@ -64,11 +77,16 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.focusTarget
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -81,6 +99,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation3.runtime.NavBackStack
@@ -96,7 +115,9 @@ import androidx.navigation3.ui.defaultTransitionSpec
 import kotlin.reflect.full.superclasses
 import kotlinx.serialization.Serializable
 import androidx.compose.runtime.key
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 #endif
 
 // SKIP @bridge
@@ -154,10 +175,11 @@ public struct NavigationStack : View, Renderable {
         let mergedDestinations = mergeNavigationDestinationsWithLayoutHints(reducedDestinations, layoutHints: reducedDestinationLayoutHints)
         let navBackStack = rememberNavBackStack(SkipNavigationStackRootKey.root)
         let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navBackStack: navBackStack, destinations: mergedDestinations, destinationKeyTransformer: destinationKeyTransformer)) }
-        navigator.value.didCompose(navBackStack: navBackStack, destinations: mergedDestinations, path: path, navigationPath: navigationPath, keyboardController: LocalSoftwareKeyboardController.current)
+        navigator.value.didCompose(navBackStack: navBackStack, destinations: mergedDestinations, path: path, navigationPath: navigationPath, keyboardController: LocalSoftwareKeyboardController.current, splitViewColumn: LocalNavigationSplitViewColumn.current)
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
-        CompositionLocalProvider(providedNavigator) {
+        // SKIP INSERT: val providedSplitViewColumn = LocalNavigationSplitViewColumn provides null
+        CompositionLocalProvider(providedNavigator, providedSplitViewColumn) {
             let safeArea = EnvironmentValues.shared._safeArea
             // We have to ignore the safe area around the entire NavDisplay to prevent push/pop animation issues with the system bars.
             // When we layout, only extend into safe areas that are due to system bars, not into any app chrome
@@ -278,7 +300,7 @@ public struct NavigationStack : View, Renderable {
         case .visible:
             showTopBar = true
         case .automatic:
-            showTopBar = !arguments.isRoot || hasTitle || topLeadingItems.size > 0 || topTrailingItems.size > 0
+            showTopBar = !arguments.isRoot || navigator.value.hasSplitViewColumnBack || hasTitle || topLeadingItems.size > 0 || topTrailingItems.size > 0
         }
         let searchFieldPadding = 16.dp
         let density = LocalDensity.current
@@ -448,7 +470,7 @@ public struct NavigationStack : View, Renderable {
                             }
                         }
                         let topBarNavigationIcon: @Composable () -> Void = {
-                            let hasBackButton = !arguments.isRoot && arguments.toolbarPreferences.backButtonHidden != true
+                            let hasBackButton = (!arguments.isRoot || navigator.value.hasSplitViewColumnBack) && arguments.toolbarPreferences.backButtonHidden != true
                             if hasBackButton || topLeadingItems.size > 0 {
                                 let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
                                 Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
@@ -911,6 +933,8 @@ private func mergeNavigationDestinationsWithLayoutHints(_ destinations: Navigati
 
     private var path: Binding<[Any]>?
     private var navigationPath: Binding<NavigationPath>?
+    private var splitViewColumn: NavigationSplitViewColumnContext?
+    private let hasSplitViewColumnBackState: MutableState<Bool> = mutableStateOf(false)
 
     private var backStackState: [String: BackStackState] = [:]
     // Shared by all entries. Navigation3 can keep an entry's saved state after we prune its BackStackState, then
@@ -945,8 +969,10 @@ private func mergeNavigationDestinationsWithLayoutHints(_ destinations: Navigati
     }
 
     /// Call with updated state on recompose.
-    @Composable func didCompose(navBackStack: NavBackStack<NavKey>, destinations: NavigationDestinations, path: Binding<[Any]>?, navigationPath: Binding<NavigationPath>?, keyboardController: SoftwareKeyboardController?) {
+    @Composable func didCompose(navBackStack: NavBackStack<NavKey>, destinations: NavigationDestinations, path: Binding<[Any]>?, navigationPath: Binding<NavigationPath>?, keyboardController: SoftwareKeyboardController?, splitViewColumn: NavigationSplitViewColumnContext?) {
         self.navBackStack = navBackStack
+        self.splitViewColumn = splitViewColumn
+        hasSplitViewColumnBackState.value = splitViewColumn?.back != nil
         self.destinations = destinations
         self.path = path
         self.navigationPath = navigationPath
@@ -961,6 +987,28 @@ private func mergeNavigationDestinationsWithLayoutHints(_ destinations: Navigati
         return navBackStack.size <= 1
     }
 
+    /// Whether going back from our root shows the previous column of a split view.
+    var hasSplitViewColumnBack: Bool {
+        return hasSplitViewColumnBackState.value
+    }
+
+    /// Show a link's destination in the next column of a split view, when our root is a split view column without its own stack.
+    ///
+    /// - Returns: Whether the destination was shown.
+    func navigateInSplitView(to targetValue: Any?, destination: (any View)?) -> Bool {
+        guard isRoot, let forward = splitViewColumn?.forward else {
+            return false
+        }
+        if let destination {
+            forward(destination)
+        } else if let targetValue, let navigationDestination = self.destination(for: targetValue) {
+            forward(navigationDestination.destination(targetValue))
+        } else {
+            return false
+        }
+        return true
+    }
+
     /// Navigate to a target value specified in a `NavigationLink`.
     func navigate(to targetValue: Any) {
         if let path {
@@ -973,13 +1021,33 @@ private func mergeNavigationDestinationsWithLayoutHints(_ destinations: Navigati
     }
 
     private func navigate(toKeyed targetValue: Any) {
-        let key: AnyHashable
+        let _ = navigate(toKeyed: targetValue, key: destinationKey(for: targetValue))
+    }
+
+    private func destinationKey(for targetValue: Any) -> AnyHashable {
         if let destinationKeyTransformer {
-            key = destinationKeyTransformer(targetValue)
+            return destinationKeyTransformer(targetValue)
         } else {
-            key = type(of: targetValue)
+            return type(of: targetValue)
         }
-        let _ = navigate(toKeyed: targetValue, key: key)
+    }
+
+    private func destination(for targetValue: Any) -> NavigationDestination? {
+        return destinationMatch(forKey: destinationKey(for: targetValue))?.1
+    }
+
+    private func destinationMatch(forKey key: AnyHashable) -> (AnyHashable, NavigationDestination)? {
+        if let destination = destinations[key] {
+            return (key, destination)
+        }
+        if let type = key as? Any.Type {
+            for supertype in type.superclasses {
+                if let match = destinationMatch(forKey: supertype) {
+                    return match
+                }
+            }
+        }
+        return nil
     }
 
     /// Navigate to a destination view.
@@ -1006,6 +1074,8 @@ private func mergeNavigationDestinationsWithLayoutHints(_ destinations: Navigati
             navigationPath.wrappedValue.removeLast()
         } else if !isRoot {
             navBackStack.removeLastOrNull()
+        } else {
+            splitViewColumn?.back?()
         }
     }
 
@@ -1163,22 +1233,12 @@ private func mergeNavigationDestinationsWithLayoutHints(_ destinations: Navigati
     }
 
     private func navigate(toKeyed targetValue: Any, key: AnyHashable?) -> Bool {
-        guard let key else {
-            return false
-        }
-        guard let destination = destinations[key] else {
-            if let type = key as? Any.Type {
-                for supertype in type.superclasses {
-                    if navigate(toKeyed: targetValue, key: supertype) {
-                        return true
-                    }
-                }
-            }
+        guard let key, let match = destinationMatch(forKey: key) else {
             return false
         }
 
-        let route = route(for: key, value: targetValue)
-        navigate(route: route, destination: destination.destination, layoutHints: destination.layoutHints, targetValue: targetValue)
+        let route = route(for: match.0, value: targetValue)
+        navigate(route: route, destination: match.1.destination, layoutHints: match.1.layoutHints, targetValue: targetValue)
         return true
     }
 
@@ -1418,14 +1478,17 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func navigationSplitViewColumnWidth(_ width: CGFloat) -> some View {
+    // SKIP @bridge
+    public func navigationSplitViewColumnWidth(_ width: CGFloat) -> any View {
+        #if SKIP
+        return preference(key: NavigationSplitViewColumnWidthPreferenceKey.self, value: width)
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func navigationSplitViewColumnWidth(min: CGFloat? = nil, ideal: CGFloat, max: CGFloat? = nil) -> some View {
-        return self
+    public func navigationSplitViewColumnWidth(min: CGFloat? = nil, ideal: CGFloat, max: CGFloat? = nil) -> any View {
+        return navigationSplitViewColumnWidth(ideal)
     }
 
     @available(*, unavailable)
@@ -1882,6 +1945,9 @@ public struct NavigationLink : View, Renderable {
             }
             NavigationLink.lastNavigationTime = now
 
+            if navigator?.navigateInSplitView(to: value, destination: destination) == true {
+                return
+            }
             if let value {
                 navigator?.navigate(to: value)
             } else if let destination {
@@ -1950,6 +2016,322 @@ public struct NavigationPath: Equatable {
     }
 }
 
+// SKIP @bridge
+public struct NavigationSplitView : View, Renderable {
+    let sidebar: ComposeBuilder
+    let content: ComposeBuilder?
+    let detail: ComposeBuilder
+    let columnVisibility: Binding<NavigationSplitViewVisibility>?
+    let preferredCompactColumn: Binding<NavigationSplitViewColumn>?
+
+    public init(columnVisibility: Binding<NavigationSplitViewVisibility>? = nil, preferredCompactColumn: Binding<NavigationSplitViewColumn>? = nil, @ViewBuilder sidebar: () -> any View, @ViewBuilder content: () -> any View, @ViewBuilder detail: () -> any View) {
+        self.sidebar = ComposeBuilder.from(sidebar)
+        self.content = ComposeBuilder.from(content)
+        self.detail = ComposeBuilder.from(detail)
+        self.columnVisibility = columnVisibility
+        self.preferredCompactColumn = preferredCompactColumn
+    }
+
+    public init(columnVisibility: Binding<NavigationSplitViewVisibility>? = nil, preferredCompactColumn: Binding<NavigationSplitViewColumn>? = nil, @ViewBuilder sidebar: () -> any View, @ViewBuilder detail: () -> any View) {
+        self.sidebar = ComposeBuilder.from(sidebar)
+        self.content = nil
+        self.detail = ComposeBuilder.from(detail)
+        self.columnVisibility = columnVisibility
+        self.preferredCompactColumn = preferredCompactColumn
+    }
+
+    // SKIP @bridge
+    public init(getColumnVisibility: (() -> Int)?, setColumnVisibility: ((Int) -> Void)?, getPreferredCompactColumn: (() -> Int)?, setPreferredCompactColumn: ((Int) -> Void)?, bridgedSidebar: any View, bridgedContent: (any View)?, bridgedDetail: any View) {
+        self.sidebar = ComposeBuilder.from { bridgedSidebar }
+        if let bridgedContent {
+            self.content = ComposeBuilder.from { bridgedContent }
+        } else {
+            self.content = nil
+        }
+        self.detail = ComposeBuilder.from { bridgedDetail }
+        if let getColumnVisibility, let setColumnVisibility {
+            self.columnVisibility = Binding(get: { NavigationSplitViewVisibility(rawValue: getColumnVisibility()) }, set: { setColumnVisibility($0.rawValue) })
+        } else {
+            self.columnVisibility = nil
+        }
+        if let getPreferredCompactColumn, let setPreferredCompactColumn {
+            self.preferredCompactColumn = Binding(get: { NavigationSplitViewColumn(rawValue: getPreferredCompactColumn()) }, set: { setPreferredCompactColumn($0.rawValue) })
+        } else {
+            self.preferredCompactColumn = nil
+        }
+    }
+
+    #if SKIP
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3AdaptiveApi::class)
+    @Composable override func Render(context: ComposeContext) {
+        // Columns map onto the list-detail scaffold's panes: sidebar → list, content → detail, detail → extra
+        let columns: kotlin.collections.List<ComposeBuilder>
+        let roles: kotlin.collections.List<ThreePaneScaffoldRole>
+        if let content {
+            columns = listOf(sidebar, content, detail)
+            roles = listOf(ListDetailPaneScaffoldRole.List, ListDetailPaneScaffoldRole.Detail, ListDetailPaneScaffoldRole.Extra)
+        } else {
+            columns = listOf(sidebar, detail)
+            roles = listOf(ListDetailPaneScaffoldRole.List, ListDetailPaneScaffoldRole.Detail)
+        }
+        let lastIndex = columns.size - 1
+
+        // Show columns side by side when the horizontal size class is regular, as on iOS. The default hinge policy keeps a
+        // column from straddling a fold
+        let windowDirective = calculatePaneScaffoldDirectiveWithTwoPanesOnMediumWidth(currentWindowAdaptiveInfo())
+        let isWindowSplit = windowDirective.maxHorizontalPartitions > 1
+        let visibility = columnVisibility?.wrappedValue ?? NavigationSplitViewVisibility.automatic
+        var partitions = windowDirective.maxHorizontalPartitions
+        if visibility == NavigationSplitViewVisibility.detailOnly {
+            partitions = 1
+        } else if visibility == NavigationSplitViewVisibility.doubleColumn {
+            partitions = min(partitions, 2)
+        }
+        // Columns meet at a hairline divider, as on iOS, rather than Material's gutter
+        let directive = windowDirective.copy(maxHorizontalPartitions: partitions, horizontalPartitionSpacerSize: 0.dp)
+
+        // Destination history is the column hierarchy up to the column shown when collapsed
+        let initialIndex = preferredCompactColumn?.wrappedValue.index(lastIndex: lastIndex) ?? 0
+        let initialHistory = ArrayList<ThreePaneScaffoldDestinationItem<Any>>()
+        for i in 0...initialIndex {
+            initialHistory.add(ThreePaneScaffoldDestinationItem<Any>(roles[i]))
+        }
+        let navigator = rememberListDetailPaneScaffoldNavigator<Any>(scaffoldDirective: directive, initialDestinationHistory: initialHistory)
+        let coroutineScope = rememberCoroutineScope()
+        let currentIndex = max(0, roles.indexOf(navigator.currentDestination?.pane ?? roles[0]))
+        // The navigator only animates its scaffold state when it navigates, so a window change (folding, resizing) would
+        // keep showing the old panes
+        LaunchedEffect(directive) {
+            (navigator.scaffoldState as? MutableThreePaneScaffoldState)?.animateTo(navigator.scaffoldValue)
+        }
+
+        // Keep the destination and the preferred compact column binding in sync
+        let requestedIndex = preferredCompactColumn?.wrappedValue.index(lastIndex: lastIndex)
+        LaunchedEffect(requestedIndex) {
+            if let requestedIndex, requestedIndex != currentIndex {
+                showColumn(requestedIndex, navigator: navigator, roles: roles, coroutineScope: coroutineScope)
+            }
+        }
+        LaunchedEffect(currentIndex) {
+            if let preferredCompactColumn, preferredCompactColumn.wrappedValue.index(lastIndex: lastIndex) != currentIndex {
+                preferredCompactColumn.wrappedValue = NavigationSplitViewColumn(index: currentIndex, lastIndex: lastIndex)
+            }
+        }
+        // Hiding all but the detail column has to show it
+        LaunchedEffect(visibility == NavigationSplitViewVisibility.detailOnly && isWindowSplit) {
+            if visibility == NavigationSplitViewVisibility.detailOnly && isWindowSplit {
+                showColumn(lastIndex, navigator: navigator, roles: roles, coroutineScope: coroutineScope)
+            }
+        }
+
+        // Destinations of links in a column without its own navigation stack replace the next column
+        let destinationOverrides = remember { mutableStateOf(Dictionary<Int, NavigationSplitViewDestinationOverride>()) }
+        let columnWidths = remember { listOf(mutableStateOf(Preference<CGFloat?>(key: NavigationSplitViewColumnWidthPreferenceKey.self)), mutableStateOf(Preference<CGFloat?>(key: NavigationSplitViewColumnWidthPreferenceKey.self)), mutableStateOf(Preference<CGFloat?>(key: NavigationSplitViewColumnWidthPreferenceKey.self))) }
+
+        let columnContext: @Composable (Int) -> NavigationSplitViewColumnContext = { index in
+            // A column's root gets a back button when the column before it is hidden
+            let hasBack = index > 0 && navigator.scaffoldValue[roles[index - 1]] == PaneAdaptedValue.Hidden
+            let back: (() -> Void)? = hasBack ? {
+                if visibility == NavigationSplitViewVisibility.detailOnly && isWindowSplit {
+                    columnVisibility?.wrappedValue = NavigationSplitViewVisibility.automatic
+                }
+                showColumn(index - 1, navigator: navigator, roles: roles, coroutineScope: coroutineScope)
+            } : nil
+            let forward: ((any View) -> Void)? = index < lastIndex ? { view in
+                var overrides = destinationOverrides.value
+                let id = (overrides[index + 1]?.id ?? 0) + 1
+                overrides[index + 1] = NavigationSplitViewDestinationOverride(id: id, view: view)
+                var later = index + 2
+                while later <= lastIndex {
+                    overrides[later] = nil
+                    later += 1
+                }
+                destinationOverrides.value = overrides
+                showColumn(index + 1, navigator: navigator, roles: roles, coroutineScope: coroutineScope)
+            } : nil
+            return remember(index, hasBack, visibility, isWindowSplit) { NavigationSplitViewColumnContext(back: back, forward: forward) }
+        }
+        let columnInsets = remember { mutableStateOf(IntRect.Zero) }
+        let density = LocalDensity.current
+        let renderColumn: @Composable (Int) -> Void = { index in
+            let insets = columnInsets.value
+            // The scaffold focuses the pane it navigates to. Take that focus ourselves rather than letting it land on the
+            // column's first focusable view, which would e.g. show the keyboard for a text field
+            let insetModifier = with(density) { Modifier.padding(top: insets.top.toDp(), bottom: insets.bottom.toDp()) }.focusTarget()
+            let override = destinationOverrides.value[index]
+            let builder = override == nil ? columns[index] : ComposeBuilder.from { override!.view }
+            let widthCollector = PreferenceCollector<CGFloat?>(key: NavigationSplitViewColumnWidthPreferenceKey.self, state: columnWidths[index])
+            PreferenceValues.shared.collectPreferences([widthCollector]) {
+                key(override?.id ?? 0) {
+                    Box(modifier: insetModifier) {
+                        RenderColumn(builder, columnContext: columnContext(index), context: context.content())
+                    }
+                }
+            }
+        }
+
+        // Divide a column from the visible column before it
+        let dividerColor = Color.separator.colorImpl()
+        let dividerModifier: (Int) -> Modifier = { index in
+            guard index > 0 && navigator.scaffoldValue[roles[index - 1]] != PaneAdaptedValue.Hidden else {
+                return Modifier
+            }
+            return Modifier.drawWithContent {
+                drawContent()
+                let x = layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl ? size.width - Float(1.0) : Float(0.0)
+                drawRect(color: dividerColor, topLeft: Offset(x, Float(0.0)), size: Size(Float(1.0), size.height))
+            }
+        }
+
+        // Panes clip to their bounds, so a column's stack can't extend under the system bars from inside the safe area.
+        // Instead extend the panes under the bars, and inset each column back to the safe area so that its stack extends
+        // within its pane, as in a tab view
+        let safeArea = EnvironmentValues.shared._safeArea
+        var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
+        ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
+        IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: ignoresSafeAreaEdges) { expansion, _ in
+            columnInsets.value = expansion
+            ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
+                EnvironmentValues.shared.setValues {
+                    if let safeArea {
+                        $0.set_safeArea(safeArea)
+                    }
+                    return ComposeResult.ok
+                } in: {
+                    NavigableListDetailPaneScaffold(
+                        navigator: navigator,
+                        listPane: {
+                            let width = columnWidths[0].value.reduced
+                            AnimatedPane(modifier: (width == nil ? Modifier : Modifier.preferredWidth(width!.dp)).then(dividerModifier(0))) { renderColumn(0) }
+                        },
+                        detailPane: {
+                            let width = columnWidths[1].value.reduced
+                            AnimatedPane(modifier: (width == nil ? Modifier : Modifier.preferredWidth(width!.dp)).then(dividerModifier(1))) { renderColumn(1) }
+                        },
+                        modifier: modifier,
+                        extraPane: lastIndex < 2 ? nil : {
+                            let width = columnWidths[2].value.reduced
+                            AnimatedPane(modifier: (width == nil ? Modifier : Modifier.preferredWidth(width!.dp)).then(dividerModifier(2))) { renderColumn(2) }
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    /// Render a column inside a navigation stack: its own, or an implicit one that sends its links to the next column.
+    @Composable private func RenderColumn(_ builder: ComposeBuilder, columnContext: NavigationSplitViewColumnContext, context: ComposeContext) {
+        let renderables = builder.Evaluate(context: context, options: 0)
+        let hasOwnStack = renderables.size == 1 && renderables[0].strip() is NavigationStack
+        // SKIP INSERT: val providedColumn = LocalNavigationSplitViewColumn provides (if (hasOwnStack) NavigationSplitViewColumnContext(back = columnContext.back, forward = null) else columnContext)
+        CompositionLocalProvider(providedColumn) {
+            if hasOwnStack {
+                renderables[0].Render(context: context)
+            } else {
+                NavigationStack(root: {
+                    ComposeBuilder(content: { context in
+                        renderables.forEach { $0.asView().Compose(context: context) }
+                        return ComposeResult.ok
+                    })
+                }).Compose(context: context)
+            }
+        }
+    }
+
+    /// Move the scaffold's destination to the given column, keeping the column hierarchy as the destination history.
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3AdaptiveApi::class)
+    private func showColumn(_ index: Int, navigator: ThreePaneScaffoldNavigator<Any>, roles: kotlin.collections.List<ThreePaneScaffoldRole>, coroutineScope: CoroutineScope) {
+        coroutineScope.launch {
+            var current = max(0, roles.indexOf(navigator.currentDestination?.pane ?? roles[0]))
+            while current < index {
+                current += 1
+                navigator.navigateTo(roles[current])
+            }
+            while current > index && navigator.navigateBack(BackNavigationBehavior.PopLatest) {
+                current = max(0, roles.indexOf(navigator.currentDestination?.pane ?? roles[0]))
+            }
+        }
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+#if SKIP
+/// What a navigation stack at the root of a split view column needs from the split view.
+final class NavigationSplitViewColumnContext {
+    /// Show the previous column, when it is hidden.
+    let back: (() -> Void)?
+    /// Show a link's destination in the next column.
+    let forward: ((any View) -> Void)?
+
+    init(back: (() -> Void)?, forward: ((any View) -> Void)?) {
+        self.back = back
+        self.forward = forward
+    }
+}
+
+struct NavigationSplitViewDestinationOverride {
+    let id: Int
+    let view: any View
+}
+
+let LocalNavigationSplitViewColumn: ProvidableCompositionLocal<NavigationSplitViewColumnContext?> = compositionLocalOf { nil as NavigationSplitViewColumnContext? }
+#endif
+
+struct NavigationSplitViewColumnWidthPreferenceKey: PreferenceKey {
+    typealias Value = CGFloat?
+
+    static let defaultValue: CGFloat? = nil
+
+    static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
+        value = nextValue() ?? value
+    }
+}
+
+/// A view that represents a column in a navigation split view.
+///
+/// A ``NavigationSplitView`` collapses into a single stack in some contexts,
+/// like on iPhone or Apple Watch. Use this type with the
+/// `preferredCompactColumn` parameter to control which column of the navigation
+/// split view appears on top of the collapsed stack.
+public struct NavigationSplitViewColumn : Hashable, Sendable {
+    public let rawValue: Int // For bridging
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let sidebar = NavigationSplitViewColumn(rawValue: 0) // For bridging
+    public static let content = NavigationSplitViewColumn(rawValue: 1) // For bridging
+    public static let detail = NavigationSplitViewColumn(rawValue: 2) // For bridging
+
+    init(index: Int, lastIndex: Int) {
+        self.rawValue = index == 0 ? 0 : (index == lastIndex ? 2 : 1)
+    }
+
+    /// The index of this column in a split view with the given last column index.
+    func index(lastIndex: Int) -> Int {
+        return rawValue == 0 ? 0 : (rawValue == 2 ? lastIndex : min(1, lastIndex))
+    }
+}
+
+/// The visibility of the leading columns in a navigation split view.
+public struct NavigationSplitViewVisibility : Equatable, Sendable {
+    public let rawValue: Int // For bridging
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let detailOnly = NavigationSplitViewVisibility(rawValue: 0) // For bridging
+    public static let doubleColumn = NavigationSplitViewVisibility(rawValue: 1) // For bridging
+    public static let all = NavigationSplitViewVisibility(rawValue: 2) // For bridging
+    public static let automatic = NavigationSplitViewVisibility(rawValue: 3) // For bridging
+}
+
 /*
 import struct CoreGraphics.CGFloat
 import struct Foundation.URL
@@ -1992,333 +2374,5 @@ extension NavigationLink {
 
 }
 
-/// A view that presents views in two or three columns, where selections in
-/// leading columns control presentations in subsequent columns.
-///
-/// You create a navigation split view with two or three columns, and typically
-/// use it as the root view in a ``Scene``. People choose one or more
-/// items in a leading column to display details about those items in
-/// subsequent columns.
-///
-/// To create a two-column navigation split view, use the
-/// ``init(sidebar:detail:)`` initializer:
-///
-///     @State private var employeeIds: Set<Employee.ID> = []
-///
-///     var body: some View {
-///         NavigationSplitView {
-///             List(model.employees, selection: $employeeIds) { employee in
-///                 Text(employee.name)
-///             }
-///         } detail: {
-///             EmployeeDetails(for: employeeIds)
-///         }
-///     }
-///
-/// In the above example, the navigation split view coordinates with the
-/// ``List`` in its first column, so that when people make a selection, the
-/// detail view updates accordingly. Programmatic changes that you make to the
-/// selection property also affect both the list appearance and the presented
-/// detail view.
-///
-/// To create a three-column view, use the ``init(sidebar:content:detail:)``
-/// initializer. The selection in the first column affects the second, and the
-/// selection in the second column affects the third. For example, you can show
-/// a list of departments, the list of employees in the selected department,
-/// and the details about all of the selected employees:
-///
-///     @State private var departmentId: Department.ID? // Single selection.
-///     @State private var employeeIds: Set<Employee.ID> = [] // Multiple selection.
-///
-///     var body: some View {
-///         NavigationSplitView {
-///             List(model.departments, selection: $departmentId) { department in
-///                 Text(department.name)
-///             }
-///         } content: {
-///             if let department = model.department(id: departmentId) {
-///                 List(department.employees, selection: $employeeIds) { employee in
-///                     Text(employee.name)
-///                 }
-///             } else {
-///                 Text("Select a department")
-///             }
-///         } detail: {
-///             EmployeeDetails(for: employeeIds)
-///         }
-///     }
-///
-/// You can also embed a ``NavigationStack`` in a column. Tapping or clicking a
-/// ``NavigationLink`` that appears in an earlier column sets the view that the
-/// stack displays over its root view. Activating a link in the same column
-/// adds a view to the stack. Either way, the link must present a data type
-/// for which the stack has a corresponding
-/// ``View/navigationDestination(for:destination:)`` modifier.
-///
-/// On watchOS and tvOS, and with narrow sizes like on iPhone or on iPad in
-/// Slide Over, the navigation split view collapses all of its columns
-/// into a stack, and shows the last column that displays useful information.
-/// For example, the three-column example above shows the list of departments to
-/// start, the employees in the department after someone selects a department,
-/// and the employee details when someone selects an employee. For rows in a
-/// list that have ``NavigationLink`` instances, the list draws disclosure
-/// chevrons while in the collapsed state.
-///
-/// ### Control column visibility
-///
-/// You can programmatically control the visibility of navigation split view
-/// columns by creating a ``State`` value of type
-/// ``NavigationSplitViewVisibility``. Then pass a ``Binding`` to that state to
-/// the appropriate initializer --- such as
-/// ``init(columnVisibility:sidebar:detail:)`` for two columns, or
-/// the ``init(columnVisibility:sidebar:content:detail:)`` for three columns.
-///
-/// The following code updates the first example above to always hide the
-/// first column when the view appears:
-///
-///     @State private var employeeIds: Set<Employee.ID> = []
-///     @State private var columnVisibility =
-///         NavigationSplitViewVisibility.detailOnly
-///
-///     var body: some View {
-///         NavigationSplitView(columnVisibility: $columnVisibility) {
-///             List(model.employees, selection: $employeeIds) { employee in
-///                 Text(employee.name)
-///             }
-///         } detail: {
-///             EmployeeDetails(for: employeeIds)
-///         }
-///     }
-///
-/// The split view ignores the visibility control when it collapses its columns
-/// into a stack.
-///
-/// ### Collapsed split views
-///
-/// At narrow size classes, such as on iPhone or Apple Watch, a navigation split
-/// view collapses into a single stack. Typically SkipUI automatically chooses
-/// the view to show on top of this single stack, based on the content of the
-/// split view's columns.
-///
-/// For custom navigation experiences, you can provide more information to help
-/// SkipUI choose the right column. Create a `State` value of type
-/// ``NavigationSplitViewColumn``. Then pass a `Binding` to that state to the
-/// appropriate initializer, such as
-/// ``init(preferredCompactColumn:sidebar:detail:)`` or
-/// ``init(preferredCompactColumn:sidebar:content:detail:)``.
-///
-/// The following code shows the blue detail view when run on iPhone. When the
-/// person using the app taps the back button, they'll see the yellow view. The
-/// value of `preferredPreferredCompactColumn` will change from `.detail` to
-/// `.sidebar`:
-///
-///     @State private var preferredColumn =
-///         NavigationSplitViewColumn.detail
-///
-///     var body: some View {
-///         NavigationSplitView(preferredCompactColumn: $preferredColumn) {
-///             Color.yellow
-///         } detail: {
-///             Color.blue
-///         }
-///     }
-///
-/// ### Customize a split view
-///
-/// To specify a preferred column width in a navigation split view, use the
-/// ``View/navigationSplitViewColumnWidth(_:)`` modifier. To set minimum,
-/// maximum, and ideal sizes for a column, use
-/// ``View/navigationSplitViewColumnWidth(min:ideal:max:)``. You can specify a
-/// different modifier in each column. The navigation split view does its
-/// best to accommodate the preferences that you specify, but might make
-/// adjustments based on other constraints.
-///
-/// To specify how columns in a navigation split view interact, use the
-/// ``View/navigationSplitViewStyle(_:)`` modifier with a
-/// ``NavigationSplitViewStyle`` value. For example, you can specify
-/// whether to emphasize the detail column or to give all of the columns equal
-/// prominence.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct NavigationSplitView<Sidebar, Content, Detail> : View where Sidebar : View, Content : View, Detail : View {
-
-    /// Creates a three-column navigation split view.
-    ///
-    /// - Parameters:
-    ///   - sidebar: The view to show in the leading column.
-    ///   - content: The view to show in the middle column.
-    ///   - detail: The view to show in the detail area.
-    public init(@ViewBuilder sidebar: () -> Sidebar, @ViewBuilder content: () -> Content, @ViewBuilder detail: () -> Detail) { fatalError() }
-
-    /// Creates a three-column navigation split view that enables programmatic
-    /// control of leading columns' visibility.
-    ///
-    /// - Parameters:
-    ///   - columnVisibility: A ``Binding`` to state that controls the
-    ///     visibility of the leading columns.
-    ///   - sidebar: The view to show in the leading column.
-    ///   - content: The view to show in the middle column.
-    ///   - detail: The view to show in the detail area.
-    public init(columnVisibility: Binding<NavigationSplitViewVisibility>, @ViewBuilder sidebar: () -> Sidebar, @ViewBuilder content: () -> Content, @ViewBuilder detail: () -> Detail) { fatalError() }
-
-    /// Creates a two-column navigation split view.
-    ///
-    /// - Parameters:
-    ///   - sidebar: The view to show in the leading column.
-    ///   - detail: The view to show in the detail area.
-    public init(@ViewBuilder sidebar: () -> Sidebar, @ViewBuilder detail: () -> Detail) where Content == EmptyView { fatalError() }
-
-    /// Creates a two-column navigation split view that enables programmatic
-    /// control of the sidebar's visibility.
-    ///
-    /// - Parameters:
-    ///   - columnVisibility: A ``Binding`` to state that controls the
-    ///     visibility of the leading column.
-    ///   - sidebar: The view to show in the leading column.
-    ///   - detail: The view to show in the detail area.
-    public init(columnVisibility: Binding<NavigationSplitViewVisibility>, @ViewBuilder sidebar: () -> Sidebar, @ViewBuilder detail: () -> Detail) where Content == EmptyView { fatalError() }
-
-    @MainActor public var body: some View { get { return stubView() } }
-
-//    public typealias Body = some View
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension NavigationSplitView {
-
-    /// Creates a three-column navigation split view that enables programmatic
-    /// control over which column appears on top when the view collapses into a
-    /// single column in narrow sizes.
-    ///
-    /// - Parameters:
-    ///   - preferredCompactColumn: A ``Binding`` to state that controls which
-    ///     column appears on top when the view collapses.
-    ///   - sidebar: The view to show in the leading column.
-    ///   - content: The view to show in the middle column.
-    ///   - detail: The view to show in the detail area.
-    public init(preferredCompactColumn: Binding<NavigationSplitViewColumn>, @ViewBuilder sidebar: () -> Sidebar, @ViewBuilder content: () -> Content, @ViewBuilder detail: () -> Detail) { fatalError() }
-
-    /// Creates a three-column navigation split view that enables programmatic
-    /// control of leading columns' visibility in regular sizes and which column
-    /// appears on top when the view collapses into a single column in narrow
-    /// sizes.
-    ///
-    /// - Parameters:
-    ///   - columnVisibility: A ``Binding`` to state that controls the
-    ///     visibility of the leading columns.
-    ///   - preferredCompactColumn: A ``Binding`` to state that controls which
-    ///     column appears on top when the view collapses.
-    ///   - sidebar: The view to show in the leading column.
-    ///   - content: The view to show in the middle column.
-    ///   - detail: The view to show in the detail area.
-    public init(columnVisibility: Binding<NavigationSplitViewVisibility>, preferredCompactColumn: Binding<NavigationSplitViewColumn>, @ViewBuilder sidebar: () -> Sidebar, @ViewBuilder content: () -> Content, @ViewBuilder detail: () -> Detail) { fatalError() }
-
-    /// Creates a two-column navigation split view that enables programmatic
-    /// control over which column appears on top when the view collapses into a
-    /// single column in narrow sizes.
-    ///
-    /// - Parameters:
-    ///   - preferredCompactColumn: A ``Binding`` to state that controls which
-    ///     column appears on top when the view collapses.
-    ///   - sidebar: The view to show in the leading column.
-    ///   - detail: The view to show in the detail area.
-    public init(preferredCompactColumn: Binding<NavigationSplitViewColumn>, @ViewBuilder sidebar: () -> Sidebar, @ViewBuilder detail: () -> Detail) where Content == EmptyView { fatalError() }
-
-    /// Creates a two-column navigation split view that enables programmatic
-    /// control of the sidebar's visibility in regular sizes and which column
-    /// appears on top when the view collapses into a single column in narrow
-    /// sizes.
-    ///
-    /// - Parameters:
-    ///   - columnVisibility: A ``Binding`` to state that controls the
-    ///     visibility of the leading column.
-    ///   - preferredCompactColumn: A ``Binding`` to state that controls which
-    ///     column appears on top when the view collapses.
-    ///   - sidebar: The view to show in the leading column.
-    ///   - detail: The view to show in the detail area.
-    public init(columnVisibility: Binding<NavigationSplitViewVisibility>, preferredCompactColumn: Binding<NavigationSplitViewColumn>, @ViewBuilder sidebar: () -> Sidebar, @ViewBuilder detail: () -> Detail) where Content == EmptyView { fatalError() }
-}
-
-/// A view that represents a column in a navigation split view.
-///
-/// A ``NavigationSplitView`` collapses into a single stack in some contexts,
-/// like on iPhone or Apple Watch. Use this type with the
-/// `preferredCompactColumn` parameter to control which column of the navigation
-/// split view appears on top of the collapsed stack.
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public struct NavigationSplitViewColumn : Hashable, Sendable {
-
-    public static var sidebar: NavigationSplitViewColumn { get { fatalError() } }
-
-    public static var content: NavigationSplitViewColumn { get { fatalError() } }
-
-    public static var detail: NavigationSplitViewColumn { get { fatalError() } }
-}
-
-/// The properties of a navigation split view instance.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct NavigationSplitViewStyleConfiguration {
-}
-
-/// The visibility of the leading columns in a navigation split view.
-///
-/// Use a value of this type to control the visibility of the columns of a
-/// ``NavigationSplitView``. Create a ``State`` property with a
-/// value of this type, and pass a ``Binding`` to that state to the
-/// ``NavigationSplitView/init(columnVisibility:sidebar:detail:)`` or
-/// ``NavigationSplitView/init(columnVisibility:sidebar:content:detail:)``
-/// initializer when you create the navigation split view. You can then
-/// modify the value elsewhere in your code to:
-///
-/// * Hide all but the trailing column with ``detailOnly``.
-/// * Hide the leading column of a three-column navigation split view
-///   with ``doubleColumn``.
-/// * Show all the columns with ``all``.
-/// * Rely on the automatic behavior for the current context with ``automatic``.
-///
-/// >Note: Some platforms don't respect every option. For example, macOS always
-/// displays the content column.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct NavigationSplitViewVisibility : Equatable, Codable, Sendable {
-
-    /// Hide the leading two columns of a three-column navigation split view, so
-    /// that just the detail area shows.
-    public static var detailOnly: NavigationSplitViewVisibility { get { fatalError() } }
-
-    /// Show the content column and detail area of a three-column navigation
-    /// split view, or the sidebar column and detail area of a two-column
-    /// navigation split view.
-    ///
-    /// For a two-column navigation split view, `doubleColumn` is equivalent
-    /// to `all`.
-    public static var doubleColumn: NavigationSplitViewVisibility { get { fatalError() } }
-
-    /// Show all the columns of a three-column navigation split view.
-    public static var all: NavigationSplitViewVisibility { get { fatalError() } }
-
-    /// Use the default leading column visibility for the current device.
-    ///
-    /// This computed property returns one of the three concrete cases:
-    /// ``detailOnly``, ``doubleColumn``, or ``all``.
-    public static var automatic: NavigationSplitViewVisibility { get { fatalError() } }
-
-    /// Encodes this value into the given encoder.
-    ///
-    /// If the value fails to encode anything, `encoder` will encode an empty
-    /// keyed container in its place.
-    ///
-    /// This function throws an error if any values are invalid for the given
-    /// encoder's format.
-    ///
-    /// - Parameter encoder: The encoder to write data to.
-    public func encode(to encoder: Encoder) throws { fatalError() }
-
-    /// Creates a new instance by decoding from the given decoder.
-    ///
-    /// This initializer throws an error if reading from the decoder fails, or
-    /// if the data read is corrupted or otherwise invalid.
-    ///
-    /// - Parameter decoder: The decoder to read data from.
-    public init(from decoder: Decoder) throws { fatalError() }
-}
 */
 #endif
