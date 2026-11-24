@@ -65,6 +65,19 @@ final class LayoutTests: XCSnapshotTestCase {
         """)
     }
 
+    func testHorizontalViewThatFitsUsesIdealWidthOfAspectRatioCandidate() throws {
+        let result = try render(view: ViewThatFits(in: .horizontal) {
+            Color(red: 1.0, green: 0.0, blue: 0.0)
+                .frame(width: 120.0, height: 60.0)
+                .aspectRatio(2.0, contentMode: .fit)
+            Color(red: 0.0, green: 0.0, blue: 1.0)
+                .frame(width: 20.0, height: 20.0)
+        }.frame(width: 100.0, height: 40.0))
+
+        XCTAssertTrue(result.pixmap.contains("0000FF"), "The blue fallback should be visible")
+        XCTAssertFalse(result.pixmap.contains("FF0000"), "The 120-point preferred view is too wide")
+    }
+
     func testFixedSizeVerticalScrollViewTakesContentHeight() throws {
         XCTAssertEqual(try pixmap(content: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)

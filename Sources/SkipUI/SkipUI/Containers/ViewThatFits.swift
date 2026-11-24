@@ -68,10 +68,10 @@ public struct ViewThatFits : View, Renderable {
                     var idealWidth = 0
                     var idealHeight = 0
                     if axes.contains(.horizontal) {
-                        idealWidth = measurables[i].maxIntrinsicWidth(maxHeight)
+                        idealWidth = measurables[i].maxIntrinsicWidth(Constraints.Infinity)
                     }
                     if axes.contains(.vertical) {
-                        idealHeight = measurables[i].maxIntrinsicHeight(maxWidth)
+                        idealHeight = measurables[i].maxIntrinsicHeight(Constraints.Infinity)
                     }
                     if fits(measuredWidth: idealWidth, measuredHeight: idealHeight) {
                         chosenIndex = i
