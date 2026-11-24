@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
@@ -25,7 +26,17 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 
 /// The root of a presentation, such as the root presentation or a sheet.
-@Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, backgroundColor: Color? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+/// - Parameter animatesKeyboardInsets: Whether content follows the keyboard's animation frame by frame.
+///   Pass false to move content once to the keyboard's final position, which avoids recomposing the
+///   presentation on every frame of the keyboard animation.
+@Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, backgroundColor: Color? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, animatesKeyboardInsets: Bool = true, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+    // SKIP INSERT: val providedKeyboardAnimation = LocalAnimatesKeyboardInsets provides animatesKeyboardInsets
+    CompositionLocalProvider(providedKeyboardAnimation) {
+        PresentationRootContent(defaultColorScheme: defaultColorScheme, backgroundColor: backgroundColor, systemBarEdges: systemBarEdges, context: context, content: content)
+    }
+}
+
+@Composable private func PresentationRootContent(defaultColorScheme: ColorScheme?, backgroundColor: Color?, systemBarEdges: Edge.Set, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
     launchUIApplicationActivity()
 
     let preferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PreferredColorScheme>, Any>) { mutableStateOf(Preference<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self)) }
