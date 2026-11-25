@@ -282,6 +282,36 @@ final class SkipUITests: SkipUITestCase {
             #endif
         })
     }
+    func testListRowNestedDisabled() throws {
+        try testUI(view: {
+            ListRowDisabledTestView().accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            try check(rule, id: "label", hasText: "Counter: 0")
+            #if SKIP
+            rule.onNodeWithText("Enabled row").performClick()
+            try check(rule, id: "label", hasText: "Counter: 1")
+
+            // An outer .disabled(false) must not re-enable a row disabled closer to its content
+            rule.onNodeWithText("Disabled row").performClick()
+            try check(rule, id: "label", hasText: "Counter: 1")
+            #endif
+        })
+    }
+    struct ListRowDisabledTestView: View {
+        @State var counter = 0
+        var body: some View {
+            VStack {
+                Text("Counter: \(counter)")
+                    .accessibilityIdentifier("label")
+                List {
+                    Button("Enabled row") { counter += 1 }
+                    Button("Disabled row") { counter += 100 }
+                        .disabled(true)
+                        .disabled(false)
+                }
+            }
+        }
+    }
     struct CustomButtonStyleTestView: View {
         @State var counter = 0
         var body: some View {

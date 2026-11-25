@@ -679,7 +679,7 @@ public final class List : View, Renderable {
         if isListItem {
             let actionModifier: Modifier
             if let listItemAction {
-                let isDisabled = !EnvironmentValues.shared.isEnabled || item.forEachModifier { ($0 as? DisabledModifier)?.disabled } == true
+                let isDisabled = !EnvironmentValues.shared.isEnabled || item.forEachModifier { ($0 as? DisabledModifier)?.disabled == true ? true : nil } == true
                 actionModifier = Modifier.clickable(onClick: listItemAction, enabled: !isDisabled)
             } else {
                 actionModifier = Modifier
