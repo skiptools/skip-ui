@@ -10,6 +10,8 @@ public struct Section : View {
     let header: ComposeBuilder?
     let footer: ComposeBuilder?
     let content: ComposeBuilder
+    /// Collapses the section's content while false. Lists toggle it from the section header.
+    var isExpanded: Binding<Bool>? = nil
 
     public init(@ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View, @ViewBuilder footer: () -> any View) {
         self.header = ComposeBuilder.from(header)
@@ -53,24 +55,24 @@ public struct Section : View {
         self.init(content: content, header: { Text(verbatim: title) })
     }
 
-    @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View) {
         self.init(titleKey, content: content)
+        self.isExpanded = isExpanded
     }
 
-    @available(*, unavailable)
     public init(_ titleResource: LocalizedStringResource, isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View) {
         self.init(titleResource, content: content)
+        self.isExpanded = isExpanded
     }
 
-    @available(*, unavailable)
     public init(_ title: String, isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View) {
         self.init(title, content: content)
+        self.isExpanded = isExpanded
     }
 
-    @available(*, unavailable)
     public init(isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View) {
         self.init(content: content, header: header)
+        self.isExpanded = isExpanded
     }
 
     // SKIP @bridge
@@ -80,17 +82,29 @@ public struct Section : View {
         self.footer = bridgedFooter == nil ? nil : ComposeBuilder.from { bridgedFooter! }
     }
 
+    // SKIP @bridge
+    public init(bridgedContent: any View, bridgedHeader: (any View)?, bridgedFooter: (any View)?, getExpanded: @escaping () -> Bool, setExpanded: @escaping (Bool) -> Void) {
+        self.init(bridgedContent: bridgedContent, bridgedHeader: bridgedHeader, bridgedFooter: bridgedFooter)
+        self.isExpanded = Binding(get: getExpanded, set: setExpanded)
+    }
+
     #if SKIP
     @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
         let isLazy = EvaluateOptions(options).lazyItemLevel != nil
         var renderables: kotlin.collections.MutableList<Renderable> = mutableListOf()
         let headerRenderables = header?.Evaluate(context: context, options: 0)
         if isLazy {
-            renderables.add(LazySectionHeader(content: headerRenderables ?? listOf()))
-        } else if let headerRenderables {
-            renderables.addAll(headerRenderables)
+            // Lazy containers keep collapsed rows so their indices stay stable, and hide them when rendering
+            renderables.add(LazySectionHeader(content: headerRenderables ?? listOf(), isExpanded: isExpanded))
+            renderables.addAll(content.Evaluate(context: context, options: options))
+        } else {
+            if let headerRenderables {
+                renderables.addAll(headerRenderables)
+            }
+            if isExpanded?.wrappedValue != false {
+                renderables.addAll(content.Evaluate(context: context, options: options))
+            }
         }
-        renderables.addAll(content.Evaluate(context: context, options: options))
         let footerRenderables = footer?.Evaluate(context: context, options: 0)
         if isLazy {
             renderables.add(LazySectionFooter(content: footerRenderables ?? listOf()))
