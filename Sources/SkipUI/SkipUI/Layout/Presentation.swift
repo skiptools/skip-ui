@@ -158,7 +158,13 @@ private let AlertDialogMaxWidth: Dp = 560.dp
             
             SyncSystemBarsWithTheme()
             
-            let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
+            // Size the sheet from the Configuration, not the window size class. The sheet lives in its
+            // own window, and that window's LocalWindowInfo.containerSize (which
+            // currentWindowAdaptiveInfo() reads) lags one rotation behind: rotate to landscape and the
+            // sheet keeps its portrait shape; rotate back and it stays full height with no handle,
+            // until it is closed and reopened. The Configuration arrives on time. 480dp is the
+            // WindowHeightSizeClass COMPACT breakpoint, so the shape choice is otherwise unchanged.
+            let verticalSizeClass: UserInterfaceSizeClass = LocalConfiguration.current.screenHeightDp < 480 ? .compact : .regular
             let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
             let sheetDepth = EnvironmentValues.shared._sheetDepth
             var systemBarEdges: Edge.Set = isFullScreen ? .all : [.top, .bottom]
