@@ -2076,9 +2076,9 @@ public struct NavigationSplitView : View, Renderable {
         }
         let lastIndex = columns.size - 1
 
-        // Show columns side by side when the horizontal size class is regular, as on iOS. The default hinge policy keeps a
-        // column from straddling a fold
-        let windowDirective = calculatePaneScaffoldDirectiveWithTwoPanesOnMediumWidth(currentWindowAdaptiveInfo())
+        // Show columns side by side when the horizontal size class is regular, as on iOS. Large widths (1200dp+) allow all
+        // three columns, as on an iPad in landscape. The default hinge policy keeps a column from straddling a fold
+        let windowDirective = calculatePaneScaffoldDirectiveWithTwoPanesOnMediumWidth(currentWindowAdaptiveInfo(supportLargeAndXLargeWidth: true))
         let isWindowSplit = windowDirective.maxHorizontalPartitions > 1
         let visibility = columnVisibility?.wrappedValue ?? NavigationSplitViewVisibility.automatic
         var partitions = windowDirective.maxHorizontalPartitions
