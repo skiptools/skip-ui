@@ -2,10 +2,14 @@
 #if SKIP
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imeAnimationTarget
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.LocalView
@@ -43,13 +47,20 @@ struct KeyboardDismissingNestedScrollConnection: NestedScrollConnection {
     }
 }
 
+/// Whether keyboard insets follow the keyboard's animation frame by frame.
+///
+/// When false, keyboard insets report the animation's target, so layouts that depend on the keyboard
+/// change once when the keyboard starts to move instead of recomposing on every animation frame.
+let LocalAnimatesKeyboardInsets: ProvidableCompositionLocal<Bool> = staticCompositionLocalOf { true }
+
 /// Returns keyboard insets owned by the current window.
 ///
 /// - Returns: Insets that follow this window's keyboard without adopting another window's keyboard.
+// SKIP INSERT: @OptIn(ExperimentalLayoutApi::class)
 @Composable func windowKeyboardInsets() -> WindowInsets {
     let windowInfo = LocalWindowInfo.current
     let view = LocalView.current
-    let keyboardInsets = WindowInsets.ime
+    let keyboardInsets = LocalAnimatesKeyboardInsets.current ? WindowInsets.ime : WindowInsets.imeAnimationTarget
     // SKIP INSERT: val isKeyboardVisible = { ViewCompat.getRootWindowInsets(view)?.isVisible(WindowInsetsCompat.Type.ime()) ?: false }
     return remember(windowInfo, view, keyboardInsets) {
         WindowKeyboardInsets(
@@ -95,7 +106,7 @@ final class WindowKeyboardInsetsState {
 /// Keeps keyboard geometry local to its window while allowing its keyboard to finish disappearing.
 final class WindowKeyboardInsets: WindowInsets {
 
-    private let source: WindowInsets
+    let source: WindowInsets
     private let isWindowFocused: () -> Bool
     private let isKeyboardVisible: () -> Bool
 
